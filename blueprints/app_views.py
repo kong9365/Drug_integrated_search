@@ -848,6 +848,12 @@ def copilot():
     return render_template("app/copilot.html", active_page="copilot")
 
 
+@app_bp.route("/home")
+def home():
+    """오늘의 브리핑 — Phase R-2 (R2-6) 에서 풀 구현 예정. 현재는 placeholder."""
+    return render_template("app/home.html", active_page="home")
+
+
 # ────────────────────────────────────────────────────────────────────────────
 # 워치리스트 — 사용자 등록 항목 (JSON 영속화)
 # ────────────────────────────────────────────────────────────────────────────

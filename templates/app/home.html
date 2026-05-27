@@ -1,0 +1,76 @@
+{% extends "_layout.html" %}
+
+{% block title %}오늘의 브리핑 — 광동 KD-IRIS{% endblock %}
+
+{% block breadcrumb %}
+  <span class="crumb-active">오늘의 브리핑</span>
+{% endblock %}
+
+{% block content %}
+  <div class="app-content">
+
+    <div class="page-head">
+      <div>
+        <div class="t-caption">홈 대시보드</div>
+        <h1 class="page-head__title">오늘의 브리핑</h1>
+        <p class="page-head__sub">QA · RA · SCM · R&amp;D · 식품QA 가 매일 첫 화면으로 보는 모닝 브리핑. CRITICAL 이벤트 · 워치리스트 요약 · 30일 이내 마감 일정 · 빠른 검색을 한 화면에.</p>
+      </div>
+      <div class="page-head__actions">
+        <span class="badge badge--muted">Phase R-2 준비 중</span>
+      </div>
+    </div>
+
+    <div class="app-card" style="text-align:center;padding:48px 24px;background:linear-gradient(180deg,var(--brand-soft) 0%, transparent 100%)">
+      <div style="font-size:42px;margin-bottom:14px">📋</div>
+      <h2 style="font-size:22px;color:var(--ink-1);margin:0 0 8px">곧 만들어집니다</h2>
+      <p style="font-size:14px;color:var(--ink-2);max-width:560px;margin:0 auto 20px;line-height:1.6">
+        Phase R-2(R2-6)에서 다음 정보를 한 화면에 통합합니다:
+      </p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:14px;max-width:880px;margin:0 auto 24px;text-align:left">
+        <div class="app-card" style="background:var(--bg-elevated)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="badge badge--danger badge--dot">A</span>
+            <strong style="color:var(--ink-1);font-size:13px">긴급 알림 배너</strong>
+          </div>
+          <p style="font-size:12px;color:var(--ink-3);margin:0;line-height:1.55">CRITICAL 이벤트가 1건 이상일 때만 노출. "오늘 회수명령 N건 · 판매중지 M건 신규" — 클릭 시 이벤트 모니터로.</p>
+        </div>
+        <div class="app-card" style="background:var(--bg-elevated)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="badge badge--brand badge--dot">B</span>
+            <strong style="color:var(--ink-1);font-size:13px">워치리스트 요약</strong>
+          </div>
+          <p style="font-size:12px;color:var(--ink-3);margin:0;line-height:1.55">🔴 위험 N개 · 🟡 주의 M개 · 🟢 이상없음 K개. 자세히 보기로 워치리스트 진입.</p>
+        </div>
+        <div class="app-card" style="background:var(--bg-elevated)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="badge badge--warn badge--dot">C</span>
+            <strong style="color:var(--ink-1);font-size:13px">오늘의 이벤트 TOP 5</strong>
+          </div>
+          <p style="font-size:12px;color:var(--ink-3);margin:0;line-height:1.55">심각도 높은 순 정렬. event_card 매크로로 일관 표시.</p>
+        </div>
+        <div class="app-card" style="background:var(--bg-elevated)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="badge badge--info badge--dot">D</span>
+            <strong style="color:var(--ink-1);font-size:13px">30일 이내 마감</strong>
+          </div>
+          <p style="font-size:12px;color:var(--ink-3);margin:0;line-height:1.55">재심사 D-Day 최대 3건 + 광동 GMP 만료(2027-03-28). 데이터 없으면 영역 숨김.</p>
+        </div>
+        <div class="app-card" style="background:var(--bg-elevated)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="badge badge--info badge--dot">E</span>
+            <strong style="color:var(--ink-1);font-size:13px">빠른 검색</strong>
+          </div>
+          <p style="font-size:12px;color:var(--ink-3);margin:0;line-height:1.55">제출 시 /?q= 로 redirect. 홈에서도 즉시 검색 진입.</p>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <a href="/" class="btn btn--primary btn--sm">제품·업체 조회</a>
+        <a href="/app/monitor" class="btn btn--secondary btn--sm">이벤트 모니터</a>
+        <a href="/app/watchlist" class="btn btn--secondary btn--sm">내 워치리스트</a>
+      </div>
+    </div>
+
+  </div>
+{% endblock %}
