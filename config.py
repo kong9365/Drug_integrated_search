@@ -4,6 +4,7 @@
 API 엔드포인트는 공공데이터포털(data.go.kr) 승인 명세서(2026-05-26 발급)를 기준으로 작성.
 관련 문서: API_APPLICATION_LIST.md, IMPLEMENTATION_PLAN.md, OpenAPI 신청 목록.txt
 """
+import logging
 import os
 from pathlib import Path
 
@@ -13,13 +14,18 @@ BASE_DIR = Path(__file__).parent
 # ============================================================================
 # 인증키 (Service Key / Key ID)
 # ============================================================================
-# 공공데이터포털(data.go.kr) 공통 SERVICE_KEY — 2026-05-26 발급
+# 공공데이터포털(data.go.kr) 공통 SERVICE_KEY — 환경변수에서만 로드
 # 의약품/의약외품/식품(data.go.kr 계열) 18개 API 공통 적용
-# 보안: 운영 환경에서는 반드시 환경변수 PUBLIC_DATA_SERVICE_KEY 사용
-SERVICE_KEY = os.getenv(
-    "PUBLIC_DATA_SERVICE_KEY",
-    ""
-)
+# 보안: 평문 fallback 제거됨. .env 또는 시스템 환경변수에 키 설정 필수.
+#   - 로컬: cp .env.example .env  →  .env에 키 입력  →  셸에서 export 또는 python-dotenv 사용
+#   - 운영: 시크릿 매니저(AWS Secrets Manager 등) → 환경변수 주입
+SERVICE_KEY = os.getenv("PUBLIC_DATA_SERVICE_KEY", "")
+if not SERVICE_KEY:
+    logging.getLogger(__name__).warning(
+        "PUBLIC_DATA_SERVICE_KEY 환경변수가 비어 있습니다. "
+        "data.go.kr 계열 18개 API 호출이 실패할 수 있습니다. "
+        ".env 또는 시스템 환경변수에 키를 설정하세요."
+    )
 
 # 식품안전나라(foodsafetykorea.go.kr) KeyID — 별도 발급 필요
 # NO 339(식품 회수·판매중지), 푸드QR 등 일부 식품 API는 식품안전나라 인증 체계 사용
