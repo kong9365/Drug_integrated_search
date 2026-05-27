@@ -99,12 +99,16 @@
           </div>
 
           {% if c.total > 0 %}
-          <!-- Row 2: 카운트 라벨 -->
+          <!-- Row 2: 카운트 라벨 (8종) -->
           <div style="display:flex;gap:14px;flex-wrap:wrap;padding:8px 16px;background:var(--bg-subtle);border-top:1px solid var(--line-2);font-size:12px">
             {% if c.recall > 0 %}<span style="color:var(--danger);font-weight:600">회수 {{ c.recall }}건</span>{% endif %}
             {% if c.safety > 0 %}<span style="color:var(--warn);font-weight:600">안전성서한 {{ c.safety }}건</span>{% endif %}
             {% if c.sanction > 0 %}<span style="color:var(--warn);font-weight:600">행정처분 {{ c.sanction }}건</span>{% endif %}
             {% if c.supply > 0 %}<span style="color:var(--danger);font-weight:600">공급중단 {{ c.supply }}건</span>{% endif %}
+            {% if c.patent > 0 %}<span style="color:var(--brand);font-weight:600">특허 {{ c.patent }}건</span>{% endif %}
+            {% if c.clinical > 0 %}<span style="color:var(--brand);font-weight:600">임상 {{ c.clinical }}건</span>{% endif %}
+            {% if c.review > 0 %}<span style="color:var(--warn);font-weight:600">재심사 {{ c.review }}건</span>{% endif %}
+            {% if c.reeval > 0 %}<span style="color:var(--warn);font-weight:600">재평가 {{ c.reeval }}건</span>{% endif %}
             <span style="margin-left:auto;color:var(--ink-3)">최근 매칭 top 3 ↓</span>
           </div>
           <!-- Row 3: 매칭 이벤트 top 3 -->

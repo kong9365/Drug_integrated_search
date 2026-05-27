@@ -73,7 +73,7 @@
       </span>
     </div>
 
-    <!-- Subtabs by type — 실 API 카운트 (6종 통합) -->
+    <!-- Subtabs by type — 실 API 카운트 (10종 통합) -->
     <div class="subtabs">
       <button class="subtab is-active">전체 <span class="subtab__count">{{ total_count or 0 }}</span></button>
       <button class="subtab">회수·판매중지 <span class="subtab__count">{{ type_counts.recall or 0 }}</span></button>
@@ -82,6 +82,10 @@
       <button class="subtab">공급중단 <span class="subtab__count">{{ type_counts.supply_stop or 0 }}</span></button>
       <button class="subtab">검사부적합 <span class="subtab__count">{{ type_counts.inspection_fail or 0 }}</span></button>
       <button class="subtab">신규허가 <span class="subtab__count">{{ type_counts.permit_new or 0 }}</span></button>
+      <button class="subtab">임상 신규 <span class="subtab__count">{{ type_counts.clinical_new or 0 }}</span></button>
+      <button class="subtab">특허 신규 <span class="subtab__count">{{ type_counts.patent_new or 0 }}</span></button>
+      <button class="subtab">재심사 예정 <span class="subtab__count">{{ type_counts.review_due or 0 }}</span></button>
+      <button class="subtab">재평가 완료 <span class="subtab__count">{{ type_counts.reeval_done or 0 }}</span></button>
     </div>
 
     <!-- Timeline -->

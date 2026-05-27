@@ -16,7 +16,11 @@ import time
 from typing import List, Dict, Tuple
 
 from ..api_client import fetch_recall, fetch_disciplinary
-from ..api_extras import fetch_drug_safety_letter, fetch_drug_supply_stop
+from ..api_extras import (
+    fetch_drug_safety_letter, fetch_drug_supply_stop,
+    fetch_drug_patent, fetch_drug_clinical,
+    fetch_drug_review, fetch_drug_reeval,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -62,10 +66,16 @@ def _filter(items: List[Dict], needle: str, fields: List[str]) -> List[Dict]:
 
 # 필드 매핑 — 각 API의 응답 필드명이 다르므로 명시
 _FIELDS = {
+    # 기존 4종 (NO 539·547·564·534)
     "recalls":   ["PRDUCT", "ENTRPS", "ITEM_NAME", "ENTP_NAME"],
     "safety":    ["TITLE", "SUMRY_CONT", "SUMMARY", "DETAIL_CN", "TBL_CN"],
     "sanctions": ["ENTP_NAME", "ITEM_NAME", "ENTRPS_NAME", "VIOLATION_DETAIL"],
     "supply":    ["ENTP_NAME", "ITEM_NAME", "PRDUCT", "ENTRPS_NAME"],
+    # 추가 R&D 4종 (NO 561·566·554·556)
+    "patent":    ["ITEM_NAME", "INGR_NAME", "ENTP_NAME"],
+    "clinical":  ["GOODS_NAME", "APPLY_ENTP_NAME", "CLINIC_EXAM_TITLE"],
+    "review":    ["ITEM_NAME", "ENTP_NAME"],
+    "reeval":    ["ITEM_NAME", "ENTP_NAME"],
 }
 
 
@@ -103,6 +113,38 @@ def _normalize_event(kind: str, raw: Dict) -> Dict:
             "date": "",
             "api": "NO 534",
         }
+    if kind == "patent":
+        return {
+            "kind": "patent", "kind_kr": "특허 등록", "severity": "LOW",
+            "title": (raw.get("ITEM_NAME") or raw.get("PAT_NO") or "(특허 미상)")[:60],
+            "meta": (raw.get("INGR_NAME") or "") + (" · " + raw.get("ENTP_NAME") if raw.get("ENTP_NAME") else ""),
+            "date": (raw.get("EXPIRE_DATE") or "")[:10],
+            "api": "NO 561",
+        }
+    if kind == "clinical":
+        return {
+            "kind": "clinical", "kind_kr": "임상시험", "severity": "LOW",
+            "title": (raw.get("GOODS_NAME") or "(임상 미상)")[:60],
+            "meta": (raw.get("CLINIC_EXAM_TITLE") or "")[:80],
+            "date": "",
+            "api": "NO 566",
+        }
+    if kind == "review":
+        return {
+            "kind": "review", "kind_kr": "재심사", "severity": "MED",
+            "title": (raw.get("ITEM_NAME") or "(품목 미상)")[:60],
+            "meta": (raw.get("ENTP_NAME") or ""),
+            "date": (raw.get("REJDGE_DT") or "")[:10],
+            "api": "NO 554",
+        }
+    if kind == "reeval":
+        return {
+            "kind": "reeval", "kind_kr": "재평가", "severity": "MED",
+            "title": (raw.get("ITEM_NAME") or "(품목 미상)")[:60],
+            "meta": (raw.get("ENTP_NAME") or ""),
+            "date": (raw.get("REVAL_DT") or "")[:10],
+            "api": "NO 556",
+        }
     return {"kind": kind, "title": "(미상)", "meta": "", "date": "", "api": ""}
 
 
@@ -117,37 +159,56 @@ def match_for_entries(entries: List[Dict]) -> Dict[str, Dict]:
             "counts": {"recall": N, "safety": N, "sanction": N, "supply": N, "total": N},
         }}
     """
+    empty_result = {
+        "recalls": [], "safety": [], "sanctions": [], "supply": [],
+        "patent": [], "clinical": [], "review": [], "reeval": [],
+        "events": [],
+        "counts": {
+            "recall": 0, "safety": 0, "sanction": 0, "supply": 0,
+            "patent": 0, "clinical": 0, "review": 0, "reeval": 0,
+            "total": 0,
+        },
+    }
+
     if not entries:
         return {}
 
-    # 글로벌 API 4종을 한 번만 fetch (캐시 적용)
-    recalls   = _cached("recall",    fetch_recall,             num_of_rows=200)
-    safety    = _cached("safety",    fetch_drug_safety_letter, num_of_rows=200)
-    sanctions = _cached("sanction",  fetch_disciplinary,       num_of_rows=200)
-    supply    = _cached("supply",    fetch_drug_supply_stop,   num_of_rows=200)
+    # 글로벌 API 8종을 한 번만 fetch (캐시 적용)
+    recalls    = _cached("recall",     fetch_recall,             num_of_rows=200)
+    safety     = _cached("safety",     fetch_drug_safety_letter, num_of_rows=200)
+    sanctions  = _cached("sanction",   fetch_disciplinary,       num_of_rows=200)
+    supply     = _cached("supply",     fetch_drug_supply_stop,   num_of_rows=200)
+    patent     = _cached("patent",     fetch_drug_patent,        num_of_rows=200)
+    clinical   = _cached("clinical",   fetch_drug_clinical,      num_of_rows=200)
+    review     = _cached("review",     fetch_drug_review,        num_of_rows=200)
+    reeval     = _cached("reeval",     fetch_drug_reeval,        num_of_rows=200)
 
     out: Dict[str, Dict] = {}
     for e in entries:
         q = (e.get("query") or "").strip()
         if not q:
-            out[e["id"]] = {
-                "recalls": [], "safety": [], "sanctions": [], "supply": [],
-                "events": [],
-                "counts": {"recall": 0, "safety": 0, "sanction": 0, "supply": 0, "total": 0},
-            }
+            out[e["id"]] = dict(empty_result)
             continue
 
         r_hits = _filter(recalls,   q, _FIELDS["recalls"])
         s_hits = _filter(safety,    q, _FIELDS["safety"])
         d_hits = _filter(sanctions, q, _FIELDS["sanctions"])
         u_hits = _filter(supply,    q, _FIELDS["supply"])
+        p_hits = _filter(patent,    q, _FIELDS["patent"])
+        c_hits = _filter(clinical,  q, _FIELDS["clinical"])
+        rv_hits = _filter(review,   q, _FIELDS["review"])
+        re_hits = _filter(reeval,   q, _FIELDS["reeval"])
 
-        # 정규화 + 최신 3건만 (날짜 내림차순)
+        # 정규화 + 최신 3건만 (날짜 내림차순) — 8종 통합
         events = (
             [_normalize_event("recall",   r) for r in r_hits[:5]] +
             [_normalize_event("safety",   s) for s in s_hits[:5]] +
             [_normalize_event("sanction", d) for d in d_hits[:5]] +
-            [_normalize_event("supply",   u) for u in u_hits[:5]]
+            [_normalize_event("supply",   u) for u in u_hits[:5]] +
+            [_normalize_event("patent",   p) for p in p_hits[:5]] +
+            [_normalize_event("clinical", c) for c in c_hits[:5]] +
+            [_normalize_event("review",   v) for v in rv_hits[:5]] +
+            [_normalize_event("reeval",   e2) for e2 in re_hits[:5]]
         )
         events.sort(key=lambda x: x.get("date", ""), reverse=True)
         events = events[:3]
@@ -155,13 +216,20 @@ def match_for_entries(entries: List[Dict]) -> Dict[str, Dict]:
         out[e["id"]] = {
             "recalls": r_hits[:10], "safety": s_hits[:10],
             "sanctions": d_hits[:10], "supply": u_hits[:10],
+            "patent": p_hits[:10], "clinical": c_hits[:10],
+            "review": rv_hits[:10], "reeval": re_hits[:10],
             "events": events,
             "counts": {
                 "recall":   len(r_hits),
                 "safety":   len(s_hits),
                 "sanction": len(d_hits),
                 "supply":   len(u_hits),
-                "total":    len(r_hits) + len(s_hits) + len(d_hits) + len(u_hits),
+                "patent":   len(p_hits),
+                "clinical": len(c_hits),
+                "review":   len(rv_hits),
+                "reeval":   len(re_hits),
+                "total":    (len(r_hits) + len(s_hits) + len(d_hits) + len(u_hits)
+                             + len(p_hits) + len(c_hits) + len(rv_hits) + len(re_hits)),
             },
         }
     return out

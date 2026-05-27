@@ -702,6 +702,89 @@ def timeline():
     except Exception as e:
         logger.warning(f"timeline permit_new 수집 실패: {e}")
 
+    # ────────────────────────────────────────────────────────────────────
+    # R&D 이벤트 4종 — Phase 4에서 추가 (NO 566 임상 · NO 561 특허 · NO 554 재심사 · NO 556 재평가)
+    # ────────────────────────────────────────────────────────────────────
+    try:
+        from ..api_extras import fetch_drug_clinical
+        items = (fetch_drug_clinical(num_of_rows=10).get("items") or [])[:6]
+        for it in items:
+            events.append({
+                "type": "clinical_new",
+                "type_kr": "임상시험 신규",
+                "severity": "LOW",
+                "domain": "drug",
+                "domain_kr": "의약품",
+                "title": (it.get("GOODS_NAME") or "(임상 미상)")[:60],
+                "summary": (it.get("CLINIC_EXAM_TITLE") or "")[:100],
+                "entity": it.get("APPLY_ENTP_NAME") or "",
+                "date": "",
+                "api": "API 566",
+                "url": "https://www.data.go.kr/data/15097283/openapi.do",
+            })
+    except Exception as e:
+        logger.warning(f"timeline clinical_new 수집 실패: {e}")
+
+    try:
+        from ..api_extras import fetch_drug_patent
+        items = (fetch_drug_patent(num_of_rows=10).get("items") or [])[:6]
+        for it in items:
+            events.append({
+                "type": "patent_new",
+                "type_kr": "특허 등록",
+                "severity": "LOW",
+                "domain": "drug",
+                "domain_kr": "의약품",
+                "title": (it.get("ITEM_NAME") or it.get("PAT_NO") or "(특허 미상)")[:60],
+                "summary": (it.get("INGR_NAME") or "")[:60] + (" · 만료 " + it.get("EXPIRE_DATE") if it.get("EXPIRE_DATE") else ""),
+                "entity": it.get("ENTP_NAME") or "",
+                "date": (it.get("EXPIRE_DATE") or "")[:10],
+                "api": "API 561",
+                "url": "https://www.data.go.kr/data/15113612/openapi.do",
+            })
+    except Exception as e:
+        logger.warning(f"timeline patent_new 수집 실패: {e}")
+
+    try:
+        from ..api_extras import fetch_drug_review
+        items = (fetch_drug_review(num_of_rows=10).get("items") or [])[:5]
+        for it in items:
+            events.append({
+                "type": "review_due",
+                "type_kr": "재심사 예정",
+                "severity": "MED",
+                "domain": "drug",
+                "domain_kr": "의약품",
+                "title": (it.get("ITEM_NAME") or "(품목 미상)")[:60],
+                "summary": "재심사 일정",
+                "entity": it.get("ENTP_NAME") or "",
+                "date": (it.get("REJDGE_DT") or "")[:10],
+                "api": "API 554",
+                "url": "https://www.data.go.kr/data/15097294/openapi.do",
+            })
+    except Exception as e:
+        logger.warning(f"timeline review_due 수집 실패: {e}")
+
+    try:
+        from ..api_extras import fetch_drug_reeval
+        items = (fetch_drug_reeval(num_of_rows=10).get("items") or [])[:5]
+        for it in items:
+            events.append({
+                "type": "reeval_done",
+                "type_kr": "재평가 완료",
+                "severity": "MED",
+                "domain": "drug",
+                "domain_kr": "의약품",
+                "title": (it.get("ITEM_NAME") or "(품목 미상)")[:60],
+                "summary": "재평가 결과 공시",
+                "entity": it.get("ENTP_NAME") or "",
+                "date": (it.get("REVAL_DT") or "")[:10],
+                "api": "API 556",
+                "url": "https://www.data.go.kr/data/15097297/openapi.do",
+            })
+    except Exception as e:
+        logger.warning(f"timeline reeval_done 수집 실패: {e}")
+
     # 시간순 정렬
     events.sort(key=lambda e: e["date"], reverse=True)
 
@@ -871,7 +954,7 @@ def _fetch_workspace_events(kinds):
     if "clinical" in kinds:
         try:
             from ..api_extras import fetch_drug_clinical
-            items = (fetch_drug_clinical(num_of_rows=20).get("items") or [])[:6]
+            items = watchlist_match._cached("clinical", fetch_drug_clinical, num_of_rows=50)[:6]
             out["clinical"] = [{
                 "kind": "clinical", "kind_kr": "임상시험", "severity": "LOW",
                 "title": (it.get("GOODS_NAME") or "")[:60],
@@ -881,6 +964,90 @@ def _fetch_workspace_events(kinds):
             } for it in items]
         except Exception:
             out["clinical"] = []
+
+    if "review" in kinds:
+        try:
+            from ..api_extras import fetch_drug_review
+            items = watchlist_match._cached("review", fetch_drug_review, num_of_rows=50)[:6]
+            out["review"] = [{
+                "kind": "review", "kind_kr": "재심사", "severity": "MED",
+                "title": (it.get("ITEM_NAME") or "")[:60],
+                "meta": (it.get("ENTP_NAME") or ""),
+                "date": (it.get("REJDGE_DT") or it.get("REVAL_DT") or "")[:10],
+                "api": "NO 554",
+            } for it in items]
+        except Exception:
+            out["review"] = []
+
+    if "reeval" in kinds:
+        try:
+            from ..api_extras import fetch_drug_reeval
+            items = watchlist_match._cached("reeval", fetch_drug_reeval, num_of_rows=50)[:6]
+            out["reeval"] = [{
+                "kind": "reeval", "kind_kr": "재평가", "severity": "MED",
+                "title": (it.get("ITEM_NAME") or "")[:60],
+                "meta": (it.get("ENTP_NAME") or ""),
+                "date": (it.get("REVAL_DT") or "")[:10],
+                "api": "NO 556",
+            } for it in items]
+        except Exception:
+            out["reeval"] = []
+
+    if "patent" in kinds:
+        try:
+            from ..api_extras import fetch_drug_patent
+            items = watchlist_match._cached("patent", fetch_drug_patent, num_of_rows=50)[:6]
+            out["patent"] = [{
+                "kind": "patent", "kind_kr": "특허 등록", "severity": "LOW",
+                "title": (it.get("ITEM_NAME") or it.get("PAT_NO") or "")[:60],
+                "meta": (it.get("INGR_NAME") or "") + " · " + (it.get("ENTP_NAME") or ""),
+                "date": (it.get("EXPIRE_DATE") or "")[:10],
+                "api": "NO 561",
+            } for it in items]
+        except Exception:
+            out["patent"] = []
+
+    if "bioeq" in kinds:
+        try:
+            from ..api_extras import fetch_drug_bioeq
+            items = watchlist_match._cached("bioeq", fetch_drug_bioeq, num_of_rows=50)[:6]
+            out["bioeq"] = [{
+                "kind": "bioeq", "kind_kr": "생동성인정", "severity": "LOW",
+                "title": (it.get("ITEM_NAME") or "")[:60],
+                "meta": (it.get("INGR_KOR_NAME") or "") + " · " + (it.get("ENTP_NAME") or ""),
+                "date": "",
+                "api": "NO 485",
+            } for it in items]
+        except Exception:
+            out["bioeq"] = []
+
+    if "supply_lack" in kinds:
+        try:
+            from ..api_extras import fetch_drug_supply_lack
+            items = watchlist_match._cached("supply_lack", fetch_drug_supply_lack, num_of_rows=50)[:6]
+            out["supply_lack"] = [{
+                "kind": "supply_lack", "kind_kr": "공급부족", "severity": "MED",
+                "title": (it.get("ITEM_NAME") or "")[:60],
+                "meta": (it.get("ENTP_NAME") or ""),
+                "date": "",
+                "api": "NO 537",
+            } for it in items]
+        except Exception:
+            out["supply_lack"] = []
+
+    if "haccp_smart" in kinds:
+        try:
+            from ..api_extras import fetch_haccp_smart
+            items = watchlist_match._cached("haccp_smart", fetch_haccp_smart, num_of_rows=50)[:6]
+            out["haccp_smart"] = [{
+                "kind": "haccp_smart", "kind_kr": "스마트HACCP", "severity": "LOW",
+                "title": (it.get("BSSH_NM") or "")[:60],
+                "meta": (it.get("ADDR") or "") + " · " + (it.get("PRMS_NO") or ""),
+                "date": (it.get("PRMS_DT") or "")[:10],
+                "api": "NO 12",
+            } for it in items]
+        except Exception:
+            out["haccp_smart"] = []
 
     return out
 
@@ -1010,4 +1177,65 @@ def reports():
         "app/reports.html",
         active_page="reports",
         reports=_REPORT_CATALOG,
+    )
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# 검사부적합 트래커 — NO 535 전용 페이지 (Phase 4)
+# ────────────────────────────────────────────────────────────────────────────
+
+@app_bp.route("/inspections")
+def inspections():
+    """식품 검사부적합 트래커 — NO 535 전용 필터/조회 페이지."""
+    from ..api_extras import fetch_food_inspect
+    from datetime import datetime, timedelta
+
+    q = (request.args.get("q") or "").strip()
+    # 글로벌 fetch (캐시 활용)
+    try:
+        from . import watchlist_match
+        all_items = watchlist_match._cached("food_inspect_track", fetch_food_inspect, num_of_rows=200)
+    except Exception:
+        all_items = []
+
+    # 검색어 필터 (없으면 전체)
+    fields = ["PRDUCT", "ENTRPS", "IMPROPT_ITM", "RAWMTRL_NM", "BSSH_NM"]
+    items = _filter_items(all_items, q, fields) if q else all_items
+
+    # KPI 계산
+    # 전체 부적합 / 최근 30일 / 자사(광동) 영향 / 부적합 사유 TOP
+    today_str = datetime.now().strftime("%Y%m%d")
+    thirty_days_ago = (datetime.now() - timedelta(days=30)).strftime("%Y%m%d")
+
+    recent_30 = 0
+    our_company_hits = 0
+    reason_counter = {}
+    for it in items:
+        date = (it.get("REGIST_DT") or it.get("DSPS_DCSNDT") or "")[:8]
+        if date and date >= thirty_days_ago.replace("-", ""):
+            recent_30 += 1
+        entrps = (it.get("ENTRPS") or "") + " " + (it.get("BSSH_NM") or "")
+        if "광동" in entrps:
+            our_company_hits += 1
+        reason = (it.get("IMPROPT_ITM") or "").strip()
+        if reason:
+            # 사유의 첫 카테고리 추출 (잔류농약/중금속/미생물 등)
+            key = reason.split(" ")[0][:20] if reason else ""
+            if key:
+                reason_counter[key] = reason_counter.get(key, 0) + 1
+    reason_top = sorted(reason_counter.items(), key=lambda x: x[1], reverse=True)[:5]
+
+    kpi = {
+        "total": len(items),
+        "recent_30": recent_30,
+        "our_company": our_company_hits,
+        "reason_top": reason_top,
+    }
+
+    return render_template(
+        "app/inspections.html",
+        active_page="inspections",
+        query=q,
+        items=items[:50],
+        kpi=kpi,
     )

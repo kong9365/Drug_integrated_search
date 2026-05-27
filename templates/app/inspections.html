@@ -1,0 +1,144 @@
+{% extends "_layout.html" %}
+
+{% block title %}검사부적합 트래커 — 광동 RegHub 360{% endblock %}
+
+{% block breadcrumb %}
+  <span class="crumb-active">검사부적합 트래커</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <div class="app-topbar__search">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <span style="flex:1">제품·업체·성분 빠른 검색</span><span class="kbd">⌘ K</span>
+  </div>
+  <span class="badge badge--warn">NO 535</span>
+  <span class="badge">{{ items|length }}건 표시</span>
+{% endblock %}
+
+{% block content %}
+  <div class="app-content">
+
+    <!-- Hero -->
+    <div class="page-head">
+      <div style="display:flex;align-items:flex-start;gap:18px">
+        <div style="width:56px;height:56px;border-radius:14px;background:var(--warn-soft);color:var(--warn);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div style="min-width:0">
+          <div class="t-caption">SCM · 식품QA 공유 도구</div>
+          <h1 class="page-head__title">검사부적합 트래커</h1>
+          <p class="page-head__sub" style="margin-top:6px;max-width:720px">식약처 NO 535 식품 검사부적합 데이터를 원재료·제품명·제조소 기준으로 검색. 자사 영향 가능성을 자동 매칭.</p>
+        </div>
+      </div>
+      <div class="page-head__actions">
+        <span class="badge badge--brand badge--dot">실시간 fetch</span>
+        <a href="/app/workspace/scm" class="btn btn--secondary btn--sm">SCM 워크스페이스 →</a>
+        <a href="/app/workspace/food_qa" class="btn btn--secondary btn--sm">식품QA 워크스페이스 →</a>
+      </div>
+    </div>
+
+    <!-- 검색 폼 -->
+    <div class="app-card" style="margin-bottom:18px">
+      <form action="/app/inspections" method="get" style="display:flex;gap:10px;align-items:center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="text" name="q" value="{{ query or '' }}" placeholder="원재료·제품명·제조소·부적합 사유 검색 (예: 홍삼, 잔류농약, 광동)" style="flex:1;height:38px;padding:0 12px;border:1px solid var(--line-1);border-radius:8px;background:var(--bg-elevated);color:var(--ink-1);font-size:14px;outline:none">
+        <button type="submit" class="btn btn--primary btn--sm" style="height:38px;padding:0 20px">검색</button>
+        {% if query %}<a href="/app/inspections" class="btn btn--ghost btn--sm">초기화</a>{% endif %}
+      </form>
+      {% if query %}
+      <div style="margin-top:10px;font-size:12px;color:var(--ink-3)">
+        검색어 "<strong style="color:var(--ink-2)">{{ query }}</strong>" 매칭 결과 — {{ kpi.total }}건 ({{ items|length }} 표시)
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- KPI 4종 -->
+    <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;margin-bottom:18px">
+      <div class="kpi-card">
+        <div class="kpi-card__label">전체 부적합</div>
+        <div class="kpi-card__num"><span class="tnum">{{ kpi.total }}</span><small>건</small></div>
+        <div class="kpi-card__delta" style="color:var(--ink-3)">{% if query %}검색어 매칭{% else %}전체 조회{% endif %}</div>
+      </div>
+      <div class="kpi-card">
+        {% if kpi.recent_30 > 0 %}<div class="kpi-card__pulse"></div>{% endif %}
+        <div class="kpi-card__label">최근 30일</div>
+        <div class="kpi-card__num kpi-card__num--warn"><span class="tnum">{{ kpi.recent_30 }}</span><small>건</small></div>
+        <div class="kpi-card__delta" style="color:var(--ink-3)">신규 부적합 발생</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__label">자사 영향(광동)</div>
+        <div class="kpi-card__num {% if kpi.our_company > 0 %}kpi-card__num--danger{% endif %}"><span class="tnum">{{ kpi.our_company }}</span><small>건</small></div>
+        <div class="kpi-card__delta" style="color:{% if kpi.our_company %}var(--danger){% else %}var(--ink-3){% endif %}">{% if kpi.our_company %}즉시 검토 필요{% else %}안전 상태{% endif %}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__label">부적합 사유 TOP</div>
+        {% if kpi.reason_top %}
+        <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px;font-size:11px">
+          {% for reason, cnt in kpi.reason_top[:3] %}
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-2);font-weight:600">{{ reason|truncate(14) }}</span><span class="tnum" style="color:var(--warn)">{{ cnt }}건</span></div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="kpi-card__num"><small>없음</small></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 결과 리스트 -->
+    <div class="app-card">
+      <div class="app-card__head">
+        <div class="app-card__title">부적합 결과 — 상위 {{ items|length }}건</div>
+        <span class="app-card__caption">NO 535 · 식약처 실시간</span>
+      </div>
+
+      {% if items %}
+      <div style="display:flex;flex-direction:column;gap:8px">
+        {% for it in items %}
+        {% set entrps = (it.ENTRPS or '') ~ ' ' ~ (it.BSSH_NM or '') %}
+        {% set is_ours = '광동' in entrps %}
+        <div style="display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:14px 16px;background:var(--bg-elevated);border:1px solid {% if is_ours %}var(--danger){% else %}var(--line-1){% endif %};border-radius:10px">
+          {% if is_ours %}
+          <span class="badge badge--danger badge--dot">자사 매칭</span>
+          {% else %}
+          <span class="badge">부적합</span>
+          {% endif %}
+          <div style="min-width:0">
+            <div style="font-size:14px;font-weight:600;color:var(--ink-1)">{{ (it.PRDUCT or '(제품 미상)')|truncate(60) }}</div>
+            <div style="font-size:12px;color:var(--ink-3);margin-top:3px">
+              {% if it.IMPROPT_ITM %}<span style="color:var(--warn);font-weight:600">{{ it.IMPROPT_ITM|truncate(40) }}</span> · {% endif %}
+              {% if it.ENTRPS %}{{ it.ENTRPS|truncate(20) }}{% endif %}
+              {% if it.RAWMTRL_NM %} · 원재료 {{ it.RAWMTRL_NM|truncate(20) }}{% endif %}
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-3)">{{ (it.REGIST_DT or it.DSPS_DCSNDT or '')[:10] or '날짜 미상' }}</div>
+            <a href="/?q={{ it.PRDUCT or it.ENTRPS or '' }}" style="font-size:11px;color:var(--brand);text-decoration:none">통합 검색 →</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:50px 20px;color:var(--ink-3)">
+        <div style="font-size:36px;margin-bottom:8px">🌿</div>
+        <h3 style="color:var(--ink-1);font-size:16px;margin:0 0 6px">매칭된 부적합 항목이 없습니다</h3>
+        <p style="font-size:13px">검색어를 바꾸거나 초기화해 전체 데이터를 보세요.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- 안내 -->
+    <div class="app-card" style="margin-top:18px;background:linear-gradient(135deg,var(--warn-soft) 0%, transparent 100%);border-color:transparent">
+      <div style="display:flex;align-items:center;gap:14px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <div style="font-size:12px;color:var(--ink-2);line-height:1.55">
+          <strong style="color:var(--ink-1);font-weight:700">데이터 출처</strong> — 식약처 NO 535 식품 검사부적합 정보 (PrsecImproptFoodInfoService03). 결과는 5분 TTL 캐시 적용. 자사 매칭(빨간 테두리)은 ENTRPS·BSSH_NM에 "광동" 포함 여부로 판단합니다 — 정밀 매칭은 Phase 1.5의 정규화 파이프라인 이후 활성화 예정.
+        </div>
+      </div>
+    </div>
+
+  </div>
+{% endblock %}
