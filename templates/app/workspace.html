@@ -1,0 +1,139 @@
+{% extends "_layout.html" %}
+
+{% block title %}{{ workspace.label }} — 광동 RegHub 360{% endblock %}
+
+{% block breadcrumb %}
+  <a href="/" style="color:var(--ink-3);text-decoration:none">Workspaces</a>
+  <span class="crumb-divider">/</span>
+  <span class="crumb-active">{{ workspace.short_label }}</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <div class="app-topbar__search">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <span style="flex:1">제품·업체·성분 빠른 검색</span><span class="kbd">⌘ K</span>
+  </div>
+  <span class="badge badge--{{ workspace.accent }} badge--dot">{{ workspace.short_label }}</span>
+{% endblock %}
+
+{% block content %}
+  <div class="app-content">
+
+    <!-- Department hero -->
+    <div class="page-head">
+      <div style="display:flex;align-items:flex-start;gap:18px">
+        <div style="width:56px;height:56px;border-radius:14px;background:var(--{{ workspace.accent }}-soft, var(--brand-soft));color:var(--{{ workspace.accent }}, var(--brand));display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{{ workspace.icon_svg|safe }}</svg>
+        </div>
+        <div style="min-width:0">
+          <div class="t-caption">부서 워크스페이스</div>
+          <h1 class="page-head__title">{{ workspace.label }}</h1>
+          <p class="page-head__sub" style="margin-top:6px;max-width:720px">{{ workspace.description }}</p>
+        </div>
+      </div>
+      <div class="page-head__actions">
+        <span class="badge badge--brand badge--dot">실시간</span>
+        <span class="badge">관심 이벤트 {{ events|length }}건</span>
+      </div>
+    </div>
+
+    <!-- KPI cards (부서별 4종) -->
+    <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;margin-bottom:24px">
+      {% for spec in workspace.kpi_specs %}
+      {% set val = kpi_values[spec.key] %}
+      <div class="kpi-card">
+        <div class="kpi-card__label">{{ spec.label }}</div>
+        <div class="kpi-card__num kpi-card__num--{{ spec.color if val and val != 0 and val != '—' else 'ok' }}">
+          {% if val is number %}<span class="tnum">{{ val }}</span>{% if spec.kind == 'count' %}<small>건</small>{% endif %}
+          {% else %}<span>{{ val }}</span>{% endif %}
+        </div>
+        <div class="kpi-card__delta" style="color:var(--ink-3)">{{ spec.kind|replace('count', '실 API 집계')|replace('watchlist_count', '워치리스트 등록')|replace('static', 'Phase 2.5 활성화 예정') }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- 2-column main -->
+    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:20px">
+
+      <!-- LEFT: 관심 이벤트 통합 타임라인 -->
+      <div class="app-card">
+        <div class="app-card__head">
+          <div class="app-card__title">관심 이벤트 — 최신 {{ events|length }}건</div>
+          <span class="badge">{{ workspace.event_kinds|join(' · ') }}</span>
+        </div>
+        {% if events %}
+        <div style="display:flex;flex-direction:column;gap:8px">
+          {% for ev in events %}
+          <div class="alert-row">
+            <div class="alert-row__bar" style="background:{% if ev.severity == 'HIGH' %}var(--danger){% elif ev.severity == 'MED' %}var(--warn){% else %}var(--brand){% endif %}"></div>
+            <span class="alert-row__time">{{ ev.date or '-' }}</span>
+            <div class="flex-1">
+              <div class="alert-row__title">「{{ ev.title }}」 {{ ev.kind_kr }}</div>
+              <div class="alert-row__meta">{{ ev.api }} · {{ ev.meta|truncate(80) }}</div>
+            </div>
+            <span class="badge badge--{% if ev.severity == 'HIGH' %}danger{% elif ev.severity == 'MED' %}warn{% else %}info{% endif %}">{{ ev.severity }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line-2);text-align:center">
+          <a href="/app/timeline" class="btn btn--secondary btn--sm">전체 타임라인 보기 →</a>
+        </div>
+        {% else %}
+        <div style="padding:40px;text-align:center;color:var(--ink-3)">
+          <div style="font-size:36px;margin-bottom:10px">🌿</div>
+          <h3 style="color:var(--ink-1);font-size:16px;margin:0 0 6px">관심 이벤트 없음</h3>
+          <p style="font-size:13px">현재 이 부서의 관심 카테고리에서 신규 이벤트가 없습니다.</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- RIGHT: 빠른 액션 + 통계 + 추천 -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- 빠른 액션 -->
+        <div class="app-card">
+          <div class="app-card__head">
+            <div class="app-card__title">빠른 액션</div>
+            <span class="app-card__caption">{{ workspace.short_label }} 추천</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            {% for a in workspace.actions %}
+            <a href="{{ a.href }}" style="display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px;color:var(--ink-2);text-decoration:none;font-size:13px;font-weight:500;transition:border-color 0.15s,background-color 0.15s" onmouseover="this.style.background='var(--bg-muted)';this.style.borderColor='var(--ink-4)'" onmouseout="this.style.background='var(--bg-subtle)';this.style.borderColor='var(--line-2)'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--{{ workspace.accent }}, var(--brand))" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+              <span style="flex:1">{{ a.label }}</span>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- 카테고리별 카운트 -->
+        <div class="app-card">
+          <div class="app-card__head">
+            <div class="app-card__title">카테고리별 카운트</div>
+            <span class="app-card__caption">최근 fetch</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+            {% for kind, evs in events_by_kind.items() %}
+            {% set label = {'recall':'회수·판매중지','safety':'안전성서한','sanction':'행정처분','supply':'공급중단','new_permit':'신규 허가','inspection':'검사부적합','food_recall':'수입식품 회수','gmp':'GMP 적합판정','clinical':'임상시험'}[kind] %}
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-2)">
+              <span style="color:var(--ink-2)">{{ label }}</span>
+              <strong class="tnum" style="color:{% if evs|length > 0 %}var(--brand){% else %}var(--ink-4){% endif %}">{{ evs|length }}건</strong>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- AI 코파일럿 카드 -->
+        <div class="app-card" style="background:linear-gradient(135deg,var(--brand-soft) 0%, transparent 100%);border-color:transparent">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),color-mix(in oklab,var(--brand) 70%,#000));color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">AI</div>
+            <span style="font-size:13px;font-weight:700;color:var(--brand)">{{ workspace.short_label }} 코파일럿</span>
+          </div>
+          <p style="font-size:12px;color:var(--ink-3);margin:0 0 10px;line-height:1.5">{{ workspace.label }} 관점의 자연어 질문을 던지면 식약처 공공 API 근거 카드와 함께 답합니다.</p>
+          <a href="/app/copilot" class="btn btn--primary btn--sm" style="width:100%;justify-content:center">코파일럿 열기 →</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+{% endblock %}

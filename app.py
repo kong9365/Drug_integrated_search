@@ -13,6 +13,7 @@ from flask import Flask, jsonify, request
 from .config import BASE_DIR, STATIC_FOLDER, LOG_DIR, SECRET_KEY
 from .blueprints import landing_bp, app_bp, api_bp, api_demo_bp
 from .blueprints.nav_config import NAV_ITEMS, USER_INFO
+from .blueprints.workspaces_config import WORKSPACES
 from .blueprints import watchlist_store, watchlist_match
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -77,7 +78,11 @@ def inject_nav():
                 # 등록만 되어 있으면 brand 배지로 건수 표시
                 it = {**it, "badge": {"kind": "brand", "text": str(wl_count)}}
         items.append(it)
-    return {"nav_items": items, "user_info": USER_INFO}
+    return {
+        "nav_items": items,
+        "workspaces": WORKSPACES,
+        "user_info": USER_INFO,
+    }
 
 
 # ────────────────────────────────────────────────────────────────────────────

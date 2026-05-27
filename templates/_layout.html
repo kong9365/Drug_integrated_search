@@ -53,10 +53,12 @@
 
   <div class="sidebar__group">
     <div class="sidebar__label">Workspaces</div>
-    <div style="padding:10px 12px;background:var(--bg-subtle);border-radius:8px;font-size:11px;color:var(--ink-3);line-height:1.5">
-      <strong style="color:var(--ink-2);font-weight:600">Phase 2 예정</strong><br>
-      RA · QA/QC · SCM · 영업 · R&amp;D · 식품QA · 경영진 부서별 워크스페이스가 준비 중입니다.
-    </div>
+    {% for w in workspaces %}
+    <a href="/app/workspace/{{ w.id }}" class="nav-item{% if w.id == active_workspace %} is-active{% endif %}">
+      <svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{{ w.icon_svg|safe }}</svg>
+      {{ w.short_label }}
+    </a>
+    {% endfor %}
   </div>
 
   <div class="sidebar__user">

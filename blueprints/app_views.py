@@ -779,6 +779,166 @@ def watchlist_delete(entry_id):
 
 
 # ────────────────────────────────────────────────────────────────────────────
+# 부서별 워크스페이스 — 7개 부서 동적 페이지
+# ────────────────────────────────────────────────────────────────────────────
+
+# 이벤트 종류별 fetch + 정규화 함수. watchlist_match와 동일한 캐시 활용.
+def _fetch_workspace_events(kinds):
+    """
+    워크스페이스가 관심 갖는 이벤트 종류 list 에 대해
+    글로벌 API 결과를 fetch(캐시 적용)하고 정규화된 이벤트 리스트로 반환.
+
+    kinds: ["recall", "safety", "sanction", "supply", "new_permit",
+            "inspection", "food_recall", "gmp", "clinical"]
+    """
+    from . import watchlist_match  # 캐시 _cached 재사용
+
+    out = {}  # kind -> list of normalized events
+
+    if "recall" in kinds:
+        items = watchlist_match._cached("recall", fetch_recall, num_of_rows=50)
+        out["recall"] = [watchlist_match._normalize_event("recall", r) for r in items[:8]]
+
+    if "safety" in kinds:
+        from ..api_extras import fetch_drug_safety_letter
+        items = watchlist_match._cached("safety", fetch_drug_safety_letter, num_of_rows=50)
+        out["safety"] = [watchlist_match._normalize_event("safety", s) for s in items[:8]]
+
+    if "sanction" in kinds:
+        items = watchlist_match._cached("sanction", fetch_disciplinary, num_of_rows=50)
+        out["sanction"] = [watchlist_match._normalize_event("sanction", d) for d in items[:8]]
+
+    if "supply" in kinds:
+        from ..api_extras import fetch_drug_supply_stop
+        items = watchlist_match._cached("supply", fetch_drug_supply_stop, num_of_rows=50)
+        out["supply"] = [watchlist_match._normalize_event("supply", u) for u in items[:8]]
+
+    if "new_permit" in kinds:
+        try:
+            items = (fetch_approval(num_of_rows=20).get("items") or [])[:8]
+            out["new_permit"] = [{
+                "kind": "new_permit", "kind_kr": "신규 허가", "severity": "LOW",
+                "title": (it.get("ITEM_NAME") or "")[:60],
+                "meta": (it.get("ENTP_NAME") or "") + " · " + (it.get("SPCLTY_PBLC") or ""),
+                "date": (it.get("ITEM_PERMIT_DATE") or "")[:8],
+                "api": "NO 140",
+            } for it in items]
+        except Exception:
+            out["new_permit"] = []
+
+    if "inspection" in kinds:
+        try:
+            from ..api_extras import fetch_food_inspect
+            items = (fetch_food_inspect(num_of_rows=20).get("items") or [])[:8]
+            out["inspection"] = [{
+                "kind": "inspection", "kind_kr": "검사부적합", "severity": "MED",
+                "title": (it.get("PRDUCT") or "")[:60],
+                "meta": (it.get("IMPROPT_ITM") or "")[:80] + " · " + (it.get("ENTRPS") or ""),
+                "date": (it.get("REGIST_DT") or "")[:10],
+                "api": "NO 535",
+            } for it in items]
+        except Exception:
+            out["inspection"] = []
+
+    if "food_recall" in kinds:
+        try:
+            from ..api_extras import fetch_food_recall_import
+            items = (fetch_food_recall_import(num_of_rows=20).get("items") or [])[:8]
+            out["food_recall"] = [{
+                "kind": "food_recall", "kind_kr": "수입식품 회수", "severity": "HIGH",
+                "title": (it.get("PRDT_NM") or "")[:60],
+                "meta": (it.get("RECL_RSN") or "") + " · " + (it.get("CLNT_BSSH_NM") or ""),
+                "date": (it.get("CIRC_PRD") or "")[:10],
+                "api": "NO 153",
+            } for it in items]
+        except Exception:
+            out["food_recall"] = []
+
+    if "gmp" in kinds:
+        try:
+            from ..api_extras import fetch_drug_gmp
+            items = (fetch_drug_gmp(num_of_rows=20).get("items") or [])[:6]
+            out["gmp"] = [{
+                "kind": "gmp", "kind_kr": "GMP 적합판정", "severity": "LOW",
+                "title": (it.get("ITEM_NAME") or it.get("ENTP_NAME") or "")[:60],
+                "meta": "GMP 적합판정 · " + (it.get("ENTP_NAME") or ""),
+                "date": (it.get("IUS_DT") or "")[:10],
+                "api": "NO 132",
+            } for it in items]
+        except Exception:
+            out["gmp"] = []
+
+    if "clinical" in kinds:
+        try:
+            from ..api_extras import fetch_drug_clinical
+            items = (fetch_drug_clinical(num_of_rows=20).get("items") or [])[:6]
+            out["clinical"] = [{
+                "kind": "clinical", "kind_kr": "임상시험", "severity": "LOW",
+                "title": (it.get("GOODS_NAME") or "")[:60],
+                "meta": (it.get("CLINIC_EXAM_TITLE") or "")[:80],
+                "date": "",
+                "api": "NO 566",
+            } for it in items]
+        except Exception:
+            out["clinical"] = []
+
+    return out
+
+
+@app_bp.route("/workspace/<dept_id>")
+def workspace(dept_id):
+    """부서별 워크스페이스 — workspaces_config 메타데이터 + 실 이벤트."""
+    from .workspaces_config import by_id
+    from . import watchlist_store, watchlist_match
+
+    ws = by_id(dept_id)
+    if not ws:
+        from flask import abort
+        abort(404)
+
+    # 부서 관심 이벤트 fetch + 정규화 (캐시 사용)
+    events_by_kind = _fetch_workspace_events(ws["event_kinds"])
+
+    # KPI 값 계산
+    kpi_values = {}
+    for spec in ws["kpi_specs"]:
+        kind = spec["kind"]
+        key  = spec["key"]
+        if kind == "count":
+            if key in events_by_kind:
+                kpi_values[key] = len(events_by_kind[key])
+            elif key == "all_alerts":
+                # 경영진 워크스페이스 — 모든 관심 이벤트의 총합
+                kpi_values[key] = sum(len(v) for v in events_by_kind.values())
+            else:
+                kpi_values[key] = 0
+        elif kind == "watchlist_count":
+            try:
+                kpi_values[key] = watchlist_store.count()
+            except Exception:
+                kpi_values[key] = 0
+        elif kind == "static":
+            kpi_values[key] = spec.get("value", "—")
+        else:
+            kpi_values[key] = "—"
+
+    # 전체 이벤트 평면화 + 날짜 내림차순
+    flat_events = []
+    for evs in events_by_kind.values():
+        flat_events.extend(evs)
+    flat_events.sort(key=lambda e: e.get("date", ""), reverse=True)
+
+    return render_template(
+        "app/workspace.html",
+        active_workspace=dept_id,
+        workspace=ws,
+        kpi_values=kpi_values,
+        events=flat_events[:15],
+        events_by_kind=events_by_kind,
+    )
+
+
+# ────────────────────────────────────────────────────────────────────────────
 # 리포트 — 사전 정의 리포트 카탈로그
 # ────────────────────────────────────────────────────────────────────────────
 
