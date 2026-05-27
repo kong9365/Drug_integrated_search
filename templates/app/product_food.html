@@ -1,0 +1,238 @@
+{% extends "_layout.html" %}
+
+{% block title %}{{ (food_nutrition.FOOD_NM_KR if food_nutrition else product_code) }} — 광동 RegHub 360{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/app-extra.css') }}">
+{% endblock %}
+
+{% block breadcrumb %}
+  <a href="/" style="color:var(--ink-3);text-decoration:none">통합 검색</a>
+  <span class="crumb-divider">/</span>
+  <span class="crumb-active">{{ (food_nutrition.FOOD_NM_KR if food_nutrition else product_code) }}</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <button class="btn btn--ghost btn--sm">★ 워치리스트</button>
+  <button class="btn btn--ghost btn--sm">↗ 공유</button>
+  <button class="btn btn--primary btn--sm">⤓ 리포트</button>
+{% endblock %}
+
+{% block extra_body %}
+<style>
+  [data-p360-panel] { display: none; }
+  [data-p360-panel].is-active { display: grid; }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="app-content app-content--flush">
+
+    <!-- 자리 표시자 안내 배너 — 식품 API 5개 명세 대기 중 -->
+    <div style="padding:14px 32px;background:var(--warn-soft);border-bottom:1px solid var(--warn);font-size:13px">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="badge badge--warn badge--dot">자리 표시자</span>
+        <strong style="color:var(--warn);font-size:14px">식품 API 5개 명세 확인 대기 중</strong>
+        <span style="color:var(--ink-3)">NO 339 · 225 · 444 · 470 · 477 — End Point 확인 후 정식 연동 예정</span>
+      </div>
+      <div style="margin-top:6px;font-size:12px;color:var(--ink-3)">
+        현재 작동: <strong style="color:var(--ok)">NO 1 식품 영양성분 DB</strong> · <strong style="color:var(--ok)">NO 153 수입식품 회수판매중지</strong> (검색어 기반 부분 조회)
+      </div>
+    </div>
+
+    <!-- Hero — 검색어 기반 실 데이터 표시 (제한적) -->
+    <section class="p360-hero">
+      <div class="p360-hero__img" style="background:linear-gradient(135deg,#FFE082 0%,#FB8C00 100%);color:#fff;border:0;font-size:14px;font-weight:700;text-align:center;line-height:1.2">식품<br>360</div>
+      <div class="p360-hero__body">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <span class="badge" style="background:var(--domain-food-soft);color:var(--domain-food)">식품</span>
+          {% if food_nutrition %}<span class="badge badge--ok">영양 DB 매칭</span>{% endif %}
+          {% if food_recall_import %}<span class="badge badge--danger">수입식품 회수 매칭</span>{% endif %}
+          {% if not food_nutrition and not food_recall_import %}<span class="badge">데이터 없음</span>{% endif %}
+        </div>
+        <h1 class="p360-hero__name">
+          {{ food_nutrition.FOOD_NM_KR if food_nutrition else (food_recall_import.PRDT_NM if food_recall_import else product_code) }}
+          {% if food_nutrition or food_recall_import %}<small>{{ food_nutrition.BSSH_NM if food_nutrition else food_recall_import.CLNT_BSSH_NM }}</small>{% endif %}
+        </h1>
+        <div class="p360-hero__meta">
+          <span>검색어 <strong>{{ product_code }}</strong></span>
+          {% if food_nutrition %}<span>식품코드 <strong>{{ food_nutrition.FOOD_CD or '?' }}</strong></span><span>그룹 <strong>{{ food_nutrition.DB_GRP_NM or '?' }}</strong></span>{% endif %}
+          {% if food_recall_import %}<span>회수 <strong style="color:var(--danger)">{{ food_recall_import.CIRC_PRD or '' }}</strong></span>{% endif %}
+        </div>
+      </div>
+      <div class="p360-hero__risk">
+        <span class="t-caption">Risk Score</span>
+        <div class="p360-hero__risk-num" style="color:{% if food_recall_import %}var(--danger){% else %}var(--ok){% endif %}">
+          <span class="tnum">{% if food_recall_import %}50{% else %}0{% endif %}</span><small>/ 100</small>
+        </div>
+        <span class="badge {% if food_recall_import %}badge--danger{% else %}badge--ok{% endif %} badge--dot">
+          {% if food_recall_import %}회수 매칭{% else %}안전{% endif %}
+        </span>
+        <span class="t-caption" style="margin-top:4px">실 API 2종 (NO 1·153)</span>
+      </div>
+    </section>
+
+    <!-- Tabs -->
+    <nav class="p360-tabs">
+      <button class="p360-tab" data-p360-tab="info">기본정보</button>
+      <button class="p360-tab is-active" data-p360-tab="nutri">표시 · 영양성분</button>
+      <button class="p360-tab" data-p360-tab="risk">위해 이벤트</button>
+      <button class="p360-tab" data-p360-tab="sanction">행정처분</button>
+      <button class="p360-tab" data-p360-tab="haccp">인증 · HACCP</button>
+      <button class="p360-tab" data-p360-tab="qr">푸드QR</button>
+    </nav>
+
+    <!-- Body -->
+    <div style="padding: 28px 32px 40px">
+      <div data-p360-panel="nutri" class="is-active" style="display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:20px">
+
+        <!-- Nutrition chart -->
+        <div class="app-card">
+          <div class="app-card__head">
+            <div class="app-card__title">영양성분 · 100mL 기준</div>
+            <span class="app-card__caption">API 1 · 555</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px;font-size:14px">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-weight:600"><span style="color:var(--ink-2)">열량</span><span style="color:var(--ink-1)" class="tnum">36 kcal</span></div>
+              <div style="height:10px;background:var(--bg-muted);border-radius:5px;margin-top:6px;overflow:hidden"><div style="width:18%;height:100%;background:var(--brand)"></div></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:2px"><span>1일 영양성분 기준치</span><span>2%</span></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-weight:600"><span style="color:var(--ink-2)">탄수화물</span><span style="color:var(--ink-1)" class="tnum">8.7 g</span></div>
+              <div style="height:10px;background:var(--bg-muted);border-radius:5px;margin-top:6px;overflow:hidden"><div style="width:28%;height:100%;background:var(--brand)"></div></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:2px"><span>1일 영양성분 기준치</span><span>3%</span></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-weight:600"><span style="color:var(--ink-2)">당류</span><span style="color:var(--warn);" class="tnum">8.5 g</span></div>
+              <div style="height:10px;background:var(--bg-muted);border-radius:5px;margin-top:6px;overflow:hidden"><div style="width:85%;height:100%;background:var(--warn)"></div></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:2px"><span>1일 영양성분 기준치 ⚠</span><span>17%</span></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-weight:600"><span style="color:var(--ink-2)">단백질</span><span style="color:var(--ink-1)" class="tnum">0 g</span></div>
+              <div style="height:10px;background:var(--bg-muted);border-radius:5px;margin-top:6px;overflow:hidden"><div style="width:0%;height:100%;background:var(--brand)"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-weight:600"><span style="color:var(--ink-2)">나트륨</span><span style="color:var(--ink-1)" class="tnum">5 mg</span></div>
+              <div style="height:10px;background:var(--bg-muted);border-radius:5px;margin-top:6px;overflow:hidden"><div style="width:3%;height:100%;background:var(--brand)"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-weight:600"><span style="color:var(--ink-2)">비타민 C</span><span style="color:var(--ok)" class="tnum">100 mg</span></div>
+              <div style="height:10px;background:var(--bg-muted);border-radius:5px;margin-top:6px;overflow:hidden"><div style="width:100%;height:100%;background:var(--ok)"></div></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ok);margin-top:2px;font-weight:600"><span>1일 영양성분 기준치</span><span>100%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ingredients + storage -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="app-card">
+            <div class="app-card__head">
+              <div class="app-card__title">원재료 · 표시</div>
+              <span class="app-card__caption">API 444 · 470</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <span class="badge">정제수 80%</span>
+              <span class="badge">백설탕</span>
+              <span class="badge">L-아스코르브산</span>
+              <span class="badge">시트르산</span>
+              <span class="badge">니코틴산아미드</span>
+              <span class="badge">향료</span>
+              <span class="badge">감미료(수크랄로스)</span>
+              <span class="badge">색소</span>
+            </div>
+            <div style="margin-top:14px;padding:12px;background:var(--bg-subtle);border-radius:10px;border:1px solid var(--line-2)">
+              <div style="font-size:12px;color:var(--ink-3);font-weight:600">알레르기 유발 표시</div>
+              <div style="font-size:14px;color:var(--ink-1);font-weight:600;margin-top:4px">해당 없음</div>
+            </div>
+          </div>
+          <div class="app-card">
+            <div class="app-card__head">
+              <div class="app-card__title">보관·용기 정보</div>
+              <span class="app-card__caption">표시기준</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-2)"><span style="color:var(--ink-3)">보관 방법</span><span style="color:var(--ink-1);font-weight:600">서늘한 곳</span></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-2)"><span style="color:var(--ink-3)">유통기한</span><span style="color:var(--ink-1);font-weight:600">제조일로 12개월</span></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-2)"><span style="color:var(--ink-3)">용기</span><span style="color:var(--ink-1);font-weight:600">갈색 유리병 100mL</span></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0"><span style="color:var(--ink-3)">회수 가능</span><span style="color:var(--ok);font-weight:600">✓ 회수 가능</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Risk + recall summary -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="app-card">
+            <div class="app-card__head">
+              <div class="app-card__title">위해 · 회수 요약</div>
+              <span class="app-card__caption">API 339 · 6</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div style="padding:14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px;text-align:center">
+                <div style="font-size:24px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums">0</div>
+                <div style="font-size:11px;color:var(--ink-3);margin-top:2px">자사 회수 1년</div>
+              </div>
+              <div style="padding:14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px;text-align:center">
+                <div style="font-size:24px;font-weight:700;color:var(--warn);font-variant-numeric:tabular-nums">2</div>
+                <div style="font-size:11px;color:var(--ink-3);margin-top:2px">동종 식품 회수</div>
+              </div>
+              <div style="padding:14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px;text-align:center">
+                <div style="font-size:24px;font-weight:700;color:var(--warn);font-variant-numeric:tabular-nums">1</div>
+                <div style="font-size:11px;color:var(--ink-3);margin-top:2px">행정처분</div>
+              </div>
+              <div style="padding:14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px;text-align:center">
+                <div style="font-size:24px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums">0</div>
+                <div style="font-size:11px;color:var(--ink-3);margin-top:2px">검사부적합</div>
+              </div>
+            </div>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+              <div class="alert-row">
+                <div class="alert-row__bar" style="background:var(--warn)"></div>
+                <span class="alert-row__time">04-18</span>
+                <div class="flex-1">
+                  <div class="alert-row__title">표시기준 위반 (경고)</div>
+                  <div class="alert-row__meta">2025-04-18 · 영양표시 오기재</div>
+                </div>
+                <span class="badge badge--warn">MED</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="app-card">
+            <div class="app-card__head">
+              <div class="app-card__title">HACCP · 인증 현황</div>
+              <span class="app-card__caption">유효</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--ok-soft);border-radius:10px">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--ok)">HACCP 인증 유지</div>
+                <div style="font-size:11px;color:var(--ink-2);margin-top:2px">평택공장 · 2027-08-15 만료</div>
+              </div>
+            </div>
+            <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px;font-size:12px">
+              <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--ink-3)">제조소</span><span style="color:var(--ink-1);font-weight:600">광동제약 평택공장</span></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--ink-3)">인증번호</span><span style="color:var(--ink-1);font-weight:600;font-family:monospace">HACCP-2022-0814</span></div>
+            </div>
+          </div>
+
+          <div class="app-card" style="background:linear-gradient(135deg,var(--brand-soft) 0%, transparent 100%);border-color:transparent">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),color-mix(in oklab,var(--brand) 70%,#000));color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">AI</div><span style="font-size:13px;font-weight:700;color:var(--brand)">코파일럿 추천 질문</span></div>
+            <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+              <a href="/app/copilot" style="padding:10px 12px;background:var(--bg-elevated);border:1px solid var(--line-1);border-radius:8px;color:var(--ink-2);text-decoration:none">표시기준 위반 처분 사유 정리해줘</a>
+              <a href="/app/copilot" style="padding:10px 12px;background:var(--bg-elevated);border:1px solid var(--line-1);border-radius:8px;color:var(--ink-2);text-decoration:none">동일 제조소 다른 품목 영향 분석</a>
+              <a href="/app/copilot" style="padding:10px 12px;background:var(--bg-elevated);border:1px solid var(--line-1);border-radius:8px;color:var(--ink-2);text-decoration:none">당류 기준 완화 대상 여부</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Placeholder panels -->
+      <div data-p360-panel="info"><div class="app-card" style="text-align:center;padding:60px"><span class="t-caption">기본정보</span><h3 style="margin:8px 0 0;font-size:22px">제품 기본정보</h3></div></div>
+      <div data-p360-panel="risk"><div class="app-card" style="text-align:center;padding:60px"><span class="t-caption">위해 이벤트</span><h3 style="margin:8px 0 0;font-size:22px">회수·검사부적합 통합</h3></div></div>
+      <div data-p360-panel="sanction"><div class="app-card" style="text-align:center;padding:60px"><span class="t-caption">행정처분</span><h3 style="margin:8px 0 0;font-size:22px">1건 · 표시기준 위반 (2025-04-18)</h3></div></div>
+      <div data-p360-panel="haccp"><div class="app-card" style="text-align:center;padding:60px"><span class="t-caption">HACCP</span><h3 style="margin:8px 0 0;font-size:22px">평택공장 인증 유효 · 만료 2027-08-15</h3></div></div>
+      <div data-p360-panel="qr"><div class="app-card" style="text-align:center;padding:60px"><span class="t-caption">푸드QR</span><h3 style="margin:8px 0 0;font-size:22px">등록 완료 · 소비자 안내 페이지 연결됨</h3></div></div>
+    </div>
+  </div>
+{% endblock %}

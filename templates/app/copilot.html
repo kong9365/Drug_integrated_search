@@ -1,0 +1,301 @@
+{% extends "_layout.html" %}
+
+{% block title %}AI 코파일럿 — 광동 RegHub 360{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/app-extra.css') }}">
+{% endblock %}
+
+{% block breadcrumb %}
+  <span class="crumb-active">AI 코파일럿</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <button class="btn btn--ghost btn--sm">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    도움말
+  </button>
+  <span class="badge badge--brand">근거 모드 ON</span>
+{% endblock %}
+
+{% block content %}
+  <div class="app-content app-content--flush">
+    <div class="copilot-shell">
+
+      <!-- ===== Thread list ===== -->
+      <aside class="copilot-threads">
+        <div class="copilot-threads__head">
+          <div style="font-size:13px;font-weight:700;color:var(--ink-1)">스레드</div>
+          <button class="btn btn--primary btn--sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            새 대화
+          </button>
+        </div>
+        <div class="copilot-threads__list">
+          <div class="divider">오늘<span class="divider__count">3</span></div>
+          <a class="copilot-thread is-active">
+            <div class="copilot-thread__title">광동제약 베니톨정 동성분 회수 및 영향 품목 분석</div>
+            <div class="copilot-thread__meta"><span>QA · 베니톨정</span><span>방금 전</span></div>
+          </a>
+          <a class="copilot-thread">
+            <div class="copilot-thread__title">홍삼 원재료 잔류농약 부적합 — 자사 영향 lot 출하 이력</div>
+            <div class="copilot-thread__meta"><span>SCM · 홍삼</span><span>2시간 전</span></div>
+          </a>
+          <a class="copilot-thread">
+            <div class="copilot-thread__title">평택 제조소 GMP 갱신 일정과 필요 서류 목록</div>
+            <div class="copilot-thread__meta"><span>QA · GMP</span><span>5시간 전</span></div>
+          </a>
+
+          <div class="divider">어제<span class="divider__count">2</span></div>
+          <a class="copilot-thread">
+            <div class="copilot-thread__title">슈도에페드린 함유 자사 품목 안전성서한 반영 현황</div>
+            <div class="copilot-thread__meta"><span>RA · 슈도에페드린</span><span>어제</span></div>
+          </a>
+          <a class="copilot-thread">
+            <div class="copilot-thread__title">경쟁사 A제약 신규 허가 품목 요약 (이번 분기)</div>
+            <div class="copilot-thread__meta"><span>영업 · A제약</span><span>어제</span></div>
+          </a>
+
+          <div class="divider">지난주<span class="divider__count">5</span></div>
+          <a class="copilot-thread">
+            <div class="copilot-thread__title">비타500 표시기준 위반 처분 사유 정리</div>
+            <div class="copilot-thread__meta"><span>식품QA · 비타500</span><span>5/19</span></div>
+          </a>
+          <a class="copilot-thread">
+            <div class="copilot-thread__title">아세트아미노펜 동성분 1년치 회수 통계</div>
+            <div class="copilot-thread__meta"><span>QA · 아세트아미노펜</span><span>5/18</span></div>
+          </a>
+          <a class="copilot-thread">
+            <div class="copilot-thread__title">광동 우황청심원 재심사 일정</div>
+            <div class="copilot-thread__meta"><span>RA · 우황청심원</span><span>5/17</span></div>
+          </a>
+        </div>
+      </aside>
+
+      <!-- ===== Conversation ===== -->
+      <section class="copilot-conv">
+        <div class="copilot-conv__head">
+          <div class="copilot-conv__brand">AI</div>
+          <div style="flex:1;min-width:0">
+            <div class="copilot-conv__title">베니톨정 동성분 회수 및 영향 품목 분석</div>
+            <div class="copilot-conv__sub">스레드 · 광동제약 베니톨정 · MISO drug_consult_agent.yml</div>
+          </div>
+          <button class="btn btn--ghost btn--sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            대화 저장
+          </button>
+          <button class="btn btn--ghost btn--icon btn--sm" aria-label="옵션"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+        </div>
+
+        <div class="copilot-conv__messages">
+          <!-- User msg 1 -->
+          <div class="copilot-msg copilot-msg--user">
+            <div class="copilot-msg__bubble">광동제약 베니톨정과 동일 성분 제품의 <strong>최근 1년 회수 이력</strong>을 알려주고, 자사 품목 영향도 같이 정리해줘.</div>
+          </div>
+
+          <!-- AI msg 1 -->
+          <div class="copilot-msg copilot-msg--ai">
+            <div class="copilot-msg__byline">
+              <span class="copilot-msg__byline-avatar">AI</span>
+              <span>RegHub Copilot · 2.1초</span>
+              <span style="color:var(--ink-4)">·</span>
+              <span>근거 카드 3건 인용</span>
+            </div>
+            <div class="copilot-msg__bubble">
+              베니톨정의 주성분 <strong>아세트아미노펜 500mg</strong> 함유 제제에 대한 최근 1년 회수는
+              <strong style="color:var(--danger)">총 3건</strong>입니다. 사유는 모두 함량 부적합(역가)이며,
+              자사 품목 중 동일 성분·제형 제품은 <strong>베니톨정·베니톨씨에이정 2건</strong>이 영향 범위에 들어갑니다.
+              현재 두 품목 모두 자체 회수 이력은 <strong>없습니다</strong><sup>[1][2]</sup>.
+              <br><br>
+              또한 2025년 8월 발송된 안전성서한(간기능 이상 사용주의)은 이미 표시기재에 반영 완료 상태입니다<sup>[3]</sup>.
+              DUR 점검상 병용금기·연령금기는 0건, 임부금기 1건이 활성 상태이며 처방 시 주의가 필요합니다.
+            </div>
+            <div class="copilot-citations">
+              <a class="copilot-cite">
+                <div class="copilot-cite__head">
+                  <span class="copilot-cite__marker">[1] 회수·판매중지</span>
+                  <span class="copilot-cite__api">API 539</span>
+                </div>
+                <div class="copilot-cite__title">○○정 — 함량 부적합 (역가 90% 미만)</div>
+                <div class="copilot-cite__meta">2025-12-04 · ○○제약</div>
+              </a>
+              <a class="copilot-cite">
+                <div class="copilot-cite__head">
+                  <span class="copilot-cite__marker">[2] 회수·판매중지</span>
+                  <span class="copilot-cite__api">API 539</span>
+                </div>
+                <div class="copilot-cite__title">△△포 — GMP 미준수 동성분 회수</div>
+                <div class="copilot-cite__meta">2025-05-11 · △△제약</div>
+              </a>
+              <a class="copilot-cite">
+                <div class="copilot-cite__head">
+                  <span class="copilot-cite__marker">[3] 안전성서한</span>
+                  <span class="copilot-cite__api">API 547</span>
+                </div>
+                <div class="copilot-cite__title">아세트아미노펜 — 간기능 이상 사용주의</div>
+                <div class="copilot-cite__meta">2025-08-22 · MFDS</div>
+              </a>
+            </div>
+            <div class="copilot-safety">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+              <span><strong>안전장치</strong> · 공식 API 근거 카드 없이 추측 답변을 생성하지 않습니다. 근거 0건일 경우 "확인 가능한 공식 데이터가 없습니다"로 강제 응답.</span>
+            </div>
+          </div>
+
+          <!-- User msg 2 -->
+          <div class="copilot-msg copilot-msg--user">
+            <div class="copilot-msg__bubble">동성분 회수 lot이 우리 거래처에 출고됐는지 확인 가능한 방법은?</div>
+          </div>
+
+          <!-- AI msg 2 -->
+          <div class="copilot-msg copilot-msg--ai">
+            <div class="copilot-msg__byline">
+              <span class="copilot-msg__byline-avatar">AI</span>
+              <span>RegHub Copilot · 1.4초</span>
+              <span style="color:var(--ink-4)">·</span>
+              <span>액션 제안 3건</span>
+            </div>
+            <div class="copilot-msg__bubble">
+              회수된 동성분 lot은 <strong>타사 제품</strong>이므로 자사 출고 시스템에서는 직접 추적할 수 없습니다.
+              다만 <strong>아세트아미노펜 500mg</strong> 함유 자사 lot 중 같은 거래처에 동시 출고된 이력이 있다면
+              거래처 측 재고 점검을 안내드릴 수 있습니다.
+              <br><br>
+              지금 바로 할 수 있는 액션 3가지:
+              <br>
+              ① 자사 베니톨정·베니톨씨에이정의 거래처별 1년치 출고 lot 다운로드<br>
+              ② 거래처 안내 메일 초안 자동 생성 (회수 사유·고객 대응 가이드 포함)<br>
+              ③ RA 팀에 안전성서한 추가 발송 검토 요청
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px">
+              <a class="copilot-suggest" style="font-weight:600">
+                <strong style="display:block;color:var(--brand);font-size:11px;margin-bottom:4px">① 액션</strong>
+                자사 출고 이력 Excel 추출
+              </a>
+              <a class="copilot-suggest" style="font-weight:600">
+                <strong style="display:block;color:var(--brand);font-size:11px;margin-bottom:4px">② 액션</strong>
+                거래처 안내 메일 초안 작성
+              </a>
+              <a class="copilot-suggest" style="font-weight:600">
+                <strong style="display:block;color:var(--brand);font-size:11px;margin-bottom:4px">③ 액션</strong>
+                RA에 서한 검토 요청
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="copilot-conv__input">
+          <form class="copilot-input" id="copilotForm" onsubmit="return false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            <input type="text" id="copilotInput" placeholder="질문을 입력하세요 — 예: '베니톨정 회수 이력 알려줘'" autocomplete="off">
+            <span class="kbd">↵</span>
+            <button class="copilot-input__send" type="submit" id="copilotSend" aria-label="보내기">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </button>
+          </form>
+          <script>
+            (function () {
+              var form = document.getElementById('copilotForm');
+              var input = document.getElementById('copilotInput');
+              var messages = document.querySelector('.copilot-conv__messages');
+              if (!form || !input || !messages) return;
+
+              function appendUser(text) {
+                var div = document.createElement('div');
+                div.className = 'copilot-msg copilot-msg--user';
+                div.innerHTML = '<div class="copilot-msg__bubble"></div>';
+                div.querySelector('.copilot-msg__bubble').textContent = text;
+                messages.appendChild(div);
+                messages.scrollTop = messages.scrollHeight;
+              }
+              function appendAI(data) {
+                var div = document.createElement('div');
+                div.className = 'copilot-msg copilot-msg--ai';
+                var cites = (data.citations || []).map(function (c) {
+                  return '<a class="copilot-cite"><div class="copilot-cite__head"><span class="copilot-cite__marker">[' +
+                    c.marker + '] ' + (c.apiNumber || '') + '</span></div>' +
+                    '<div class="copilot-cite__title">' + (c.title || '') + '</div>' +
+                    '<div class="copilot-cite__meta">' + (c.syncedAt || '') + '</div></a>';
+                }).join('');
+                div.innerHTML =
+                  '<div class="copilot-msg__byline">' +
+                  '<span class="copilot-msg__byline-avatar">AI</span>' +
+                  '<span>' + (data.model || 'RegHub Copilot') + '</span>' +
+                  '<span style="color:var(--ink-4)">·</span>' +
+                  '<span>근거 ' + (data.citations || []).length + '건</span>' +
+                  '</div>' +
+                  '<div class="copilot-msg__bubble"></div>' +
+                  (cites ? '<div class="copilot-citations">' + cites + '</div>' : '') +
+                  '<div class="copilot-safety"><strong>안전장치</strong> · ' +
+                  '공식 API 근거 카드 없이 추측 답변을 생성하지 않습니다.</div>';
+                div.querySelector('.copilot-msg__bubble').textContent = data.text || '';
+                messages.appendChild(div);
+                messages.scrollTop = messages.scrollHeight;
+              }
+
+              form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var msg = input.value.trim();
+                if (!msg) return;
+                appendUser(msg);
+                input.value = '';
+
+                fetch('/api/copilot/message', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ message: msg, threadId: 'web-' + Date.now() })
+                })
+                  .then(function (r) { return r.json(); })
+                  .then(appendAI)
+                  .catch(function (err) {
+                    appendAI({
+                      text: '네트워크 오류: ' + err.message,
+                      citations: [],
+                      model: 'error',
+                    });
+                  });
+              });
+            })();
+          </script>
+          <div style="display:flex;align-items:center;gap:14px;margin-top:10px;font-size:11px;color:var(--ink-3);flex-wrap:wrap">
+            <span class="kbd">Shift + ↵</span>
+            <span>줄바꿈</span>
+            <span style="color:var(--ink-5)">·</span>
+            <span class="kbd">⌘ /</span>
+            <span>슬래시 명령</span>
+            <span style="color:var(--ink-5)">·</span>
+            <span style="display:inline-flex;align-items:center;gap:6px">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--ok)"></span>
+              MISO drug_consult_agent 연결됨
+            </span>
+            <span style="margin-left:auto;color:var(--ink-4)">민감정보 자동 마스킹 처리</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Suggestions ===== -->
+      <aside class="copilot-suggestions">
+        <div class="copilot-suggestions__label">이어서 물어볼 만한 것</div>
+        <a class="copilot-suggest">동일 성분의 <strong>FDA 회수 이력</strong>과 비교</a>
+        <a class="copilot-suggest">베니톨정 <strong>재심사·재평가 일정</strong> 정리</a>
+        <a class="copilot-suggest">회수 lot 거래처에 보낼 <strong>안내 메일 초안</strong></a>
+        <a class="copilot-suggest">동성분 경쟁사 <strong>GMP·행정처분 요약</strong></a>
+        <a class="copilot-suggest">아세트아미노펜 함유 제품 <strong>병용금기 약물</strong> 정리</a>
+        <a class="copilot-suggest">자사 베니톨정 시리즈 <strong>최근 분기 매출 트렌드</strong></a>
+
+        <div class="copilot-suggestions__label" style="margin-top:10px">슬래시 명령</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+          <div style="display:flex;justify-content:space-between;color:var(--ink-3)"><span class="kbd">/제품</span><span>Product 360 열기</span></div>
+          <div style="display:flex;justify-content:space-between;color:var(--ink-3)"><span class="kbd">/리포트</span><span>리포트 생성</span></div>
+          <div style="display:flex;justify-content:space-between;color:var(--ink-3)"><span class="kbd">/메일</span><span>메일 초안</span></div>
+          <div style="display:flex;justify-content:space-between;color:var(--ink-3)"><span class="kbd">/타임라인</span><span>이벤트 검색</span></div>
+        </div>
+
+        <div style="margin-top:auto;padding-top:14px;border-top:1px solid var(--line-2);font-size:11px;color:var(--ink-3);line-height:1.5">
+          <strong style="color:var(--ink-2);font-weight:700">근거 카드 0건 정책</strong>
+          공식 API 결과 없이 응답하지 않습니다. "확인 가능한 공식 데이터가 없습니다"로 강제 회신해 hallucination을 차단합니다.
+        </div>
+      </aside>
+
+    </div>
+  </div>
+{% endblock %}

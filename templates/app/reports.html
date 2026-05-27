@@ -1,0 +1,97 @@
+{% extends "_layout.html" %}
+
+{% block title %}리포트 — 광동 RegHub 360{% endblock %}
+
+{% block breadcrumb %}
+  <span class="crumb-active">리포트</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <div class="app-topbar__search">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <span style="flex:1">제품·업체·성분 빠른 검색</span><span class="kbd">⌘ K</span>
+  </div>
+  <button class="btn btn--ghost btn--sm">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    가이드
+  </button>
+  <span class="badge">{{ reports|length }}종 정기 리포트</span>
+{% endblock %}
+
+{% block content %}
+  <div class="app-content">
+
+    <div class="page-head">
+      <div>
+        <div class="t-caption">★ F-005 핵심 기능</div>
+        <h1 class="page-head__title">리포트 카탈로그</h1>
+        <p class="page-head__sub">사전 정의된 정기 리포트 {{ reports|length }}종. 회수·R&amp;D·안전성·품질·경쟁사 영역을 자동 집계해 RA·QA·영업 부서에 배포합니다.</p>
+      </div>
+      <div class="page-head__actions">
+        <span class="badge badge--brand badge--dot">자동 갱신</span>
+      </div>
+    </div>
+
+    <!-- 카드 그리드 -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(360px, 1fr));gap:18px">
+      {% for r in reports %}
+      <div class="app-card" style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="width:44px;height:44px;border-radius:12px;background:var(--{{ r.kind_class }}-soft);color:var(--{{ r.kind_class }});display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+            </svg>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+              <span class="badge badge--{{ r.kind_class }}">{{ r.kind }}</span>
+              <span class="badge">{{ r.cadence }}</span>
+            </div>
+            <h3 style="font-size:16px;font-weight:700;color:var(--ink-1);margin:0;letter-spacing:-0.01em">{{ r.title }}</h3>
+          </div>
+        </div>
+
+        <p style="font-size:13px;color:var(--ink-3);line-height:1.55;margin:0">{{ r.summary }}</p>
+
+        <div style="display:flex;flex-wrap:wrap;gap:4px;padding:10px;background:var(--bg-subtle);border-radius:8px">
+          {% for src in r.data_sources %}
+          <span class="badge" style="font-size:10px">{{ src }}</span>
+          {% endfor %}
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--line-2);font-size:12px;color:var(--ink-3)">
+          <span>최근 갱신 <strong style="color:var(--ink-2);font-family:'JetBrains Mono',monospace">{{ r.last_updated }}</strong></span>
+          <span>{{ r.pages }} pages</span>
+        </div>
+
+        <div style="display:flex;gap:6px">
+          <button class="btn btn--secondary btn--sm" style="flex:1" disabled title="Phase 2.5에서 PDF 생성 활성화">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            미리보기
+          </button>
+          <button class="btn btn--primary btn--sm" style="flex:1" disabled title="Phase 2.5에서 PDF 생성 활성화">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            PDF 다운로드
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- 안내 카드 -->
+    <div class="app-card" style="margin-top:24px;background:linear-gradient(135deg,var(--brand-soft) 0%, transparent 100%);border-color:transparent">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--brand),color-mix(in oklab,var(--brand) 70%,#000));color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">★</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700;color:var(--ink-1);margin-bottom:2px">Phase 2.5 — PDF/Excel 생성 활성화 예정</div>
+          <div style="font-size:12px;color:var(--ink-3);line-height:1.55">
+            현재는 사전 정의된 리포트 메타데이터만 표시합니다. 향후 ReportLab/openpyxl로 실 데이터 기반 PDF·Excel 생성, 이메일·Slack 자동 배포, 워치리스트 기반 맞춤 리포트(예: "베니톨정 동성분 90일 동향")가 추가됩니다.
+          </div>
+        </div>
+        <a href="/app/copilot" class="btn btn--secondary btn--sm">AI에 요청 →</a>
+      </div>
+    </div>
+
+  </div>
+{% endblock %}

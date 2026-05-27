@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💊 의약품 통합 조회 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            color: #E31E24;
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+            border-bottom: 3px solid #E31E24;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-logo img {
+            height: 100px;
+            width: auto;
+            filter: brightness(0) saturate(100%) invert(15%) sepia(95%) saturate(7404%) hue-rotate(353deg) brightness(95%) contrast(89%);
+        }
+
+        .header-title {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #FF1A00;
+        }
+
+        .header p {
+            font-size: 0.95em;
+            color: #262626;
+            opacity: 0.9;
+        }
+
+        .copy-link-btn {
+            background: white;
+            color: #E31E24;
+            border: 2px solid #E31E24;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .copy-link-btn:hover {
+            background: #E31E24;
+            color: white;
+        }
+
+        .copy-link-btn:active {
+            transform: scale(0.98);
+        }
+
+        .copy-link-btn.copied {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .copy-toast {
+            position: fixed;
+            top: 80px;
+            right: 30px;
+            background: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .copy-toast.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: #f0f4f8;
+            border-right: 2px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .search-section {
+            padding: 20px;
+            background: #E31E24;
+            color: white;
+        }
+
+        .search-section h2 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: white;
+            font-size: 0.9em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #fff;
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95em;
+            background: white;
+            cursor: pointer;
+        }
+
+        .related-image-section {
+            padding: 20px;
+            background: #E31E24;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .related-image-section h2 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .image-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pill-image {
+            max-width: 200px;
+            max-height: 200px;
+            object-fit: contain;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .image-size {
+            color: #333;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #E31E24;
+            border: 2px solid #E31E24;
+        }
+
+        .btn-primary:hover {
+            background: #E31E24;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(227, 30, 36, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-section {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            color: #262626;
+            transition: all 0.3s;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            margin-right: 5px;
+        }
+
+        .tab:hover {
+            background: #f0f0f0;
+            color: #E31E24;
+        }
+
+        .tab.active {
+            background: white;
+            color: #E31E24;
+            border-bottom: 3px solid #E31E24;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .result-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .result-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .result-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #262626;
+            flex: 1;
+        }
+
+        .result-image {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 8px;
+            margin-left: 15px;
+        }
+
+        .result-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #262626;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            color: #262626;
+            word-break: break-word;
+        }
+
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .success-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 150px;
+            background: #E31E24;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-logo">
+                <img src="https://www.ekdp.com/static/cw/images/renewal/logo1.png" alt="광동제약" onerror="this.style.display='none'">
+                <div class="header-title">
+                    <h1>의약품 통합 조회 시스템</h1>
+                    <p>식품의약품안전처 공공데이터를 통한 종합 정보 조회</p>
+                </div>
+            </div>
+            <button class="copy-link-btn" id="copyLinkBtn" title="접속 주소 복사">
+                📋 링크복사
+            </button>
+        </div>
+        <div class="copy-toast" id="copyToast">✓ 링크가 복사되었습니다!</div>
+
+        <div class="main-content">
+            <!-- 좌측 사이드바 -->
+            <div class="sidebar">
+                <div class="sidebar-content">
+                    <div class="search-section">
+                        <h2>제품 조회</h2>
+                        <form class="search-form" id="searchForm">
+                            <div class="form-group">
+                                <label for="item_seq">품목기준코드</label>
+                                <input type="text" id="item_seq" name="item_seq" placeholder="코드 입력(미지원)">
+                            </div>
+                            <div class="form-group">
+                                <label for="item_name">제품명</label>
+                                <input type="text" id="item_name" name="item_name" placeholder="예: 베니톨">
+                            </div>
+                            <div class="form-group">
+                                <label for="entp_name">업체명</label>
+                                <input type="text" id="entp_name" name="entp_name" placeholder="예: 광동제약">
+                            </div>
+                            <div class="form-group">
+                                <label for="product_select">선택</label>
+                                <select id="product_select" name="product_select">
+                                    <option value="">제품을 검색하세요(미지원)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary" id="searchBtn" style="width: 100%;">
+                                    🔍 검색하기
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 관련 그림 섹션 - 검색 폼 바로 아래 고정 -->
+                    <div class="related-image-section">
+                        <h2>낱알식별</h2>
+                        <div class="image-container" id="relatedImageContainer">
+                            <div class="empty-message" style="color: #666; padding: 20px;">
+                                검색 결과의 낱알식별 이미지가<br>여기에 표시됩니다
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 우측 메인 콘텐츠 -->
+            <div class="content-area">
+                <div class="results-section">
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>데이터를 불러오는 중...</p>
+                    </div>
+
+                    <!-- 탭은 항상 표시 -->
+                    <div class="tabs" id="tabsContainer">
+                        <button class="tab active" data-tab="approval">허가정보</button>
+                        <button class="tab" data-tab="identification">낱알식별</button>
+                    </div>
+
+                    <!-- 검색 결과 영역 -->
+                    <div id="results" style="display: none;">
+                        <div id="tabContents"></div>
+                    </div>
+                    
+                    <!-- 초기 화면 - 빈 탭 콘텐츠 -->
+                    <div id="tabContentsInitial">
+                        <div class="tab-content active" id="tab-approval">
+                            <div class="empty-message">검색을 통해 허가정보를 조회하세요.</div>
+                        </div>
+                        <div class="tab-content" id="tab-identification">
+                            <div class="empty-message">검색을 통해 낱알식별 정보를 조회하세요.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const searchForm = document.getElementById('searchForm');
+        const searchBtn = document.getElementById('searchBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const tabContents = document.getElementById('tabContents');
+        const tabContentsInitial = document.getElementById('tabContentsInitial');
+
+        // 탭 전환 (동적으로 생성된 탭도 처리)
+        function initTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                // 중복 이벤트 리스너 방지
+                tab.removeEventListener('click', handleTabClick);
+                tab.addEventListener('click', handleTabClick);
+            });
+        }
+        
+        function handleTabClick() {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            const tabName = this.dataset.tab;
+            showTab(tabName);
+        }
+        
+        // 초기 탭 이벤트 리스너 등록
+        initTabs();
+
+        // 링크 복사 기능
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+        const copyToast = document.getElementById('copyToast');
+        
+        if (copyLinkBtn) {
+            copyLinkBtn.addEventListener('click', async () => {
+                try {
+                    // 현재 호스트 정보 가져오기
+                    const protocol = window.location.protocol;
+                    const hostname = window.location.hostname;
+                    const port = window.location.port || (protocol === 'https:' ? '443' : '80');
+                    
+                    // 네트워크 IP 주소 (172.17.6.238) 또는 현재 호스트 사용
+                    const networkIP = '172.17.6.238';
+                    const copyUrl = `${protocol}//${networkIP}:${port}${window.location.pathname}`;
+                    
+                    // 클립보드에 복사
+                    await navigator.clipboard.writeText(copyUrl);
+                    
+                    // 버튼 상태 변경
+                    copyLinkBtn.classList.add('copied');
+                    copyLinkBtn.innerHTML = '✓ 복사됨';
+                    
+                    // 토스트 메시지 표시
+                    if (copyToast) {
+                        copyToast.textContent = `✓ 링크가 복사되었습니다! (${networkIP}:${port})`;
+                        copyToast.classList.add('show');
+                        
+                        setTimeout(() => {
+                            copyToast.classList.remove('show');
+                        }, 2000);
+                    }
+                    
+                    // 2초 후 원래 상태로 복귀
+                    setTimeout(() => {
+                        copyLinkBtn.classList.remove('copied');
+                        copyLinkBtn.innerHTML = '📋 링크복사';
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error('링크 복사 실패:', error);
+                    // 클립보드 API가 지원되지 않는 경우 대체 방법
+                    const protocol = window.location.protocol;
+                    const networkIP = '172.17.6.238';
+                    const port = window.location.port || (protocol === 'https:' ? '443' : '80');
+                    const copyUrl = `${protocol}//${networkIP}:${port}${window.location.pathname}`;
+                    
+                    // 텍스트 영역을 생성하여 복사
+                    const textArea = document.createElement('textarea');
+                    textArea.value = copyUrl;
+                    textArea.style.position = 'fixed';
+                    textArea.style.opacity = '0';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    
+                    try {
+                        document.execCommand('copy');
+                        copyLinkBtn.classList.add('copied');
+                        copyLinkBtn.innerHTML = '✓ 복사됨';
+                        if (copyToast) {
+                            copyToast.textContent = `✓ 링크가 복사되었습니다! (${networkIP}:${port})`;
+                            copyToast.classList.add('show');
+                            setTimeout(() => {
+                                copyToast.classList.remove('show');
+                            }, 2000);
+                        }
+                        setTimeout(() => {
+                            copyLinkBtn.classList.remove('copied');
+                            copyLinkBtn.innerHTML = '📋 링크복사';
+                        }, 2000);
+                    } catch (err) {
+                        alert(`링크 복사에 실패했습니다.\n\n수동으로 복사해주세요:\n${copyUrl}`);
+                    }
+                    
+                    document.body.removeChild(textArea);
+                }
+            });
+        }
+
+        function showTab(tabName) {
+            // 모든 탭 콘텐츠 비활성화
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            // 검색 결과가 있으면 검색 결과 탭 콘텐츠 표시
+            const resultsElement = document.getElementById('results');
+            const content = document.getElementById(`tab-${tabName}`);
+            
+            if (resultsElement && resultsElement.style.display !== 'none' && content) {
+                // 검색 결과 탭 콘텐츠 표시
+                content.classList.add('active');
+            } else {
+                // 초기 화면 탭 콘텐츠 표시 (tabContentsInitial 내부)
+                const initialContent = document.querySelector(`#tabContentsInitial #tab-${tabName}`);
+                if (initialContent) {
+                    initialContent.classList.add('active');
+                }
+            }
+        }
+
+        // 검색 폼 제출
+        if (searchForm) {
+            searchForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const itemSeqEl = document.getElementById('item_seq');
+                const itemNameEl = document.getElementById('item_name');
+                const entpNameEl = document.getElementById('entp_name');
+                
+                if (!itemSeqEl || !itemNameEl || !entpNameEl) {
+                    console.error('필수 입력 필드를 찾을 수 없습니다.');
+                    alert('입력 필드를 찾을 수 없습니다. 페이지를 새로고침해주세요.');
+                    return;
+                }
+                
+                const itemSeq = itemSeqEl.value.trim();
+                const itemName = itemNameEl.value.trim();
+                const entpName = entpNameEl.value.trim();
+
+                if (!itemSeq && !itemName && !entpName) {
+                    alert('품목기준코드, 제품명 또는 업체명을 입력해주세요.');
+                    return;
+                }
+
+                console.log('검색 시작:', { itemSeq, itemName, entpName });
+
+            if (loading) {
+                loading.classList.add('active');
+            }
+            if (results) {
+                results.style.display = 'none';
+            }
+            if (tabContentsInitial) {
+                tabContentsInitial.style.display = 'none';
+            }
+            if (searchBtn) {
+                searchBtn.disabled = true;
+            }
+
+                try {
+                    const params = new URLSearchParams();
+                    if (itemSeq) params.append('item_seq', itemSeq);
+                    if (itemName) params.append('item_name', itemName);
+                    if (entpName) params.append('entp_name', entpName);
+                    
+                    console.log('API 요청:', `/api/search?${params.toString()}`);
+                    const response = await fetch(`/api/search?${params.toString()}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP 오류: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('API 응답:', data);
+
+                    if (data.success) {
+                        try {
+                            displayResults(data.results);
+                        } catch (displayError) {
+                            console.error('결과 표시 중 오류:', displayError);
+                            // 일부 결과는 이미 표시되었을 수 있으므로 에러 메시지만 추가
+                            if (tabContents) {
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'error-message';
+                                errorDiv.textContent = `⚠️ 일부 데이터 표시 중 오류가 발생했습니다: ${displayError.message}`;
+                                tabContents.appendChild(errorDiv);
+                            }
+                            if (results) {
+                                results.style.display = 'block';
+                            }
+                        }
+                    } else {
+                        showError(data.error || '검색 중 오류가 발생했습니다.');
+                    }
+                } catch (error) {
+                    console.error('검색 오류:', error);
+                    // 네트워크 오류인지 확인
+                    if (error.message && error.message.includes('Failed to fetch')) {
+                        showError('네트워크 연결을 확인해주세요. 서버에 연결할 수 없습니다.');
+                    } else if (error.message && error.message.includes('HTTP 오류')) {
+                        showError(`서버 오류가 발생했습니다: ${error.message}`);
+                    } else {
+                        showError(`오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+                    }
+                } finally {
+                    if (loading) {
+                        loading.classList.remove('active');
+                    }
+                    if (searchBtn) {
+                        searchBtn.disabled = false;
+                    }
+                }
+            });
+        } else {
+            console.error('검색 폼을 찾을 수 없습니다.');
+        }
+
+        function displayResults(resultsData) {
+            // resultsData가 없거나 객체가 아닌 경우 처리
+            if (!resultsData || typeof resultsData !== 'object') {
+                throw new Error('검색 결과 데이터 형식이 올바르지 않습니다.');
+            }
+
+            // 낱알식별 이미지를 좌측 사이드바에 표시
+            updateRelatedImage(resultsData.identification);
+
+            // 초기 화면 숨기기
+            if (tabContentsInitial) {
+                tabContentsInitial.style.display = 'none';
+            }
+
+            // 탭 콘텐츠 생성 (오류 처리 포함)
+            const renderTabContent = (result, type) => {
+                try {
+                    if (!result) {
+                        return '<div class="empty-message">데이터를 불러올 수 없습니다.</div>';
+                    }
+                    if (result.error && !result.success) {
+                        return `<div class="error-message">⚠️ ${result.error}</div>`;
+                    }
+                    if (!result.items || result.items.length === 0) {
+                        return '<div class="empty-message">검색 결과가 없습니다.</div>';
+                    }
+                    return renderItems(result.items, type);
+                } catch (error) {
+                    console.error(`${type} 탭 렌더링 오류:`, error);
+                    return `<div class="error-message">⚠️ 데이터 표시 중 오류가 발생했습니다: ${error.message}</div>`;
+                }
+            };
+            
+            if (tabContents) {
+                try {
+                    tabContents.innerHTML = `
+                        <div class="tab-content active" id="tab-approval">
+                            ${renderTabContent(resultsData.approval, 'approval')}
+                        </div>
+                        <div class="tab-content" id="tab-identification">
+                            ${renderTabContent(resultsData.identification, 'identification')}
+                        </div>
+                    `;
+                    // 탭 이벤트 리스너 다시 등록 (동적으로 생성된 탭)
+                    setTimeout(() => {
+                        initTabs();
+                    }, 100);
+                } catch (error) {
+                    console.error('탭 콘텐츠 생성 오류:', error);
+                    tabContents.innerHTML = `<div class="error-message">⚠️ 결과 표시 중 오류가 발생했습니다: ${error.message}</div>`;
+                }
+            }
+
+            // DOM 요소 results 표시
+            const resultsElement = document.getElementById('results');
+            if (resultsElement) {
+                resultsElement.style.display = 'block';
+            }
+            
+            // 초기 화면 숨기기
+            if (tabContentsInitial) {
+                tabContentsInitial.style.display = 'none';
+            }
+        }
+
+        function renderItems(items, type) {
+            try {
+                if (!items || items.length === 0) {
+                    return '<div class="empty-message">검색 결과가 없습니다.</div>';
+                }
+                
+                // items가 배열이 아닌 경우 처리
+                if (typeof items === 'object' && !Array.isArray(items)) {
+                    if (items.error) {
+                        return `<div class="error-message">⚠️ ${items.error}</div>`;
+                    }
+                    return '<div class="empty-message">검색 결과가 없습니다.</div>';
+                }
+
+                return items.map((item, index) => {
+                    try {
+                        if (type === 'approval') {
+                            return renderApprovalItem(item);
+                        } else if (type === 'identification') {
+                            return renderIdentificationItem(item);
+                        }
+                        return '';
+                    } catch (itemError) {
+                        console.error(`항목 ${index} 렌더링 오류:`, itemError);
+                        return `<div class="error-message">⚠️ 항목 표시 중 오류가 발생했습니다.</div>`;
+                    }
+                }).join('');
+            } catch (error) {
+                console.error('항목 렌더링 오류:', error);
+                return `<div class="error-message">⚠️ 데이터 표시 중 오류가 발생했습니다: ${error.message}</div>`;
+            }
+        }
+
+        function renderApprovalItem(item) {
+            // 허가일자 포맷팅 (YYYYMMDD -> YYYY-MM-DD)
+            const formatDate = (dateStr) => {
+                if (!dateStr || dateStr.length !== 8) return dateStr;
+                return `${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`;
+            };
+            
+            // 값이 있는 필드만 표시하는 헬퍼 함수
+            const getValue = (...keys) => {
+                for (const key of keys) {
+                    if (item[key] && item[key] !== '-' && item[key] !== 'null' && item[key] !== '') {
+                        return item[key];
+                    }
+                }
+                return null;
+            };
+            
+            // 필드 배열 생성 (값이 있는 것만)
+            const fields = [];
+            
+            // === 기본 정보 ===
+            if (getValue('ITEM_NAME', 'PRDUCT')) {
+                fields.push({ label: '품목명', value: getValue('ITEM_NAME', 'PRDUCT') });
+            }
+            if (getValue('ITEM_ENG_NAME', 'ITEM_ENG_NAME', 'item_eng_name')) {
+                fields.push({ label: '품목 영문명', value: getValue('ITEM_ENG_NAME', 'ITEM_ENG_NAME', 'item_eng_name') });
+            }
+            if (getValue('ITEM_SEQ', 'item_seq')) {
+                fields.push({ label: '품목일련번호', value: getValue('ITEM_SEQ', 'item_seq') });
+            }
+            if (getValue('PRDLST_STDR_CODE', 'prdlst_Stdr_code', 'prdlst_stdr_code')) {
+                fields.push({ label: '품목일련번호(표준)', value: getValue('PRDLST_STDR_CODE', 'prdlst_Stdr_code', 'prdlst_stdr_code') });
+            }
+            
+            // === 취소/변경 정보 ===
+            if (getValue('CANCEL_NAME', 'cancel_name', 'CANCEL_STATUS')) {
+                fields.push({ label: '가/신고 취소상태', value: getValue('CANCEL_NAME', 'cancel_name', 'CANCEL_STATUS') });
+            }
+            if (getValue('CANCEL_DATE', 'cancel_date')) {
+                const cancelDate = getValue('CANCEL_DATE', 'cancel_date');
+                fields.push({ label: '취소일자', value: formatDate(cancelDate) });
+            }
+            if (getValue('CHANGE_DATE', 'change_date')) {
+                const changeDate = getValue('CHANGE_DATE', 'change_date');
+                fields.push({ label: '변경일자', value: formatDate(changeDate) });
+            }
+            if (getValue('START_CHANGE_DATE', 'start_change_date')) {
+                fields.push({ label: '변경일자 시작', value: formatDate(getValue('START_CHANGE_DATE', 'start_change_date')) });
+            }
+            if (getValue('END_CHANGE_DATE', 'end_change_date')) {
+                fields.push({ label: '변경일자 종료', value: formatDate(getValue('END_CHANGE_DATE', 'end_change_date')) });
+            }
+            if (getValue('CHANGE_CONTENT', 'change_content', 'CHANGE_INFO')) {
+                fields.push({ label: '변경내용', value: getValue('CHANGE_CONTENT', 'change_content', 'CHANGE_INFO') });
+            }
+            
+            // === 입체명 정보 ===
+            if (getValue('ITEM_3D_NAME', 'item_3d_name', 'THREE_D_NAME')) {
+                fields.push({ label: '입체명', value: getValue('ITEM_3D_NAME', 'item_3d_name', 'THREE_D_NAME') });
+            }
+            if (getValue('ITEM_3D_ENG_NAME', 'item_3d_eng_name', 'THREE_D_ENG_NAME')) {
+                fields.push({ label: '입체 영문명', value: getValue('ITEM_3D_ENG_NAME', 'item_3d_eng_name', 'THREE_D_ENG_NAME') });
+            }
+            
+            // === 허가 정보 ===
+            if (getValue('ITEM_PERMIT_DATE', 'item_permit_date', 'PERMIT_DATE')) {
+                const dateValue = getValue('ITEM_PERMIT_DATE', 'item_permit_date', 'PERMIT_DATE');
+                fields.push({ label: '허가일자', value: formatDate(dateValue) });
+            }
+            if (getValue('PRDUCT_PRMISN_NO', 'prduct_prmisn_no')) {
+                fields.push({ label: '품목허가번호', value: getValue('PRDUCT_PRMISN_NO', 'prduct_prmisn_no') });
+            }
+            
+            // === 업체 정보 ===
+            if (getValue('ENTP_NAME', 'Entrps')) {
+                fields.push({ label: '업체명', value: getValue('ENTP_NAME', 'Entrps') });
+            }
+            if (getValue('ENTP_NO', 'entp_no')) {
+                fields.push({ label: '업체허가번호', value: getValue('ENTP_NO', 'entp_no') });
+            }
+            if (getValue('ENTP_SEQ', 'entp_seq')) {
+                fields.push({ label: '업소일련번호', value: getValue('ENTP_SEQ', 'entp_seq') });
+            }
+            if (getValue('BIZRNO', 'bizrno')) {
+                fields.push({ label: '사업자등록번호', value: getValue('BIZRNO', 'bizrno') });
+            }
+            if (getValue('CONTRACT_MFG_YN', 'contract_mfg_yn', 'CONTRACT_MANUFACTURE')) {
+                fields.push({ label: '위탁제조업', value: getValue('CONTRACT_MFG_YN', 'contract_mfg_yn', 'CONTRACT_MANUFACTURE') });
+            }
+            
+            // === 전문/일반/성상 ===
+            if (getValue('ETC_OTC_NAME', 'spclty_pblc', 'SPCLTY_PBLC')) {
+                fields.push({ label: '전문/일반', value: getValue('ETC_OTC_NAME', 'spclty_pblc', 'SPCLTY_PBLC') });
+            }
+            if (getValue('CHART', 'APPEARANCE', 'appearance', 'ITEM_APPEARANCE')) {
+                fields.push({ label: '성상', value: getValue('CHART', 'APPEARANCE', 'appearance', 'ITEM_APPEARANCE') });
+            }
+            
+            // === 낱알식별 정보 (이미지, 표시, 색상, 분할선, 크기 등) ===
+            if (getValue('ITEM_IMAGE', 'item_image')) {
+                // 이미지는 별도로 처리되므로 여기서는 URL만 표시
+                fields.push({ label: '큰제품이미지', value: getValue('ITEM_IMAGE', 'item_image') });
+            }
+            if (getValue('PRINT_FRONT', 'print_front')) {
+                fields.push({ label: '표시앞', value: getValue('PRINT_FRONT', 'print_front') });
+            }
+            if (getValue('PRINT_BACK', 'print_back')) {
+                fields.push({ label: '표시뒤', value: getValue('PRINT_BACK', 'print_back') });
+            }
+            if (getValue('DRUG_SHAPE', 'drug_shape', 'FORM_CODE_NAME')) {
+                fields.push({ label: '의약품제형', value: getValue('DRUG_SHAPE', 'drug_shape', 'FORM_CODE_NAME') });
+            }
+            if (getValue('COLOR_CLASS1', 'color_class1')) {
+                fields.push({ label: '색상앞', value: getValue('COLOR_CLASS1', 'color_class1') });
+            }
+            if (getValue('COLOR_CLASS2', 'color_class2')) {
+                fields.push({ label: '색상뒤', value: getValue('COLOR_CLASS2', 'color_class2') });
+            }
+            if (getValue('LINE_FRONT', 'line_front')) {
+                fields.push({ label: '분할선앞', value: getValue('LINE_FRONT', 'line_front') });
+            }
+            if (getValue('LINE_BACK', 'line_back')) {
+                fields.push({ label: '분할선뒤', value: getValue('LINE_BACK', 'line_back') });
+            }
+            if (getValue('LENG_LONG', 'leng_long')) {
+                fields.push({ label: '크기장축', value: getValue('LENG_LONG', 'leng_long') });
+            }
+            if (getValue('LENG_SHORT', 'leng_short')) {
+                fields.push({ label: '크기단축', value: getValue('LENG_SHORT', 'leng_short') });
+            }
+            if (getValue('THICK', 'thick')) {
+                fields.push({ label: '크기두께', value: getValue('THICK', 'thick') });
+            }
+            if (getValue('IMG_REGIST_TS', 'img_regist_ts')) {
+                const imgDate = getValue('IMG_REGIST_TS', 'img_regist_ts');
+                fields.push({ label: '이미지생성일', value: formatDate(imgDate) });
+            }
+            
+            // === 분류 정보 ===
+            if (getValue('CLASS_NO', 'class_no')) {
+                fields.push({ label: '분류번호', value: getValue('CLASS_NO', 'class_no') });
+            }
+            if (getValue('CLASS_NAME', 'class_name')) {
+                fields.push({ label: '분류명', value: getValue('CLASS_NAME', 'class_name') });
+            }
+            
+            // === 제형 정보 ===
+            if (getValue('FORM_CODE_NAME', 'form_code_name')) {
+                fields.push({ label: '제형코드', value: getValue('FORM_CODE_NAME', 'form_code_name') });
+            }
+            
+            // === 표기 정보 ===
+            if (getValue('MARK_CODE_FRONT', 'mark_code_front')) {
+                fields.push({ label: '표기내용앞', value: getValue('MARK_CODE_FRONT', 'mark_code_front') });
+            }
+            if (getValue('MARK_CODE_BACK', 'mark_code_back')) {
+                fields.push({ label: '표기내용뒤', value: getValue('MARK_CODE_BACK', 'mark_code_back') });
+            }
+            if (getValue('MARK_CODE_FRONT_IMG', 'mark_code_front_img')) {
+                fields.push({ label: '표기이미지앞', value: getValue('MARK_CODE_FRONT_IMG', 'mark_code_front_img') });
+            }
+            if (getValue('MARK_CODE_BACK_IMG', 'mark_code_back_img')) {
+                fields.push({ label: '표기이미지뒤', value: getValue('MARK_CODE_BACK_IMG', 'mark_code_back_img') });
+            }
+            if (getValue('MARK_CODE_FRONT_ANAL', 'mark_code_front_anal')) {
+                fields.push({ label: '표기코드앞', value: getValue('MARK_CODE_FRONT_ANAL', 'mark_code_front_anal') });
+            }
+            if (getValue('MARK_CODE_BACK_ANAL', 'mark_code_back_anal')) {
+                fields.push({ label: '표기코드뒤', value: getValue('MARK_CODE_BACK_ANAL', 'mark_code_back_anal') });
+            }
+            
+            // === 코드 정보 ===
+            if (getValue('STD_CD', 'bar_code', 'BAR_CODE')) {
+                fields.push({ label: '표준코드', value: getValue('STD_CD', 'bar_code', 'BAR_CODE') });
+            }
+            if (getValue('EDI_CODE', 'edi_code')) {
+                fields.push({ label: '보험코드', value: getValue('EDI_CODE', 'edi_code') });
+            }
+            if (getValue('ATC_CODE', 'atc_code')) {
+                fields.push({ label: 'ATC코드', value: getValue('ATC_CODE', 'atc_code') });
+            }
+            
+            // === 성분 정보 ===
+            if (getValue('RAW_MATERIAL', 'raw_material', 'RAW_MAT')) {
+                fields.push({ label: '원료성분', value: getValue('RAW_MATERIAL', 'raw_material', 'RAW_MAT') });
+            }
+            if (getValue('ITEM_INGR_NAME', 'item_ingr_name')) {
+                fields.push({ label: '주성분명', value: getValue('ITEM_INGR_NAME', 'item_ingr_name') });
+            }
+            if (getValue('MAIN_ITEM_INGR', 'main_item_ingr')) {
+                fields.push({ label: '유효성분', value: getValue('MAIN_ITEM_INGR', 'main_item_ingr') });
+            }
+            if (getValue('INGR_ENG_NAME', 'ingr_eng_name', 'INGREDIENT_ENG_NAME')) {
+                fields.push({ label: '영문성분표', value: getValue('INGR_ENG_NAME', 'ingr_eng_name', 'INGREDIENT_ENG_NAME') });
+            }
+            if (getValue('ADDITIVE_NAME', 'additive_name', 'ADDITIVE')) {
+                fields.push({ label: '첨가제명', value: getValue('ADDITIVE_NAME', 'additive_name', 'ADDITIVE') });
+            }
+            if (getValue('TOTAL_AMOUNT', 'total_amount', 'TOTAL_QTY')) {
+                fields.push({ label: '총량', value: getValue('TOTAL_AMOUNT', 'total_amount', 'TOTAL_QTY') });
+            }
+            
+            // === 문서 정보 ===
+            if (getValue('EE_DOC_DATA', 'ee_doc_data', 'EFFICACY')) {
+                fields.push({ label: '효능효과', value: getValue('EE_DOC_DATA', 'ee_doc_data', 'EFFICACY') });
+            }
+            if (getValue('NB_DOC_DATA', 'nb_doc_data', 'DOSAGE')) {
+                fields.push({ label: '용법용량', value: getValue('NB_DOC_DATA', 'nb_doc_data', 'DOSAGE') });
+            }
+            if (getValue('UD_DOC_DATA', 'ud_doc_data', 'PRECAUTION')) {
+                fields.push({ label: '주의사항', value: getValue('UD_DOC_DATA', 'ud_doc_data', 'PRECAUTION') });
+            }
+            if (getValue('ATTACH_FILE', 'attach_file', 'ATTACHMENT')) {
+                fields.push({ label: '첨부문서', value: getValue('ATTACH_FILE', 'attach_file', 'ATTACHMENT') });
+            }
+            
+            // === 저장/유효기간 ===
+            if (getValue('STORAGE_METHOD', 'storage_method', 'STORAGE')) {
+                fields.push({ label: '저장방법', value: getValue('STORAGE_METHOD', 'storage_method', 'STORAGE') });
+            }
+            if (getValue('VALID_TERM', 'valid_term')) {
+                fields.push({ label: '유효기간', value: getValue('VALID_TERM', 'valid_term') });
+            }
+            
+            // === 재심사 정보 ===
+            if (getValue('RE_EXAM_YN', 're_exam_yn', 'RE_EXAM')) {
+                fields.push({ label: '재심사평가', value: getValue('RE_EXAM_YN', 're_exam_yn', 'RE_EXAM') });
+            }
+            if (getValue('RE_EXAM_PERIOD', 're_exam_period', 'RE_EXAM_TERM')) {
+                fields.push({ label: '재심사기간', value: getValue('RE_EXAM_PERIOD', 're_exam_period', 'RE_EXAM_TERM') });
+            }
+            
+            // === 포장/기타 ===
+            if (getValue('PACK_UNIT', 'pack_unit', 'PACKAGING_UNIT')) {
+                fields.push({ label: '포장단위', value: getValue('PACK_UNIT', 'pack_unit', 'PACKAGING_UNIT') });
+            }
+            if (getValue('NARCOTIC_CLASS', 'narcotic_class', 'NARCOTIC')) {
+                fields.push({ label: '마약류분류', value: getValue('NARCOTIC_CLASS', 'narcotic_class', 'NARCOTIC') });
+            }
+            if (getValue('FINISHED_PRODUCT', 'finished_product', 'FINISHED')) {
+                fields.push({ label: '완제/원료', value: getValue('FINISHED_PRODUCT', 'finished_product', 'FINISHED') });
+            }
+            if (getValue('NEW_DRUG_YN', 'new_drug_yn', 'NEW_DRUG')) {
+                fields.push({ label: '신약여부', value: getValue('NEW_DRUG_YN', 'new_drug_yn', 'NEW_DRUG') });
+            }
+            if (getValue('INDUTY_TYPE', 'induty', 'INDUTY')) {
+                fields.push({ label: '업종구분', value: getValue('INDUTY_TYPE', 'induty', 'INDUTY') });
+            }
+            if (getValue('RARE_DRUG_YN', 'rare_drug_yn')) {
+                const rareValue = getValue('RARE_DRUG_YN', 'rare_drug_yn');
+                if (rareValue && rareValue.toLowerCase() !== 'null' && rareValue.toLowerCase() !== 'n') {
+                    fields.push({ label: '희귀의약품', value: rareValue });
+                }
+            }
+            
+            // 필드가 없으면 기본 메시지 표시
+            if (fields.length === 0) {
+                return `
+                    <div class="result-card">
+                        <div class="result-header">
+                            <div class="result-title">${item.ITEM_NAME || item.PRDUCT || '정보 없음'}</div>
+                        </div>
+                        <div class="result-info">
+                            <div class="empty-message">표시할 정보가 없습니다.</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 필드 HTML 생성
+            const fieldsHtml = fields.map(field => `
+                <div class="info-item">
+                    <div class="info-label">${field.label}</div>
+                    <div class="info-value">${field.value}</div>
+                </div>
+            `).join('');
+            
+            return `
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="result-title">${item.ITEM_NAME || item.PRDUCT || '-'}</div>
+                    </div>
+                    <div class="result-info">
+                        ${fieldsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderIdentificationItem(item) {
+            // 허가일자 포맷팅 (YYYYMMDD -> YYYY-MM-DD)
+            const formatDate = (dateStr) => {
+                if (!dateStr || dateStr.length !== 8) return dateStr;
+                return `${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`;
+            };
+            
+            // 값이 있는 필드만 표시하는 헬퍼 함수
+            const getValue = (...keys) => {
+                for (const key of keys) {
+                    if (item[key] && item[key] !== '-' && item[key] !== 'null' && item[key] !== '' && item[key] !== undefined) {
+                        return item[key];
+                    }
+                }
+                return null;
+            };
+            
+            // 이미지는 좌측 사이드바에만 표시하므로 여기서는 제거
+            
+            // 필드 배열 생성 (값이 있는 것만)
+            const fields = [];
+            
+            // === 기본 정보 ===
+            if (getValue('ITEM_SEQ', 'item_seq')) {
+                fields.push({ label: '품목일련번호', value: getValue('ITEM_SEQ', 'item_seq') });
+            }
+            if (getValue('ITEM_NAME', 'PRDUCT')) {
+                fields.push({ label: '품목명', value: getValue('ITEM_NAME', 'PRDUCT') });
+            }
+            if (getValue('ITEM_ENG_NAME', 'item_eng_name')) {
+                fields.push({ label: '품목 영문명', value: getValue('ITEM_ENG_NAME', 'item_eng_name') });
+            }
+            
+            // === 업체 정보 ===
+            if (getValue('ENTP_SEQ', 'entp_seq')) {
+                fields.push({ label: '업소일련번호', value: getValue('ENTP_SEQ', 'entp_seq') });
+            }
+            if (getValue('ENTP_NAME', 'Entrps')) {
+                fields.push({ label: '제조사', value: getValue('ENTP_NAME', 'Entrps') });
+            }
+            if (getValue('BIZRNO', 'bizrno')) {
+                fields.push({ label: '사업자등록번호', value: getValue('BIZRNO', 'bizrno') });
+            }
+            
+            // === 성상/제형 ===
+            if (getValue('CHART', 'APPEARANCE', 'appearance')) {
+                fields.push({ label: '성상', value: getValue('CHART', 'APPEARANCE', 'appearance') });
+            }
+            if (getValue('DRUG_SHAPE', 'drug_shape', 'DRUG_FORM', 'FORM_CODE_NAME')) {
+                fields.push({ label: '제형', value: getValue('DRUG_SHAPE', 'drug_shape', 'DRUG_FORM', 'FORM_CODE_NAME') });
+            }
+            
+            // === 색상 정보 ===
+            if (getValue('COLOR_CLASS1', 'color_class1')) {
+                fields.push({ label: '색상앞', value: getValue('COLOR_CLASS1', 'color_class1') });
+            }
+            if (getValue('COLOR_CLASS2', 'color_class2')) {
+                fields.push({ label: '색상뒤', value: getValue('COLOR_CLASS2', 'color_class2') });
+            }
+            
+            // === 각인 정보 ===
+            if (getValue('PRINT_FRONT', 'print_front')) {
+                fields.push({ label: '앞면각인', value: getValue('PRINT_FRONT', 'print_front') });
+            }
+            if (getValue('PRINT_BACK', 'print_back')) {
+                fields.push({ label: '뒷면각인', value: getValue('PRINT_BACK', 'print_back') });
+            }
+            
+            // === 분할선 정보 ===
+            if (getValue('LINE_FRONT', 'line_front')) {
+                fields.push({ label: '분할선앞', value: getValue('LINE_FRONT', 'line_front') });
+            }
+            if (getValue('LINE_BACK', 'line_back')) {
+                const lineBack = getValue('LINE_BACK', 'line_back');
+                if (lineBack && lineBack !== '-') {
+                    fields.push({ label: '분할선뒤', value: lineBack });
+                }
+            }
+            
+            // === 크기 정보 ===
+            if (getValue('LENG_LONG', 'leng_long')) {
+                fields.push({ label: '크기장축', value: getValue('LENG_LONG', 'leng_long') + 'mm' });
+            }
+            if (getValue('LENG_SHORT', 'leng_short')) {
+                fields.push({ label: '크기단축', value: getValue('LENG_SHORT', 'leng_short') + 'mm' });
+            }
+            if (getValue('THICK', 'thick')) {
+                fields.push({ label: '크기두께', value: getValue('THICK', 'thick') + 'mm' });
+            }
+            
+            // === 이미지 정보 ===
+            if (getValue('IMG_REGIST_TS', 'img_regist_ts')) {
+                const imgDate = getValue('IMG_REGIST_TS', 'img_regist_ts');
+                fields.push({ label: '이미지생성일', value: formatDate(imgDate) });
+            }
+            if (getValue('ITEM_IMAGE', 'item_image')) {
+                fields.push({ label: '이미지 URL', value: getValue('ITEM_IMAGE', 'item_image') });
+            }
+            
+            // === 분류 정보 ===
+            if (getValue('CLASS_NO', 'class_no')) {
+                fields.push({ label: '분류번호', value: getValue('CLASS_NO', 'class_no') });
+            }
+            if (getValue('CLASS_NAME', 'class_name')) {
+                fields.push({ label: '분류명', value: getValue('CLASS_NAME', 'class_name') });
+            }
+            if (getValue('ETC_OTC_NAME', 'spclty_pblc')) {
+                fields.push({ label: '전문/일반', value: getValue('ETC_OTC_NAME', 'spclty_pblc') });
+            }
+            
+            // === 허가 정보 ===
+            if (getValue('ITEM_PERMIT_DATE', 'item_permit_date', 'PERMIT_DATE')) {
+                const permitDate = getValue('ITEM_PERMIT_DATE', 'item_permit_date', 'PERMIT_DATE');
+                fields.push({ label: '품목허가일', value: formatDate(permitDate) });
+            }
+            
+            // === 표기 정보 ===
+            if (getValue('MARK_CODE_FRONT', 'mark_code_front')) {
+                fields.push({ label: '표기내용앞', value: getValue('MARK_CODE_FRONT', 'mark_code_front') });
+            }
+            if (getValue('MARK_CODE_BACK', 'mark_code_back')) {
+                fields.push({ label: '표기내용뒤', value: getValue('MARK_CODE_BACK', 'mark_code_back') });
+            }
+            if (getValue('MARK_CODE_FRONT_IMG', 'mark_code_front_img')) {
+                fields.push({ label: '표기이미지앞', value: getValue('MARK_CODE_FRONT_IMG', 'mark_code_front_img') });
+            }
+            if (getValue('MARK_CODE_BACK_IMG', 'mark_code_back_img')) {
+                fields.push({ label: '표기이미지뒤', value: getValue('MARK_CODE_BACK_IMG', 'mark_code_back_img') });
+            }
+            if (getValue('MARK_CODE_FRONT_ANAL', 'mark_code_front_anal')) {
+                fields.push({ label: '표기코드앞', value: getValue('MARK_CODE_FRONT_ANAL', 'mark_code_front_anal') });
+            }
+            if (getValue('MARK_CODE_BACK_ANAL', 'mark_code_back_anal')) {
+                fields.push({ label: '표기코드뒤', value: getValue('MARK_CODE_BACK_ANAL', 'mark_code_back_anal') });
+            }
+            
+            // === 변경일자 ===
+            if (getValue('CHANGE_DATE', 'change_date')) {
+                const changeDate = getValue('CHANGE_DATE', 'change_date');
+                fields.push({ label: '변경일자', value: formatDate(changeDate) });
+            }
+            
+            // === 코드 정보 ===
+            if (getValue('STD_CD', 'bar_code', 'BAR_CODE')) {
+                fields.push({ label: '표준코드', value: getValue('STD_CD', 'bar_code', 'BAR_CODE') });
+            }
+            if (getValue('EDI_CODE', 'edi_code')) {
+                fields.push({ label: '보험코드', value: getValue('EDI_CODE', 'edi_code') });
+            }
+            
+            // 필드 HTML 생성
+            const fieldsHtml = fields.map(field => `
+                <div class="info-item">
+                    <div class="info-label">${field.label}</div>
+                    <div class="info-value">${field.value}</div>
+                </div>
+            `).join('');
+            
+            return `
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="result-title">${item.ITEM_NAME || '-'}</div>
+                    </div>
+                    <div class="result-info">
+                        ${fieldsHtml || '<div class="empty-message">표시할 정보가 없습니다.</div>'}
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateRelatedImage(identificationData) {
+            const imageContainer = document.getElementById('relatedImageContainer');
+            if (!imageContainer) return;
+
+            // 낱알식별 데이터에서 첫 번째 이미지 찾기
+            let imageUrl = null;
+            let imageSize = null;
+            let itemName = null;
+
+            if (identificationData && identificationData.items && identificationData.items.length > 0) {
+                const firstItem = identificationData.items[0];
+                imageUrl = firstItem.LOCAL_IMAGE || firstItem.ITEM_IMAGE;
+                itemName = firstItem.ITEM_NAME || '-';
+                
+                // 크기 정보 추출
+                if (firstItem.LENG_LONG || firstItem.LENG_SHORT) {
+                    const long = firstItem.LENG_LONG || '-';
+                    const short = firstItem.LENG_SHORT || '-';
+                    imageSize = `${long} × ${short} mm`;
+                }
+            }
+
+            if (imageUrl) {
+                imageContainer.innerHTML = `
+                    <img src="${imageUrl}" alt="${itemName}" class="pill-image" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'empty-message\\' style=\\'color: #666; padding: 20px;\\'>이미지를 불러올 수 없습니다</div>'">
+                    ${imageSize ? `<div class="image-size">${imageSize}</div>` : ''}
+                `;
+            } else {
+                imageContainer.innerHTML = `
+                    <div class="empty-message" style="color: #666; padding: 20px;">
+                        검색 결과의 낱알식별 이미지가<br>여기에 표시됩니다
+                    </div>
+                `;
+            }
+        }
+
+        function showError(message) {
+            const resultsElement = document.getElementById('results');
+            const tabContentsElement = document.getElementById('tabContents');
+            const tabContentsInitialElement = document.getElementById('tabContentsInitial');
+            
+            // 초기 화면 다시 표시
+            if (tabContentsInitialElement) {
+                tabContentsInitialElement.style.display = 'block';
+            }
+            if (resultsElement) {
+                resultsElement.style.display = 'none';
+            }
+            if (tabContentsElement) {
+                tabContentsElement.innerHTML = `<div class="error-message">${message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,158 @@
+{% extends "_layout.html" %}
+
+{% block title %}워치리스트 — 광동 RegHub 360{% endblock %}
+
+{% block breadcrumb %}
+  <span class="crumb-active">워치리스트</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <div class="app-topbar__search">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <span style="flex:1">제품·업체·성분 빠른 검색</span><span class="kbd">⌘ K</span>
+  </div>
+  <span class="badge">{{ entries|length }}건 등록</span>
+  {% if alert_total > 0 %}
+    <span class="badge badge--danger badge--dot">매칭 {{ alert_total }}건</span>
+  {% else %}
+    <span class="badge badge--ok badge--dot">매칭 0건</span>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <div class="app-content">
+
+    <div class="page-head">
+      <div>
+        <div class="t-caption">★ F-004 핵심 기능</div>
+        <h1 class="page-head__title">워치리스트</h1>
+        <p class="page-head__sub">관심 제품·업체·성분을 등록해두면 통합 검색·타임라인에서 빠르게 다시 열어볼 수 있습니다. <strong>data/watchlist.json</strong> 에 영속 저장됩니다.</p>
+      </div>
+      <div class="page-head__actions">
+        {% if flash_msg %}
+          <span class="badge badge--brand badge--dot">{{ flash_msg|replace('_', ' ') }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 추가 폼 -->
+    <div class="app-card" style="margin-bottom:18px">
+      <div class="app-card__head">
+        <div class="app-card__title">새 항목 추가</div>
+        <span class="app-card__caption">검색어 + 분류</span>
+      </div>
+      <form action="/app/watchlist/add" method="post" style="display:grid;grid-template-columns:2fr 1.5fr 1fr 2fr auto;gap:10px;align-items:center">
+        <input name="query" required placeholder="검색 키워드 (예: 베니톨정, 광동제약)" style="height:38px;padding:0 12px;border:1px solid var(--line-1);border-radius:8px;background:var(--bg-elevated);color:var(--ink-1);font-size:14px;outline:none">
+        <input name="label" placeholder="표시명 (비우면 검색어와 동일)" style="height:38px;padding:0 12px;border:1px solid var(--line-1);border-radius:8px;background:var(--bg-elevated);color:var(--ink-1);font-size:14px;outline:none">
+        <select name="kind" style="height:38px;padding:0 10px;border:1px solid var(--line-1);border-radius:8px;background:var(--bg-elevated);color:var(--ink-1);font-size:14px;outline:none">
+          <option value="product">제품</option>
+          <option value="company">업체</option>
+          <option value="ingredient">성분</option>
+          <option value="other">기타</option>
+        </select>
+        <input name="note" placeholder="메모(선택)" style="height:38px;padding:0 12px;border:1px solid var(--line-1);border-radius:8px;background:var(--bg-elevated);color:var(--ink-1);font-size:14px;outline:none">
+        <button type="submit" class="btn btn--primary btn--sm" style="height:38px;padding:0 16px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          추가
+        </button>
+      </form>
+    </div>
+
+    <!-- 등록 항목 목록 -->
+    <div class="app-card">
+      <div class="app-card__head">
+        <div class="app-card__title">등록 항목</div>
+        <span class="app-card__caption">최신 추가 순 · 총 {{ entries|length }}건</span>
+      </div>
+
+      {% if entries %}
+      <div style="display:flex;flex-direction:column;gap:12px">
+        {% for e in entries %}
+        {% set kind_label = {'product':'제품','company':'업체','ingredient':'성분','other':'기타'}.get(e.kind, e.kind) %}
+        {% set kind_class = {'product':'info','company':'brand','ingredient':'warn','other':''}.get(e.kind, '') %}
+        {% set m = matches.get(e.id, {'events': [], 'counts': {'recall':0,'safety':0,'sanction':0,'supply':0,'total':0}}) %}
+        {% set c = m.counts %}
+        <div style="background:var(--bg-elevated);border:1px solid {% if c.total > 0 %}var(--danger){% else %}var(--line-1){% endif %};border-radius:12px;overflow:hidden">
+          <!-- Row 1: 기본 정보 -->
+          <div style="display:grid;grid-template-columns:auto 1fr auto auto auto;gap:14px;align-items:center;padding:14px 16px">
+            <span class="badge {% if kind_class %}badge--{{ kind_class }}{% endif %}">{{ kind_label }}</span>
+            <div style="min-width:0">
+              <a href="/?q={{ e.query }}" style="font-size:15px;font-weight:600;color:var(--ink-1);text-decoration:none">{{ e.label }}</a>
+              <div style="font-size:12px;color:var(--ink-3);margin-top:2px">
+                검색어 <code style="font-family:'JetBrains Mono',monospace;color:var(--ink-2)">{{ e.query }}</code>
+                {% if e.note %} · {{ e.note }}{% endif %}
+                · 등록 {{ e.added_at[:10] }}
+              </div>
+            </div>
+            <!-- Match summary -->
+            {% if c.total > 0 %}
+              <span class="badge badge--danger badge--dot">매칭 {{ c.total }}건</span>
+            {% else %}
+              <span class="badge badge--ok badge--dot">매칭 0건</span>
+            {% endif %}
+            <a href="/?q={{ e.query }}" class="btn btn--secondary btn--sm">검색 →</a>
+            <form action="/app/watchlist/{{ e.id }}/delete" method="post" style="margin:0">
+              <button type="submit" class="btn btn--ghost btn--sm" aria-label="삭제" onclick="return confirm('{{ e.label }} 항목을 삭제할까요?')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </form>
+          </div>
+
+          {% if c.total > 0 %}
+          <!-- Row 2: 카운트 라벨 -->
+          <div style="display:flex;gap:14px;flex-wrap:wrap;padding:8px 16px;background:var(--bg-subtle);border-top:1px solid var(--line-2);font-size:12px">
+            {% if c.recall > 0 %}<span style="color:var(--danger);font-weight:600">회수 {{ c.recall }}건</span>{% endif %}
+            {% if c.safety > 0 %}<span style="color:var(--warn);font-weight:600">안전성서한 {{ c.safety }}건</span>{% endif %}
+            {% if c.sanction > 0 %}<span style="color:var(--warn);font-weight:600">행정처분 {{ c.sanction }}건</span>{% endif %}
+            {% if c.supply > 0 %}<span style="color:var(--danger);font-weight:600">공급중단 {{ c.supply }}건</span>{% endif %}
+            <span style="margin-left:auto;color:var(--ink-3)">최근 매칭 top 3 ↓</span>
+          </div>
+          <!-- Row 3: 매칭 이벤트 top 3 -->
+          <div style="padding:10px 16px 14px;display:flex;flex-direction:column;gap:6px">
+            {% for ev in m.events %}
+            <div class="alert-row" style="padding:10px 12px">
+              <div class="alert-row__bar" style="background:{% if ev.severity == 'HIGH' %}var(--danger){% elif ev.severity == 'MED' %}var(--warn){% else %}var(--brand){% endif %}"></div>
+              <span class="alert-row__time">{{ ev.date or '-' }}</span>
+              <div class="flex-1">
+                <div class="alert-row__title">「{{ ev.title }}」 {{ ev.kind_kr }}</div>
+                <div class="alert-row__meta">{{ ev.api }} · {{ ev.meta|truncate(70) }}</div>
+              </div>
+              <span class="badge badge--{% if ev.severity == 'HIGH' %}danger{% elif ev.severity == 'MED' %}warn{% else %}info{% endif %}">{{ ev.severity }}</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:50px 20px;color:var(--ink-3)">
+        <div style="font-size:42px;margin-bottom:10px">★</div>
+        <h3 style="color:var(--ink-1);font-size:18px;margin:0 0 6px">등록된 항목이 없습니다</h3>
+        <p style="font-size:13px;max-width:480px;margin:0 auto 16px">위 폼에서 검색어를 추가하거나, 제품 상세 페이지의 <strong>워치리스트</strong> 버튼으로 한 번에 등록할 수 있습니다.</p>
+        <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+          <a href="/?q=광동제약" class="btn btn--secondary btn--sm">광동제약 검색</a>
+          <a href="/?q=베니톨정" class="btn btn--secondary btn--sm">베니톨정 검색</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- 안내 카드 -->
+    <div class="app-card" style="margin-top:18px;background:linear-gradient(135deg,var(--bg-subtle) 0%, transparent 100%);border-color:var(--line-2)">
+      <div class="app-card__head">
+        <div class="app-card__title">로드맵</div>
+        <span class="app-card__caption">Phase 2.5+</span>
+      </div>
+      <div style="font-size:13px;color:var(--ink-3);line-height:1.6">
+        현재 워치리스트는 <strong>단일 사용자(김QA)</strong> 기준의 JSON 영속 저장입니다. 향후 추가 예정:
+        <ul style="margin:8px 0 0;padding-left:20px">
+          <li>새 회수·안전성서한 매칭 시 알림 배지</li>
+          <li>여러 사용자별 분리 + Slack/이메일 푸시</li>
+          <li>리포트 페이지에서 워치리스트 기반 자동 리포트 생성</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+{% endblock %}

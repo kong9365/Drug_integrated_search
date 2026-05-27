@@ -1,0 +1,129 @@
+{% extends "_layout.html" %}
+
+{% block title %}이벤트 타임라인 — 광동 RegHub 360{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/app-extra.css') }}">
+{% endblock %}
+
+{% block breadcrumb %}
+  <span class="crumb-active">이벤트 타임라인</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <div class="app-topbar__search">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <span style="flex:1">제품·업체·성분 빠른 검색</span><span class="kbd">⌘ K</span>
+  </div>
+  <button class="btn btn--secondary btn--sm">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+    엑셀 추출
+  </button>
+  <button class="btn btn--primary btn--sm">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+    필터 저장
+  </button>
+{% endblock %}
+
+{% block content %}
+  <div class="app-content">
+    <div class="page-head">
+      <div>
+        <div class="t-caption">★ F-003 핵심 기능</div>
+        <h1 class="page-head__title">통합 이벤트 타임라인</h1>
+        <p class="page-head__sub">허가·회수·행정처분·안전성서한·DUR·검사부적합·공급중단을 단일 포맷으로 평면화. 자사 + 동성분 + 경쟁사 모두.</p>
+      </div>
+      <div class="page-head__actions">
+        <span class="badge badge--brand badge--dot">실시간</span>
+        <span class="badge">총 24건 · 90일</span>
+      </div>
+    </div>
+
+    <!-- Sev counters — 실 API 카운트 -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+      <div class="kpi-card" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="kpi-card__label">전체 이벤트</span><span class="badge">실 API</span></div>
+        <div class="kpi-card__num" style="font-size:30px;color:var(--ink-1)"><span class="tnum">{{ total_count or 0 }}</span></div>
+      </div>
+      <div class="kpi-card" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="kpi-card__label">HIGH</span><span class="badge badge--danger badge--dot" style="height:18px;font-size:10px;padding:0 6px">HIGH</span></div>
+        <div class="kpi-card__num" style="font-size:30px;color:var(--danger)"><span class="tnum">{{ severity_counts.high or 0 }}</span></div>
+      </div>
+      <div class="kpi-card" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="kpi-card__label">MEDIUM</span><span class="badge badge--warn badge--dot" style="height:18px;font-size:10px;padding:0 6px">MED</span></div>
+        <div class="kpi-card__num" style="font-size:30px;color:var(--warn)"><span class="tnum">{{ severity_counts.med or 0 }}</span></div>
+      </div>
+      <div class="kpi-card" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="kpi-card__label">LOW</span><span class="badge badge--info badge--dot" style="height:18px;font-size:10px;padding:0 6px">LOW</span></div>
+        <div class="kpi-card__num" style="font-size:30px;color:var(--brand)"><span class="tnum">{{ severity_counts.low or 0 }}</span></div>
+      </div>
+    </div>
+
+    <!-- Filter row — 실 데이터 통계 -->
+    <div class="filter-row">
+      <span class="filter-row__label">필터</span>
+      <span class="filter-chip is-active">최근 등재 순 <span class="filter-chip__x">✕</span></span>
+      <span class="filter-chip is-active">전체 도메인 <span class="filter-chip__x">✕</span></span>
+      <span style="width:1px;height:20px;background:var(--line-1);margin:0 4px"></span>
+      <span class="filter-chip">의약품 ({{ events|length }})</span>
+      <span class="filter-chip">의약외품 (-)</span>
+      <span class="filter-chip">식품 (-)</span>
+      <span style="margin-left:auto;display:flex;gap:10px;align-items:center;font-size:12px;color:var(--ink-3)">
+        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--ok)"></span>호출 직후 · 4종 API 통합</span>
+      </span>
+    </div>
+
+    <!-- Subtabs by type — 실 API 카운트 (6종 통합) -->
+    <div class="subtabs">
+      <button class="subtab is-active">전체 <span class="subtab__count">{{ total_count or 0 }}</span></button>
+      <button class="subtab">회수·판매중지 <span class="subtab__count">{{ type_counts.recall or 0 }}</span></button>
+      <button class="subtab">행정처분 <span class="subtab__count">{{ type_counts.disciplinary or 0 }}</span></button>
+      <button class="subtab">안전성서한 <span class="subtab__count">{{ type_counts.safety_letter or 0 }}</span></button>
+      <button class="subtab">공급중단 <span class="subtab__count">{{ type_counts.supply_stop or 0 }}</span></button>
+      <button class="subtab">검사부적합 <span class="subtab__count">{{ type_counts.inspection_fail or 0 }}</span></button>
+      <button class="subtab">신규허가 <span class="subtab__count">{{ type_counts.permit_new or 0 }}</span></button>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline">
+      {# 실 API 통합 이벤트 — 회수 + 처분 + 안전성서한 + 공급중단 #}
+      {% if events %}
+        {% set ns = namespace(prev_date=None) %}
+        {% for ev in events %}
+          {% if ev.date != ns.prev_date %}
+            {# 날짜 헤더 (시간순 정렬됨) #}
+            <div class="timeline__date-divider">{{ ev.date or '날짜 미상' }}<span class="timeline__date-count">{{ ev.api }}</span></div>
+            {% set ns.prev_date = ev.date %}
+          {% endif %}
+          <div class="event-card">
+            <div class="event-card__bar {% if ev.severity == 'HIGH' %}sev-bar--high{% elif ev.severity == 'MED' %}sev-bar--med{% else %}sev-bar--low{% endif %}"></div>
+            <div class="event-card__body">
+              <div class="event-card__time">{{ (ev.date or '')[5:10] }}</div>
+              <div class="event-card__sev">
+                <span class="badge badge--{% if ev.severity == 'HIGH' %}danger{% elif ev.severity == 'MED' %}warn{% else %}info{% endif %} badge--dot">{{ ev.severity }}</span>
+                <span class="event-card__type">{{ ev.type_kr }}</span>
+              </div>
+              <div>
+                <div class="event-card__title">{{ ev.title }}</div>
+                <div class="event-card__meta">{{ ev.entity }}{% if ev.summary %} · {{ ev.summary|truncate(80) }}{% endif %}</div>
+              </div>
+              <div class="event-card__side">
+                <span class="event-card__side-label">출처</span>
+                <div class="event-card__side-tags"><span class="badge">{{ ev.domain_kr }}</span></div>
+                <a href="{{ ev.url }}" target="_blank" class="event-card__side-api" style="color:var(--brand)">{{ ev.api }} →</a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+        <div style="text-align:center;padding:24px 0;color:var(--ink-3);font-size:13px">
+          상위 {{ events|length }}건 표시 · 전체 {{ total_count }}건 (Phase 2에서 기간/필터 검색)
+        </div>
+      {% else %}
+        <div style="padding:60px;text-align:center;color:var(--ink-3)">
+          <h3 style="color:var(--ink-1)">최근 이벤트가 없습니다</h3>
+          <p style="font-size:14px">실 API 호출 결과 0건. 잠시 후 다시 시도해 주세요.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
