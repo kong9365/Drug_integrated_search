@@ -55,3 +55,13 @@ data/*.json
 data/*.tmp
 data/*.json.tmp
 
+# Claude Code / AI 툴링
+.claude/
+
+# 런타임 캐시
+cache/
+
+# 검증 / 스모크 테스트 결과 (재생성 가능)
+api_verify_full_result.txt
+smoke_test_result.json
+
