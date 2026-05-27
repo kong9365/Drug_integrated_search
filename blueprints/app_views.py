@@ -313,10 +313,17 @@ def search():
             "hf_gmp": len(hf_gmp_items),
         })
 
+        # 실제로 응답을 받은 API 카테고리 수 (성공/0건 모두 카운트, 실패는 제외)
+        core_called = sum(1 for k in ("approval", "drug_easy", "recall_raw",
+                                       "disc_raw", "safety", "supply", "food")
+                          if results.get(k))
+        ext_called = len(par) if q else 0   # 확장 API job 결과 dict (실패는 _parallel_filter 에서 제외됨)
+        api_count_dyn = core_called + ext_called
+
         ctx["search_results"] = {
             "kind": kind,
             "counts": counts,
-            "api_count": 28,  # 11 핵심 + 17 확장
+            "api_count": api_count_dyn,  # 실 호출 성공 API 수
             "products": products,
             "top_products": top_products,
             "watch_events": watch_events[:6],
@@ -348,6 +355,7 @@ def product_drug(code):
     drug_easy = None
     identification = None
     related_recalls = []
+    same_entity_recalls = []  # 동일 업체 다른 품목 회수 (참고용)
     safety_letters = []
     bundle = None
     dur_items = []
@@ -405,17 +413,28 @@ def product_drug(code):
                 ingredient_kr = m_ingr.group(1).strip()
 
             # 4. NO 539 회수 — 파라미터 무시되므로 클라이언트 필터
+            # ⚠️ 핵심 규칙: 이 "제품"의 회수이력 (제품명 매칭) 만 카운트.
+            #    동일 업체 다른 품목 회수는 사용자가 베니톨정 검색 시 보고 싶지 않음 (v3 §1.2).
             try:
                 rr = fetch_recall(num_of_rows=200)
-                needle_n = item_name.split('(')[0].lower() if item_name else ""
-                needle_e = entp_name.lower()
-                related_recalls = [
-                    it for it in rr.get("items", [])
-                    if (needle_n and needle_n in str(it.get("PRDUCT", "")).lower())
-                    or (needle_e and needle_e in str(it.get("ENTRPS", "")).lower())
-                ][:5]
+                needle_n = item_name.split('(')[0].strip().lower() if item_name else ""
+                if needle_n and len(needle_n) >= 2:
+                    related_recalls = [
+                        it for it in rr.get("items", [])
+                        if needle_n in str(it.get("PRDUCT", "")).lower()
+                    ][:5]
+                # 별도: 동일 업체 다른 품목 회수 (참고 표시용, related_recalls와 분리)
+                needle_e = (entp_name or "").strip().lower()
+                if needle_e and len(needle_e) >= 2:
+                    same_entity_recalls = [
+                        it for it in rr.get("items", [])
+                        if needle_e in str(it.get("ENTRPS", "")).lower()
+                        and (not needle_n or needle_n not in str(it.get("PRDUCT", "")).lower())
+                    ][:5]
+                else:
+                    same_entity_recalls = []
             except Exception:
-                pass
+                same_entity_recalls = []
 
             # 5. NO 547 안전성서한 — TITLE (대문자) 검증 완료
             try:
@@ -440,14 +459,15 @@ def product_drug(code):
             except Exception:
                 pass
 
-            # 8. NO 534 공급중단 — 클라이언트 필터
+            # 8. NO 534 공급중단 — 제품명 매칭만 (회수와 동일 정책)
             try:
                 ss = fetch_drug_supply_stop(num_of_rows=200)
-                supply_stops = [
-                    it for it in ss.get("items", [])
-                    if (item_name.split('(')[0].lower() in str(it.get("ITEM_NAME", "")).lower())
-                    or (entp_name.lower() in str(it.get("ENTP_NAME", "")).lower())
-                ][:3]
+                needle_n2 = item_name.split('(')[0].strip().lower() if item_name else ""
+                if needle_n2 and len(needle_n2) >= 2:
+                    supply_stops = [
+                        it for it in ss.get("items", [])
+                        if needle_n2 in str(it.get("ITEM_NAME", "")).lower()
+                    ][:3]
             except Exception:
                 pass
 
@@ -527,6 +547,7 @@ def product_drug(code):
         drug_easy=drug_easy,
         identification=identification,
         related_recalls=related_recalls,
+        same_entity_recalls=same_entity_recalls,
         safety_letters=safety_letters,
         bundle=bundle,
         dur_items=dur_items,
