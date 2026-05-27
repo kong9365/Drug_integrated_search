@@ -8,6 +8,17 @@ import logging
 import os
 from pathlib import Path
 
+# KD-IRIS — .env 파일 자동 로드 (있을 경우에만, 없어도 무해)
+try:
+    from dotenv import load_dotenv
+    # BASE_DIR 정의 전이므로 직접 경로 계산
+    _ENV_PATH = Path(__file__).parent / ".env"
+    if _ENV_PATH.exists():
+        load_dotenv(_ENV_PATH, override=False)
+except ImportError:
+    # python-dotenv 미설치 시 환경변수만 사용
+    pass
+
 # 프로젝트 루트 디렉토리
 BASE_DIR = Path(__file__).parent
 
