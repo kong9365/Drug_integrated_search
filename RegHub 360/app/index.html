@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<title>제품 미리보기 — 광동 RegHub 360</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>(function(){try{var t=localStorage.getItem('reghub.theme');if(!t&&matchMedia('(prefers-color-scheme: dark)').matches)t='dark';if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../styles/tokens.css">
+<link rel="stylesheet" href="../styles/components.css">
+<link rel="stylesheet" href="../styles/app.css">
+<link rel="stylesheet" href="../styles/app-extra.css">
+<style>
+  body.app { overflow: auto; }
+  body { background: var(--bg-subtle); }
+  .overview-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 64px 32px 96px;
+  }
+  .overview-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 48px;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .overview-title {
+    font-size: clamp(32px, 4vw, 48px);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--ink-1);
+    margin: 0 0 8px;
+  }
+  .overview-sub {
+    font-size: 16px;
+    color: var(--ink-3);
+    margin: 0;
+    max-width: 640px;
+    line-height: 1.55;
+  }
+  .overview-section { margin-top: 56px; }
+  .overview-section__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 18px;
+  }
+  .overview-section__title { font-size: 14px; font-weight: 700; letter-spacing: 0.04em; color: var(--ink-1); text-transform: uppercase; }
+  .overview-section__count { font-size: 13px; color: var(--ink-3); }
+  @media (max-width: 768px) {
+    .overview-page { padding: 40px 20px 64px; }
+  }
+</style>
+</head>
+<body class="app">
+
+<!-- topbar -->
+<header style="background:var(--bg-elevated);border-bottom:1px solid var(--line-1);padding:18px 32px;display:flex;align-items:center;gap:16px">
+  <a href="../index.html" class="logo">
+    <span class="logo__mark"></span>
+    <span>광동 <span style="color:var(--brand)">RegHub 360</span></span>
+  </a>
+  <span style="color:var(--ink-4)">/</span>
+  <span style="font-size:14px;color:var(--ink-2);font-weight:500">제품 미리보기</span>
+  <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+    <a href="../index.html" class="btn btn--ghost btn--sm">← 랜딩으로</a>
+    <button class="theme-toggle" data-theme-toggle aria-label="테마 전환">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="overview-page">
+  <div class="overview-head">
+    <div>
+      <div class="t-caption" style="margin-bottom:8px">제품 미리보기 · 전체 9개 화면</div>
+      <h1 class="overview-title">RegHub 360 제품 화면 둘러보기</h1>
+      <p class="overview-sub">실제 동작하는 클릭 가능한 프로토타입. 각 화면을 클릭해 들어가거나, 사이드바를 통해 화면 사이를 이동할 수 있습니다.</p>
+    </div>
+    <a href="search.html" class="btn btn--primary btn--lg">통합 검색부터 시작 →</a>
+  </div>
+
+  <!-- 핵심 화면 -->
+  <div class="overview-section">
+    <div class="overview-section__head">
+      <div class="overview-section__title">★ 핵심 기능</div>
+      <div class="overview-section__count">5개</div>
+    </div>
+    <div class="overview-grid">
+      <a href="search.html" class="overview-card">
+        <div class="overview-card__head">
+          <div class="overview-card__icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          </div>
+          <div>
+            <span class="overview-card__num">F-001</span>
+            <div class="overview-card__name">통합 검색</div>
+          </div>
+        </div>
+        <div class="overview-card__desc">제품·업체·성분·원재료·인허가번호·바코드 6가지 기준 단일 검색. 결과 KPI 4종 + 대표 품목 리스트.</div>
+      </a>
+
+      <a href="product.html" class="overview-card">
+        <div class="overview-card__head">
+          <div class="overview-card__icon" style="background:var(--domain-drug-soft);color:var(--domain-drug)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5L20 11a4.95 4.95 0 1 0-7-7L3.5 13.5a4.95 4.95 0 1 0 7 7zM8.5 8.5l7 7"/></svg>
+          </div>
+          <div>
+            <span class="overview-card__num">F-002 · 의약품</span>
+            <div class="overview-card__name">Product 360 — 베니톨정</div>
+          </div>
+        </div>
+        <div class="overview-card__desc">의약품 단일 화면 — 8개 탭 (기본정보·허가이력·안전성·품질규제·공급망·개발BD·마약류·낱알식별). Risk Score 자동 분해 표시.</div>
+      </a>
+
+      <a href="product-food.html" class="overview-card">
+        <div class="overview-card__head">
+          <div class="overview-card__icon" style="background:var(--domain-food-soft);color:var(--domain-food)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
+          </div>
+          <div>
+            <span class="overview-card__num">F-002 · 식품</span>
+            <div class="overview-card__name">Product 360 — 비타500</div>
+          </div>
+        </div>
+        <div class="overview-card__desc">식품 도메인 — 영양성분 차트 · 원재료 · 알레르기 · HACCP · 표시기준 위반 · 푸드QR. 의약품과 동일 구조 다른 탭.</div>
+      </a>
+
+      <a href="timeline.html" class="overview-card">
+        <div class="overview-card__head">
+          <div class="overview-card__icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM12 7v5l3 2"/></svg>
+          </div>
+          <div>
+            <span class="overview-card__num">F-003 · ★ 핵심</span>
+            <div class="overview-card__name">통합 이벤트 타임라인</div>
+          </div>
+        </div>
+        <div class="overview-card__desc">7종 이벤트 단일 포맷 평면화. severity 4단계 자동 산정 · 영향 부서 자동 태깅 · 24건 90일.</div>
+      </a>
+
+      <a href="copilot.html" class="overview-card">
+        <div class="overview-card__head">
+          <div class="overview-card__icon" style="background:linear-gradient(135deg,var(--brand),color-mix(in oklab,var(--brand) 60%,#000));color:#fff">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          </div>
+          <div>
+            <span class="overview-card__num">F-006 · ★ 메인</span>
+            <div class="overview-card__name">AI 코파일럿</div>
+          </div>
+        </div>
+        <div class="overview-card__desc">자연어 질문 → 근거 카드 인용 응답. 스레드 리스트 + 대화 + follow-up 액션 3종. Hallucination 차단 안전장치 내장.</div>
+      </a>
+
+      <a href="workspace.html" class="overview-card">
+        <div class="overview-card__head">
+          <div class="overview-card__icon" style="background:var(--danger-soft);color:var(--danger)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </div>
+          <div>
+            <span class="overview-card__num">F-004 · QA</span>
+            <div class="overview-card__name">QA/QC 워크스페이스</div>
+          </div>
+        </div>
+        <div class="overview-card__desc">부서 위젯 자동 구성. KPI 4종 + 동성분 회수 + GMP 캘린더 + 행정처분 테이블 + 원재료 검사부적합.</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- 지원 화면 -->
+  <div class="overview-section">
+    <div class="overview-section__head">
+      <div class="overview-section__title">지원 기능</div>
+      <div class="overview-section__count">3개</div>
+    </div>
+    <div class="overview-grid">
+      <a href="watchlist.html" class="overview-card">
+        <div class="overview-card__head">
+          <div class="overview-card__icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div>
+            <span class="overview-card__num">F-005</span>
+            <div class="overview-card__name">워치리스트 관리</div>
+          </div>
+        </div>
+        <div class="overview-card__desc">자사 품목 · 업체 · 성분 · 경쟁사 62개 등록. 매칭 알림 룰 · 미확인 카운터 · CSV 가져오기.</div>
+      </a>
+
+      <a href="reports.html" class="overview-card">
+        <div class="overview-card__head">
+          <div class="overview-card__icon" style="background:var(--warn-soft);color:var(--warn)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+          </div>
+          <div>
+            <span class="overview-card__num">F-007</span>
+            <div class="overview-card__name">리포트 빌더</div>
+          </div>
+        </div>
+        <div class="overview-card__desc">8개 템플릿 · 자동 스케줄 · Excel · PDF · 이메일. 일일 리스크 / 회수 영향 / GMP / RA 월간 / 경쟁사 모니터링.</div>
+      </a>
+
+      <a href="workspace-exec.html" class="overview-card">
+        <div class="overview-card__head">
+          <div class="overview-card__icon" style="background:color-mix(in oklab,#7C3AED 20%,transparent);color:#7C3AED">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <div>
+            <span class="overview-card__num">F-004 · 경영진</span>
+            <div class="overview-card__name">경영진 대시보드</div>
+          </div>
+        </div>
+        <div class="overview-card__desc">전사 평균 Risk Score · 사업부별 트렌드 · SLA 준수율 · AI 1페이지 브리프 · 규제 캘린더.</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- 부서 워크스페이스 -->
+  <div class="overview-section">
+    <div class="overview-section__head">
+      <div class="overview-section__title">부서별 워크스페이스 (F-004)</div>
+      <div class="overview-section__count">QA/경영진 구현 완료 · 나머지 동일 구조</div>
+    </div>
+    <div class="overview-grid">
+      <a href="workspace.html" class="overview-card" style="min-height:140px">
+        <div style="display:flex;gap:14px;align-items:center">
+          <div class="overview-card__icon" style="background:var(--danger-soft);color:var(--danger)">QA</div>
+          <div>
+            <div class="overview-card__name" style="font-size:16px">QA / QC</div>
+            <div style="font-size:12px;color:var(--ink-3);margin-top:4px">회수 · 행정처분 · GMP · 검사부적합</div>
+          </div>
+        </div>
+        <div style="margin-top:auto;display:flex;justify-content:space-between;align-items:center">
+          <span class="badge badge--ok">구현 완료</span>
+          <span style="font-size:13px;color:var(--brand);font-weight:600">열기 →</span>
+        </div>
+      </a>
+      <a href="workspace-exec.html" class="overview-card" style="min-height:140px">
+        <div style="display:flex;gap:14px;align-items:center">
+          <div class="overview-card__icon" style="background:color-mix(in oklab,#7C3AED 20%,transparent);color:#7C3AED">CE</div>
+          <div>
+            <div class="overview-card__name" style="font-size:16px">경영진</div>
+            <div style="font-size:12px;color:var(--ink-3);margin-top:4px">전사 KPI · 사업부 Risk · AI 브리프</div>
+          </div>
+        </div>
+        <div style="margin-top:auto;display:flex;justify-content:space-between;align-items:center">
+          <span class="badge badge--ok">구현 완료</span>
+          <span style="font-size:13px;color:var(--brand);font-weight:600">열기 →</span>
+        </div>
+      </a>
+      <div class="overview-card" style="min-height:140px;background:transparent;border-style:dashed;cursor:default">
+        <div style="display:flex;gap:14px;align-items:center">
+          <div class="overview-card__icon" style="background:var(--bg-muted);color:var(--ink-3)">RA</div>
+          <div>
+            <div class="overview-card__name" style="font-size:16px;color:var(--ink-2)">RA · 허가</div>
+            <div style="font-size:12px;color:var(--ink-3);margin-top:4px">재심사 · 안전성서한 미반영 · 신규 허가</div>
+          </div>
+        </div>
+        <div style="margin-top:auto"><span class="badge">동일 구조 · 데이터만 변경</span></div>
+      </div>
+      <div class="overview-card" style="min-height:140px;background:transparent;border-style:dashed;cursor:default">
+        <div style="display:flex;gap:14px;align-items:center">
+          <div class="overview-card__icon" style="background:var(--bg-muted);color:var(--ink-3)">SCM</div>
+          <div>
+            <div class="overview-card__name" style="font-size:16px;color:var(--ink-2)">SCM · 구매</div>
+            <div style="font-size:12px;color:var(--ink-3);margin-top:4px">원료 부적합 · 공급중단 · DMF 변경</div>
+          </div>
+        </div>
+        <div style="margin-top:auto"><span class="badge">동일 구조 · 데이터만 변경</span></div>
+      </div>
+      <div class="overview-card" style="min-height:140px;background:transparent;border-style:dashed;cursor:default">
+        <div style="display:flex;gap:14px;align-items:center">
+          <div class="overview-card__icon" style="background:var(--bg-muted);color:var(--ink-3)">SAL</div>
+          <div>
+            <div class="overview-card__name" style="font-size:16px;color:var(--ink-2)">영업 · 마케팅</div>
+            <div style="font-size:12px;color:var(--ink-3);margin-top:4px">경쟁사 신규 허가 · 행정처분 · 광고법</div>
+          </div>
+        </div>
+        <div style="margin-top:auto"><span class="badge">동일 구조 · 데이터만 변경</span></div>
+      </div>
+      <div class="overview-card" style="min-height:140px;background:transparent;border-style:dashed;cursor:default">
+        <div style="display:flex;gap:14px;align-items:center">
+          <div class="overview-card__icon" style="background:var(--bg-muted);color:var(--ink-3)">FQ</div>
+          <div>
+            <div class="overview-card__name" style="font-size:16px;color:var(--ink-2)">식품 QA · RA</div>
+            <div style="font-size:12px;color:var(--ink-3);margin-top:4px">표시기준 · HACCP · 푸드QR</div>
+          </div>
+        </div>
+        <div style="margin-top:auto"><span class="badge">동일 구조 · 데이터만 변경</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:64px;padding:32px;background:var(--bg-elevated);border:1px solid var(--line-1);border-radius:16px;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap">
+    <div>
+      <div class="t-caption">개발자 핸드오프</div>
+      <div style="font-size:18px;font-weight:600;color:var(--ink-1);margin-top:4px">디자인 토큰 · API 매핑 · 데이터 모델 정리됨</div>
+      <p style="font-size:13px;color:var(--ink-3);margin:6px 0 0">Claude Code에 그대로 전달할 수 있는 13장 명세서.</p>
+    </div>
+    <a href="../handoff.md" class="btn btn--primary">handoff.md 보기 →</a>
+  </div>
+</div>
+
+<script src="../scripts/theme.js" defer></script>
+<script src="../scripts/app.js" defer></script>
+</body>
+</html>

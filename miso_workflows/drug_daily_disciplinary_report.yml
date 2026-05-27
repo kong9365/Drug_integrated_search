@@ -1,0 +1,585 @@
+app:
+  name: "의약품 행정처분 일일 리포트"
+  description: "식약처 공공데이터포털 '의약품 행정처분 정보' API를 호출해, 최근 N일(기본 1일) 이내 처분일자 기준 신규 행정처분 건을 요약한 경영진용 마크다운 리포트를 생성한다."
+  icon: "⚖️"
+  icon_background: "#FFF4D5"
+  mode: workflow
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.1.0
+
+workflow:
+  conversation_variables: []
+  environment_variables:
+    - name: DATA_GO_KR_BASE
+      description: "공공데이터포털 식약처 Base URL (service prefix 포함)"
+      value_type: string
+      value: "https://apis.data.go.kr/1471000"
+    - name: SERVICE_KEY
+      description: "공공데이터포털 인증키 (Decoding 버전, MISO 가 자동 URL 인코딩)"
+      value_type: secret
+      value: "REDACTED_KEY"
+
+  features:
+    file_upload:
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+          - local_file
+          - remote_url
+    opening_statement: ""
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ""
+      voice: ""
+
+  graph:
+    edges:
+      - id: edge-start-calcdate
+        source: node_start
+        sourceHandle: source
+        target: node_calcdate
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: start
+          targetType: code
+          isInIteration: false
+      - id: edge-calcdate-fetch
+        source: node_calcdate
+        sourceHandle: source
+        target: node_fetch_disc
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: code
+          targetType: http-request
+          isInIteration: false
+      - id: edge-fetch-parse
+        source: node_fetch_disc
+        sourceHandle: source
+        target: node_parse
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: http-request
+          targetType: code
+          isInIteration: false
+      - id: edge-parse-branch
+        source: node_parse
+        sourceHandle: source
+        target: node_branch
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: code
+          targetType: if-else
+          isInIteration: false
+      - id: edge-branch-llm
+        source: node_branch
+        sourceHandle: "true"
+        target: node_llm
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: if-else
+          targetType: llm
+          isInIteration: false
+      - id: edge-branch-empty
+        source: node_branch
+        sourceHandle: "false"
+        target: node_empty_text
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: if-else
+          targetType: code
+          isInIteration: false
+      - id: edge-empty-endempty
+        source: node_empty_text
+        sourceHandle: source
+        target: node_end_empty
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: code
+          targetType: end
+          isInIteration: false
+      - id: edge-llm-endreport
+        source: node_llm
+        sourceHandle: source
+        target: node_end_report
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: llm
+          targetType: end
+          isInIteration: false
+
+    nodes:
+      # -----------------------------------------------------------
+      - id: node_start
+        type: custom
+        position: { x: 40, y: 240 }
+        positionAbsolute: { x: 40, y: 240 }
+        width: 244
+        height: 140
+        data:
+          type: start
+          title: "시작"
+          desc: "리포트 생성 입력값"
+          variables:
+            - variable: period_days
+              label: "집계 일수 (오늘 기준 N일 이내)"
+              type: number
+              required: true
+              default: 1
+              max_length: 0
+            - variable: top_n
+              label: "LLM 리포트에 포함할 최대 상세 건수"
+              type: number
+              required: false
+              default: 10
+              max_length: 0
+            - variable: entp_keyword
+              label: "업체명 키워드 필터 (선택)"
+              type: text-input
+              required: false
+              default: ""
+              max_length: 100
+
+      # -----------------------------------------------------------
+      - id: node_calcdate
+        type: custom
+        position: { x: 360, y: 240 }
+        positionAbsolute: { x: 360, y: 240 }
+        width: 244
+        height: 120
+        data:
+          type: code
+          title: "CalcDate"
+          desc: "since_date 계산 (오늘 - period_days)"
+          code_language: python3
+          variables:
+            - variable: period_days
+              value_selector:
+                - node_start
+                - period_days
+          outputs:
+            since_date:
+              type: string
+              children: null
+            today_date:
+              type: string
+              children: null
+          code: |
+            from datetime import date, timedelta
+
+            def main(period_days: int) -> dict:
+                days = int(period_days or 1)
+                today = date.today()
+                since = today - timedelta(days=days)
+                return {
+                    "since_date": since.strftime("%Y-%m-%d"),
+                    "today_date": today.strftime("%Y-%m-%d"),
+                }
+
+      # -----------------------------------------------------------
+      - id: node_fetch_disc
+        type: custom
+        position: { x: 680, y: 240 }
+        positionAbsolute: { x: 680, y: 240 }
+        width: 244
+        height: 160
+        data:
+          type: http-request
+          title: "FetchDisciplinary"
+          desc: "식약처 행정처분 목록 조회 (GET, 최신순 order=Y)"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/MdcinExaathrService04/getMdcinExaathrList04"
+          authorization:
+            type: no-auth
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 100
+            type: json
+            order: Y
+          body:
+            type: none
+            data: []
+          timeout:
+            max_connect_timeout: 10
+            max_read_timeout: 30
+            max_write_timeout: 10
+
+      # -----------------------------------------------------------
+      - id: node_parse
+        type: custom
+        position: { x: 1000, y: 240 }
+        positionAbsolute: { x: 1000, y: 240 }
+        width: 244
+        height: 140
+        data:
+          type: code
+          title: "ParseDisc"
+          desc: "JSON/XML 이중 파싱 + 기간·업체명 필터"
+          code_language: python3
+          variables:
+            - variable: body
+              value_selector:
+                - node_fetch_disc
+                - body
+            - variable: since_date
+              value_selector:
+                - node_calcdate
+                - since_date
+            - variable: today_date
+              value_selector:
+                - node_calcdate
+                - today_date
+            - variable: entp_keyword
+              value_selector:
+                - node_start
+                - entp_keyword
+            - variable: top_n
+              value_selector:
+                - node_start
+                - top_n
+          outputs:
+            count:
+              type: number
+              children: null
+            summary_text:
+              type: string
+              children: null
+            raw_items:
+              type: array[object]
+              children: null
+          code: |
+            import json
+            import re
+
+            try:
+                from defusedxml import ElementTree as _XET  # type: ignore
+                _XML_OK = True
+            except Exception:
+                _XET = None
+                _XML_OK = False
+
+            DATE_KEYS = ("LAST_SETTLE_DATE", "RLS_END_DATE")
+            COMPANY_KEYS = ("ENTP_NAME",)
+            ITEM_KEYS = ("ITEM_NAME",)
+            DISPS_NAME_KEYS = ("ADM_DISPS_NAME",)
+            REASON_KEYS = ("EXPOSE_CONT", "BEF_APPLY_LAW")
+
+            def _pick(d, keys):
+                for k in keys:
+                    v = d.get(k)
+                    if v is None:
+                        continue
+                    s = str(v).strip()
+                    if s and s.lower() not in ("none", "null"):
+                        return s
+                return ""
+
+            def _normalize_date(s: str) -> str:
+                if not s:
+                    return ""
+                s = str(s).strip()
+                m = re.search(r"(\d{4})[.\-/ ]?(\d{2})[.\-/ ]?(\d{2})", s)
+                if m:
+                    return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+                return s
+
+            def _unwrap_items(raw_items):
+                out = []
+                for it in raw_items:
+                    if isinstance(it, dict):
+                        if "item" in it and isinstance(it["item"], dict) and len(it) == 1:
+                            out.append(it["item"])
+                        else:
+                            out.append(it)
+                return out
+
+            def _load_dict(body):
+                if isinstance(body, dict):
+                    return body
+                if isinstance(body, str) and body.lstrip().startswith(("{", "[")):
+                    try:
+                        return json.loads(body)
+                    except Exception:
+                        return None
+                return None
+
+            def _check_error(body) -> str:
+                data = _load_dict(body)
+                if not isinstance(data, dict):
+                    return ""
+                hdr = None
+                resp = data.get("response")
+                if isinstance(resp, dict):
+                    hdr = resp.get("header")
+                if hdr is None:
+                    hdr = data.get("header")
+                if isinstance(hdr, dict):
+                    code = str(hdr.get("resultCode", "")).strip()
+                    msg = str(hdr.get("resultMsg", "")).strip()
+                    if code and code != "00":
+                        return f"API 오류 [{code}] {msg}"
+                return ""
+
+            def _extract_items(body):
+                data = _load_dict(body)
+                if isinstance(data, dict):
+                    node = data
+                    for k in ("response", "body", "items"):
+                        if isinstance(node, dict) and k in node:
+                            node = node[k]
+                    if isinstance(node, list):
+                        return _unwrap_items(node)
+                    if isinstance(node, dict) and "item" in node:
+                        item = node["item"]
+                        if isinstance(item, list):
+                            return _unwrap_items(item)
+                        if isinstance(item, dict):
+                            return [item]
+                if _XML_OK and isinstance(body, str) and body.lstrip().startswith("<"):
+                    try:
+                        root = _XET.fromstring(body)
+                        return [{c.tag: (c.text or "") for c in it}
+                                for it in root.findall(".//item")]
+                    except Exception:
+                        return []
+                return []
+
+            def main(body, since_date: str, today_date: str,
+                     entp_keyword: str, top_n) -> dict:
+                err = _check_error(body)
+                if err:
+                    return {
+                        "count": 0,
+                        "summary_text": f"⚠️ {err}\n(기간: {since_date} ~ {today_date})",
+                        "raw_items": [],
+                    }
+
+                items = _extract_items(body)
+                kw = (entp_keyword or "").strip()
+                top = int(top_n or 10)
+
+                filtered = []
+                for it in items:
+                    if not isinstance(it, dict):
+                        continue
+                    raw_date = _pick(it, DATE_KEYS)
+                    norm_date = _normalize_date(raw_date)
+                    if norm_date and since_date and norm_date < since_date:
+                        continue
+                    entp = _pick(it, COMPANY_KEYS)
+                    if kw and kw not in entp:
+                        continue
+                    disps = _pick(it, DISPS_NAME_KEYS)
+                    reason = _pick(it, REASON_KEYS)
+                    combined_reason = disps
+                    if reason and reason not in disps:
+                        combined_reason = f"{disps} | {reason}" if disps else reason
+                    filtered.append({
+                        "date": norm_date,
+                        "company": entp,
+                        "item_name": _pick(it, ITEM_KEYS),
+                        "disps_name": disps,
+                        "reason": combined_reason,
+                        "raw": it,
+                    })
+
+                filtered.sort(key=lambda x: x["date"], reverse=True)
+
+                lines = [
+                    f"집계 기간: {since_date} ~ {today_date}",
+                    f"총 신규 행정처분: {len(filtered)}건",
+                ]
+                if kw:
+                    lines.append(f"업체명 키워드 필터: {kw}")
+                lines.append("")
+                for i, it in enumerate(filtered[:top], 1):
+                    name_part = f" / {it['item_name']}" if it['item_name'] else ""
+                    lines.append(
+                        f"{i}. [{it['date']}] {it['company']}{name_part} — {it['reason']}"
+                    )
+
+                return {
+                    "count": len(filtered),
+                    "summary_text": "\n".join(lines),
+                    "raw_items": filtered[:top],
+                }
+
+      # -----------------------------------------------------------
+      - id: node_branch
+        type: custom
+        position: { x: 1320, y: 240 }
+        positionAbsolute: { x: 1320, y: 240 }
+        width: 244
+        height: 140
+        data:
+          type: if-else
+          title: "Branch"
+          desc: "신규 행정처분 > 0 ?"
+          logical_operator: and
+          cases:
+            - case_id: "true"
+              logical_operator: and
+              conditions:
+                - id: "cond-1"
+                  variable_selector:
+                    - node_parse
+                    - count
+                  comparison_operator: ">"
+                  value: "0"
+                  varType: number
+
+      # -----------------------------------------------------------
+      - id: node_llm
+        type: custom
+        position: { x: 1640, y: 160 }
+        positionAbsolute: { x: 1640, y: 160 }
+        width: 244
+        height: 140
+        data:
+          type: llm
+          title: "LLM"
+          desc: "경영진용 마크다운 리포트 생성"
+          model:
+            provider: openai
+            name: gpt-4o
+            mode: chat
+            completion_params:
+              temperature: 0.2
+              max_tokens: 3000
+              top_p: 1
+          prompt_template:
+            - role: system
+              text: |
+                너는 제약 GMP 환경의 규제·준법 담당자에게 보내는 일일 의약품 행정처분 리포트를 작성하는 QA 어시스턴트다.
+                - 반드시 한국어로 작성한다.
+                - 사실에 없는 내용을 추측·창작하지 않는다. 데이터에 없으면 "데이터 없음" 이라 적는다.
+                - 경영진 보고 기준: 핵심만 간결하게, 3분 내 이해 가능한 분량.
+                - 출력은 마크다운으로만 작성한다.
+            - role: user
+              text: |
+                # 의약품 행정처분 일일 리포트 생성
+
+                ## 집계 조건
+                - 기준 기간: {{#node_calcdate.since_date#}} ~ {{#node_calcdate.today_date#}}
+                - 총 신규 처분 건수: {{#node_parse.count#}}건
+
+                ## 원본 데이터
+                {{#node_parse.summary_text#}}
+
+                ## 출력 형식 (아래 템플릿 준수)
+
+                ### 의약품 행정처분 일일 리포트 ({{#node_calcdate.today_date#}})
+
+                **1. 핵심 요약**
+                - 총 X건, 업체별 분포: (있으면)
+                - 고위험 처분(제조업무정지·품목취소 등) 존재 여부: (데이터 기반)
+
+                **2. 주요 항목 (최대 5건)**
+                - [처분일] 업체(품목) — 처분 내용 한 줄
+
+                **3. 처분 유형별 분포**
+                - (집계 가능한 경우에만)
+
+                **4. 후속 조치 권고**
+                - (데이터에 근거한 범위 내에서만)
+          context:
+            enabled: false
+            variable_selector: []
+          vision:
+            enabled: false
+
+      # -----------------------------------------------------------
+      - id: node_end_report
+        type: custom
+        position: { x: 1960, y: 160 }
+        positionAbsolute: { x: 1960, y: 160 }
+        width: 244
+        height: 100
+        data:
+          type: end
+          title: "끝 (리포트)"
+          desc: "마크다운 리포트 출력"
+          outputs:
+            - variable: report_markdown
+              value_selector:
+                - node_llm
+                - text
+            - variable: new_count
+              value_selector:
+                - node_parse
+                - count
+
+      # -----------------------------------------------------------
+      - id: node_empty_text
+        type: custom
+        position: { x: 1640, y: 420 }
+        positionAbsolute: { x: 1640, y: 420 }
+        width: 244
+        height: 120
+        data:
+          type: code
+          title: "EmptyText"
+          desc: "신규 0건 메시지 구성"
+          code_language: python3
+          variables:
+            - variable: since_date
+              value_selector:
+                - node_calcdate
+                - since_date
+            - variable: today_date
+              value_selector:
+                - node_calcdate
+                - today_date
+          outputs:
+            text:
+              type: string
+              children: null
+          code: |
+            def main(since_date: str, today_date: str) -> dict:
+                md = (
+                    "## 의약품 행정처분 일일 리포트\n"
+                    f"> {since_date} ~ {today_date} 신규 행정처분 없음."
+                )
+                return {"text": md}
+
+      # -----------------------------------------------------------
+      - id: node_end_empty
+        type: custom
+        position: { x: 1960, y: 420 }
+        positionAbsolute: { x: 1960, y: 420 }
+        width: 244
+        height: 100
+        data:
+          type: end
+          title: "끝 (신규 없음)"
+          desc: "신규 0건일 때 즉시 종료"
+          outputs:
+            - variable: report_markdown
+              value_selector:
+                - node_empty_text
+                - text
+            - variable: new_count
+              value_selector:
+                - node_parse
+                - count

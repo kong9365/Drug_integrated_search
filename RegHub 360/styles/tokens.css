@@ -1,0 +1,200 @@
+/* =============================================================
+   RegHub 360 — Design Tokens
+   Light is the default. data-theme="dark" on <html> flips palette.
+   ============================================================= */
+
+:root,
+[data-theme="light"] {
+  /* Brand */
+  --brand: #4F46E5;
+  --brand-hover: #4338CA;
+  --brand-pressed: #3730A3;
+  --brand-soft: #EEF0FF;
+  --brand-ink: #1E1B4B;
+
+  /* Surfaces */
+  --bg: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-subtle: #F8F9FB;
+  --bg-muted: #F1F3F7;
+  --bg-overlay: rgba(11, 11, 17, 0.6);
+
+  /* Ink */
+  --ink-1: #0B0B14;            /* primary text */
+  --ink-2: #2A2D35;            /* secondary text */
+  --ink-3: #5B5F6B;            /* muted text */
+  --ink-4: #9498A1;            /* hint text */
+  --ink-5: #C7CAD1;            /* placeholders */
+
+  /* Borders */
+  --line-1: #E7E9EE;
+  --line-2: #EFF1F4;
+  --line-strong: #D3D6DC;
+
+  /* Semantic */
+  --ok: #0F9D58;
+  --ok-soft: #E5F4EB;
+  --warn: #C2700A;
+  --warn-soft: #FCEFD5;
+  --danger: #C92A2A;
+  --danger-soft: #FBE5E5;
+  --crit: #7F1D1D;
+  --crit-soft: #F1D7D7;
+  --info: #1E40AF;
+  --info-soft: #EAF1FE;
+
+  /* Domain accents */
+  --domain-drug: #1E40AF;
+  --domain-drug-soft: #EAF1FE;
+  --domain-quasi: #5B21B6;
+  --domain-quasi-soft: #F3EAFE;
+  --domain-food: #9A3412;
+  --domain-food-soft: #FDEFE5;
+
+  /* Effects */
+  --shadow-xs: 0 1px 2px rgba(11,11,17,0.04);
+  --shadow-sm: 0 2px 4px rgba(11,11,17,0.05), 0 1px 2px rgba(11,11,17,0.04);
+  --shadow-md: 0 8px 24px -10px rgba(11,11,17,0.12), 0 2px 6px rgba(11,11,17,0.04);
+  --shadow-lg: 0 28px 60px -28px rgba(11,11,17,0.22), 0 8px 20px -8px rgba(11,11,17,0.08);
+  --shadow-brand: 0 16px 50px -20px rgba(79,70,229,0.35);
+
+  --gradient-hero: radial-gradient(ellipse 110% 60% at 50% 0%, rgba(79,70,229,0.08) 0%, transparent 70%);
+  --gradient-fade: linear-gradient(180deg, var(--bg) 0%, var(--bg-subtle) 100%);
+
+  /* Code */
+  --code-bg: #F1F3F7;
+  --code-ink: #2A2D35;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --brand: #818CF8;
+  --brand-hover: #A5B4FC;
+  --brand-pressed: #C7D2FE;
+  --brand-soft: rgba(129,140,248,0.14);
+  --brand-ink: #E0E7FF;
+
+  --bg: #07070B;
+  --bg-elevated: #0E0E16;
+  --bg-subtle: #0B0B12;
+  --bg-muted: #16171F;
+  --bg-overlay: rgba(0,0,0,0.6);
+
+  --ink-1: #F4F4F6;
+  --ink-2: #D5D7DC;
+  --ink-3: #9498A1;
+  --ink-4: #6E727B;
+  --ink-5: #4A4D55;
+
+  --line-1: #1F2029;
+  --line-2: #15161E;
+  --line-strong: #2D2F39;
+
+  --ok: #34D399;
+  --ok-soft: rgba(52,211,153,0.14);
+  --warn: #FBBF24;
+  --warn-soft: rgba(251,191,36,0.14);
+  --danger: #F87171;
+  --danger-soft: rgba(248,113,113,0.14);
+  --crit: #EF4444;
+  --crit-soft: rgba(239,68,68,0.18);
+  --info: #93C5FD;
+  --info-soft: rgba(147,197,253,0.14);
+
+  --domain-drug: #93C5FD;
+  --domain-drug-soft: rgba(147,197,253,0.14);
+  --domain-quasi: #C4B5FD;
+  --domain-quasi-soft: rgba(196,181,253,0.14);
+  --domain-food: #FDBA74;
+  --domain-food-soft: rgba(253,186,116,0.14);
+
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 8px 24px -10px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.4);
+  --shadow-lg: 0 28px 60px -28px rgba(0,0,0,0.7), 0 8px 20px -8px rgba(0,0,0,0.4);
+  --shadow-brand: 0 16px 50px -20px rgba(129,140,248,0.5);
+
+  --gradient-hero: radial-gradient(ellipse 110% 60% at 50% 0%, rgba(129,140,248,0.18) 0%, transparent 70%);
+  --gradient-fade: linear-gradient(180deg, var(--bg) 0%, var(--bg-subtle) 100%);
+
+  --code-bg: #15161E;
+  --code-ink: #D5D7DC;
+
+  color-scheme: dark;
+}
+
+/* ===================== Base reset ===================== */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink-1);
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-feature-settings: "ss01", "tnum", "kern";
+  font-weight: 400;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  letter-spacing: -0.011em;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+img, svg { display: block; max-width: 100%; }
+button { font-family: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+hr { border: 0; border-top: 1px solid var(--line-1); margin: 0; }
+code, .mono {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-feature-settings: "tnum";
+}
+::selection { background: var(--brand-soft); color: var(--brand-ink); }
+[data-theme="dark"] ::selection { color: var(--brand); }
+
+/* ===================== Typography scale ===================== */
+.t-eyebrow {
+  font-size: 13px; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--brand);
+}
+.t-eyebrow--mute { color: var(--ink-3); }
+
+.t-display {
+  font-size: clamp(48px, 6vw, 96px); line-height: 1.02; letter-spacing: -0.035em;
+  font-weight: 700; color: var(--ink-1); margin: 0;
+}
+.t-h1 {
+  font-size: clamp(36px, 4.4vw, 64px); line-height: 1.06; letter-spacing: -0.03em;
+  font-weight: 700; color: var(--ink-1); margin: 0;
+}
+.t-h2 {
+  font-size: clamp(28px, 3vw, 44px); line-height: 1.12; letter-spacing: -0.025em;
+  font-weight: 700; color: var(--ink-1); margin: 0;
+}
+.t-h3 {
+  font-size: clamp(22px, 2vw, 28px); line-height: 1.25; letter-spacing: -0.018em;
+  font-weight: 600; color: var(--ink-1); margin: 0;
+}
+.t-lead {
+  font-size: clamp(17px, 1.4vw, 21px); line-height: 1.55;
+  color: var(--ink-3); font-weight: 400; margin: 0;
+}
+.t-body { font-size: 16px; line-height: 1.6; color: var(--ink-2); margin: 0; }
+.t-small { font-size: 14px; line-height: 1.55; color: var(--ink-3); margin: 0; }
+.t-caption {
+  font-size: 12px; line-height: 1.5; color: var(--ink-3);
+  letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600;
+}
+
+/* ===================== Containers ===================== */
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+.container--wide { max-width: 1440px; }
+.container--narrow { max-width: 980px; }
+
+@media (max-width: 768px) {
+  .container { padding: 0 20px; }
+}

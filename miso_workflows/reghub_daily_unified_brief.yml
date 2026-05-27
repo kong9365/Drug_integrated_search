@@ -1,0 +1,359 @@
+app:
+  name: "RegHub 360 — 일일 통합 브리프"
+  description: "회수·행정처분·안전성서한·공급중단 4종 API를 통합 호출하여 최근 N일 신규 이벤트를 경영진/부서장용 마크다운 다이제스트로 생성한다. 기존 drug_daily_recall_report + drug_daily_disciplinary_report 의 통합 후속 버전."
+  icon: "📊"
+  icon_background: "#FFF4E0"
+  mode: workflow
+  use_icon_as_answer_icon: false
+kind: app
+version: 1.0.0
+
+workflow:
+  conversation_variables: []
+  environment_variables:
+    - name: DATA_GO_KR_BASE
+      description: "공공데이터포털 식약처 Base URL"
+      value_type: string
+      value: "https://apis.data.go.kr/1471000"
+    - name: SERVICE_KEY
+      description: "공공데이터포털 인증키"
+      value_type: secret
+      value: "REDACTED_KEY"
+
+  features:
+    file_upload:
+      image: { enabled: false, number_limits: 3, transfer_methods: [local_file, remote_url] }
+    opening_statement: ""
+    retriever_resource: { enabled: false }
+    sensitive_word_avoidance: { enabled: false }
+    speech_to_text: { enabled: false }
+    suggested_questions: []
+    suggested_questions_after_answer: { enabled: false }
+    text_to_speech: { enabled: false, language: "", voice: "" }
+
+  graph:
+    edges:
+      - { id: e1, source: node_start, target: node_calcdate, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: start, targetType: code, isInIteration: false } }
+      - { id: e2a, source: node_calcdate, target: node_fetch_recall, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: code, targetType: http-request, isInIteration: false } }
+      - { id: e2b, source: node_calcdate, target: node_fetch_disc, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: code, targetType: http-request, isInIteration: false } }
+      - { id: e2c, source: node_calcdate, target: node_fetch_safety, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: code, targetType: http-request, isInIteration: false } }
+      - { id: e2d, source: node_calcdate, target: node_fetch_supply, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: code, targetType: http-request, isInIteration: false } }
+      - { id: e3a, source: node_fetch_recall, target: node_aggregate, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: e3b, source: node_fetch_disc, target: node_aggregate, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: e3c, source: node_fetch_safety, target: node_aggregate, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: e3d, source: node_fetch_supply, target: node_aggregate, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: e4, source: node_aggregate, target: node_branch, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: code, targetType: if-else, isInIteration: false } }
+      - { id: e5a, source: node_branch, sourceHandle: "true", target: node_llm, targetHandle: target, type: custom, data: { sourceType: if-else, targetType: llm, isInIteration: false } }
+      - { id: e5b, source: node_branch, sourceHandle: "false", target: node_pass, targetHandle: target, type: custom, data: { sourceType: if-else, targetType: code, isInIteration: false } }
+      - { id: e6a, source: node_llm, target: node_end, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: llm, targetType: end, isInIteration: false } }
+      - { id: e6b, source: node_pass, target: node_end, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: code, targetType: end, isInIteration: false } }
+
+    nodes:
+      - id: node_start
+        type: custom
+        position: { x: 40, y: 240 }
+        positionAbsolute: { x: 40, y: 240 }
+        width: 244
+        height: 160
+        data:
+          type: start
+          title: "시작"
+          variables:
+            - { variable: lookback_days, type: number, label: 조회 기간(일), required: false, default: 1 }
+            - { variable: department, type: text-input, label: 부서 (RA/QA/SCM/영업/R&D/식품QA), required: false, default: "" }
+
+      - id: node_calcdate
+        type: custom
+        position: { x: 360, y: 240 }
+        positionAbsolute: { x: 360, y: 240 }
+        width: 244
+        height: 140
+        data:
+          type: code
+          title: "CalcDate"
+          desc: "lookback_days 기반 YYYYMMDD 시작/종료 산출"
+          code_language: python3
+          code: |
+            from datetime import datetime, timedelta
+            def main(lookback_days) -> dict:
+                today = datetime.utcnow() + timedelta(hours=9)  # KST
+                end = today.strftime("%Y%m%d")
+                begin = (today - timedelta(days=int(lookback_days or 1))).strftime("%Y%m%d")
+                return {"date_begin": begin, "date_end": end, "today_label": today.strftime("%Y-%m-%d")}
+          variables:
+            - { variable: lookback_days, value_selector: [node_start, lookback_days] }
+          outputs:
+            date_begin: { type: string }
+            date_end: { type: string }
+            today_label: { type: string }
+
+      - id: node_fetch_recall
+        type: custom
+        position: { x: 700, y: 60 }
+        positionAbsolute: { x: 700, y: 60 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "회수 (NO 539)"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/MdcinRtrvlSleStpgeInfoService04/getMdcinRtrvlSleStpgelList03"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 100
+            type: json
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      - id: node_fetch_disc
+        type: custom
+        position: { x: 700, y: 220 }
+        positionAbsolute: { x: 700, y: 220 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "행정처분 (NO 564)"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/MdcinExaathrService04/getMdcinExaathrList04"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 100
+            type: json
+            order: Y
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      - id: node_fetch_safety
+        type: custom
+        position: { x: 700, y: 380 }
+        positionAbsolute: { x: 700, y: 380 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "안전성서한 (NO 547)"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/DrugSafeLetterService02/getDrugSafeLetterList02"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 50
+            type: json
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      - id: node_fetch_supply
+        type: custom
+        position: { x: 700, y: 540 }
+        positionAbsolute: { x: 700, y: 540 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "공급중단 (NO 534)"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/MdcinPrdctnIncmeSuplyService2/getMdcinPrdctnIncmeSuplyList"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 50
+            type: json
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      - id: node_aggregate
+        type: custom
+        position: { x: 1040, y: 300 }
+        positionAbsolute: { x: 1040, y: 300 }
+        width: 280
+        height: 200
+        data:
+          type: code
+          title: "AggregateAndFilter"
+          desc: "4종 API 응답 합산 + 기간 필터 + 부서별 우선순위"
+          code_language: python3
+          code: |
+            def main(recall_res, disc_res, safety_res, supply_res,
+                     date_begin, date_end, department) -> dict:
+                def items_of(r):
+                    body = (r or {}).get("body", {}) or {}
+                    items = body.get("items", [])
+                    if isinstance(items, dict) and "item" in items:
+                        items = items["item"]
+                    if isinstance(items, dict):
+                        items = [items]
+                    return items or []
+
+                def in_range(d):
+                    if not d: return False
+                    s = str(d).replace("-", "").replace(".", "")[:8]
+                    return date_begin <= s <= date_end
+
+                recalls = [it for it in items_of(recall_res)
+                           if in_range(it.get("RECALL_COMMAND_DATE") or it.get("ENFRC_YN"))]
+                discs = [it for it in items_of(disc_res)
+                         if in_range(it.get("DSPS_DCSNDT"))]
+                safeties = [it for it in items_of(safety_res)
+                            if in_range((it.get("PBANC_YMD") or "").replace("-", ""))]
+                supplies = items_of(supply_res)  # 공급중단은 전체
+
+                total = len(recalls) + len(discs) + len(safeties) + len(supplies)
+                risk_index = (
+                    len(recalls) * 40 + len(discs) * 30
+                    + len(safeties) * 15 + len(supplies) * 20
+                )
+                has_critical = len(recalls) > 0 or len(supplies) > 0
+
+                return {
+                    "recalls": recalls,
+                    "discs": discs,
+                    "safeties": safeties,
+                    "supplies": supplies,
+                    "total_events": total,
+                    "risk_index": risk_index,
+                    "has_critical": has_critical,
+                    "department": department or "전체",
+                }
+          variables:
+            - { variable: recall_res, value_selector: [node_fetch_recall, body] }
+            - { variable: disc_res, value_selector: [node_fetch_disc, body] }
+            - { variable: safety_res, value_selector: [node_fetch_safety, body] }
+            - { variable: supply_res, value_selector: [node_fetch_supply, body] }
+            - { variable: date_begin, value_selector: [node_calcdate, date_begin] }
+            - { variable: date_end, value_selector: [node_calcdate, date_end] }
+            - { variable: department, value_selector: [node_start, department] }
+          outputs:
+            recalls: { type: array }
+            discs: { type: array }
+            safeties: { type: array }
+            supplies: { type: array }
+            total_events: { type: number }
+            risk_index: { type: number }
+            has_critical: { type: boolean }
+            department: { type: string }
+
+      - id: node_branch
+        type: custom
+        position: { x: 1340, y: 300 }
+        positionAbsolute: { x: 1340, y: 300 }
+        width: 244
+        height: 140
+        data:
+          type: if-else
+          title: "이벤트 있음?"
+          conditions:
+            - variable_selector: [node_aggregate, total_events]
+              comparison_operator: ">"
+              value: "0"
+
+      - id: node_llm
+        type: custom
+        position: { x: 1680, y: 200 }
+        positionAbsolute: { x: 1680, y: 200 }
+        width: 280
+        height: 220
+        data:
+          type: llm
+          title: "LLM 다이제스트 생성"
+          desc: "경영진/부서장용 마크다운 다이제스트"
+          model:
+            provider: openai
+            name: gpt-4o
+            mode: chat
+            completion_params: { temperature: 0.2, max_tokens: 2000 }
+          prompt_template:
+            - role: system
+              text: |
+                너는 한국 제약·식품 회사의 RA·QA·SCM·영업·R&D·식품QA 부서 실무자와
+                경영진을 위한 "RegHub 360 일일 통합 브리프 생성기" 다.
+
+                반드시 도구가 반환한 데이터만 사용한다. 추측·보완 금지.
+
+                # 헤더
+                ## RegHub 360 일일 통합 브리프 — {today}
+                **Risk Index: {risk_index}** · 총 {total} 건 ({recall}회수 · {disc}처분 · {safety}안전성 · {supply}공급)
+                대상 부서: {department}
+
+                # 본문 섹션 (각 섹션은 건수 표시, 0건이면 "해당 없음")
+                ## 회수·판매중지
+                ## 행정처분
+                ## 안전성서한
+                ## 공급중단·공급부족
+
+                # 부서별 추천 액션 (department 값에 따라 1~3개 액션)
+                - RA: 표시기재 검토 / 재심사 일정 갱신
+                - QA: 영향 lot 확인 / 거래처 통지
+                - SCM: 대체품 검토 / 재고 점검
+                - 영업: 거래처 대응 자료 준비
+                - R&D: 동성분 안전성 정보 갱신
+
+                # 마지막
+                - 출처: "식약처 공공데이터포털 NO 539·564·547·534"
+                - 본 브리프는 참고용. 최종 판단은 원문 확인 필요.
+            - role: user
+              text: |
+                기준일: {{#node_calcdate.today_label#}}
+                대상 부서: {{#node_aggregate.department#}}
+                회수 {{#node_aggregate.recalls#}}
+                처분 {{#node_aggregate.discs#}}
+                안전성서한 {{#node_aggregate.safeties#}}
+                공급중단 {{#node_aggregate.supplies#}}
+                Risk Index: {{#node_aggregate.risk_index#}}
+          memory: { enabled: false }
+          context: { enabled: false }
+          variables: []
+
+      - id: node_pass
+        type: custom
+        position: { x: 1680, y: 440 }
+        positionAbsolute: { x: 1680, y: 440 }
+        width: 244
+        height: 140
+        data:
+          type: code
+          title: "이벤트 없음 안내"
+          code_language: python3
+          code: |
+            def main(today_label) -> dict:
+                msg = (
+                    f"## RegHub 360 일일 통합 브리프 — {today_label}\n\n"
+                    "조회 기간 내 신규 회수·행정처분·안전성서한·공급중단 보고가 없습니다.\n\n"
+                    "- Risk Index: **0**\n"
+                    "- 총 이벤트: **0건**\n\n"
+                    "> 출처: 식약처 공공데이터포털 NO 539·564·547·534"
+                )
+                return {"markdown_report": msg}
+          variables:
+            - { variable: today_label, value_selector: [node_calcdate, today_label] }
+          outputs:
+            markdown_report: { type: string }
+
+      - id: node_end
+        type: custom
+        position: { x: 2020, y: 300 }
+        positionAbsolute: { x: 2020, y: 300 }
+        width: 244
+        height: 200
+        data:
+          type: end
+          title: "끝"
+          outputs:
+            - { variable: markdown_report, value_selector: [node_llm, text] }
+            - { variable: total_events, value_selector: [node_aggregate, total_events] }
+            - { variable: risk_index, value_selector: [node_aggregate, risk_index] }
+            - { variable: has_critical, value_selector: [node_aggregate, has_critical] }

@@ -1,0 +1,638 @@
+app:
+  name: "RegHub 360 — 통합 조회 워크플로우 v2"
+  description: "식약처 공공데이터포털 11종 API(허가·e약은요·낱알식별·회수·행정처분·안전성서한·DUR·공급중단·공급부족·묶음의약품·GMP)를 병렬 호출하여 RegHub 360 부서별 통합 결과를 반환한다. 검색 파라미터 미지원 API는 클라이언트 사이드 필터링으로 보강."
+  icon: "🔬"
+  icon_background: "#E4F0FF"
+  mode: workflow
+  use_icon_as_answer_icon: false
+kind: app
+version: 1.0.0
+
+workflow:
+  conversation_variables: []
+  environment_variables:
+    - name: DATA_GO_KR_BASE
+      description: "공공데이터포털 식약처 Base URL"
+      value_type: string
+      value: "https://apis.data.go.kr/1471000"
+    - name: SERVICE_KEY
+      description: "공공데이터포털 인증키 (Decoding 버전, MISO 자동 URL 인코딩)"
+      value_type: secret
+      value: "REDACTED_KEY"
+
+  features:
+    file_upload:
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+          - local_file
+          - remote_url
+    opening_statement: ""
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ""
+      voice: ""
+
+  graph:
+    edges:
+      # Start → 11 병렬
+      - id: edge-start-approval
+        source: node_start
+        sourceHandle: source
+        target: node_fetch_approval
+        targetHandle: target
+        type: custom
+        data: { sourceType: start, targetType: http-request, isInIteration: false }
+      - id: edge-start-easy
+        source: node_start
+        sourceHandle: source
+        target: node_fetch_easy
+        targetHandle: target
+        type: custom
+        data: { sourceType: start, targetType: http-request, isInIteration: false }
+      - id: edge-start-ident
+        source: node_start
+        sourceHandle: source
+        target: node_fetch_ident
+        targetHandle: target
+        type: custom
+        data: { sourceType: start, targetType: http-request, isInIteration: false }
+      - id: edge-start-recall
+        source: node_start
+        sourceHandle: source
+        target: node_fetch_recall
+        targetHandle: target
+        type: custom
+        data: { sourceType: start, targetType: http-request, isInIteration: false }
+      - id: edge-start-disc
+        source: node_start
+        sourceHandle: source
+        target: node_fetch_disc
+        targetHandle: target
+        type: custom
+        data: { sourceType: start, targetType: http-request, isInIteration: false }
+      - id: edge-start-safety
+        source: node_start
+        sourceHandle: source
+        target: node_fetch_safety
+        targetHandle: target
+        type: custom
+        data: { sourceType: start, targetType: http-request, isInIteration: false }
+      - id: edge-start-dur
+        source: node_start
+        sourceHandle: source
+        target: node_fetch_dur
+        targetHandle: target
+        type: custom
+        data: { sourceType: start, targetType: http-request, isInIteration: false }
+      - id: edge-start-supply
+        source: node_start
+        sourceHandle: source
+        target: node_fetch_supply
+        targetHandle: target
+        type: custom
+        data: { sourceType: start, targetType: http-request, isInIteration: false }
+      - id: edge-start-lack
+        source: node_start
+        sourceHandle: source
+        target: node_fetch_lack
+        targetHandle: target
+        type: custom
+        data: { sourceType: start, targetType: http-request, isInIteration: false }
+      - id: edge-start-bundle
+        source: node_start
+        sourceHandle: source
+        target: node_fetch_bundle
+        targetHandle: target
+        type: custom
+        data: { sourceType: start, targetType: http-request, isInIteration: false }
+      - id: edge-start-gmp
+        source: node_start
+        sourceHandle: source
+        target: node_fetch_gmp
+        targetHandle: target
+        type: custom
+        data: { sourceType: start, targetType: http-request, isInIteration: false }
+
+      # 11 → Merge
+      - { id: e-approval-merge,  source: node_fetch_approval,  target: node_merge, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: e-easy-merge,      source: node_fetch_easy,      target: node_merge, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: e-ident-merge,     source: node_fetch_ident,     target: node_merge, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: e-recall-merge,    source: node_fetch_recall,    target: node_merge, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: e-disc-merge,      source: node_fetch_disc,      target: node_merge, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: e-safety-merge,    source: node_fetch_safety,    target: node_merge, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: e-dur-merge,       source: node_fetch_dur,       target: node_merge, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: e-supply-merge,    source: node_fetch_supply,    target: node_merge, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: e-lack-merge,      source: node_fetch_lack,      target: node_merge, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: e-bundle-merge,    source: node_fetch_bundle,    target: node_merge, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: e-gmp-merge,       source: node_fetch_gmp,       target: node_merge, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+
+      # Merge → End
+      - { id: e-merge-end, source: node_merge, target: node_end, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: code, targetType: end, isInIteration: false } }
+
+    nodes:
+      - id: node_start
+        type: custom
+        position: { x: 40, y: 320 }
+        positionAbsolute: { x: 40, y: 320 }
+        width: 244
+        height: 200
+        data:
+          type: start
+          title: "시작"
+          desc: "사용자 입력 — 검색어 + 검색 기준"
+          variables:
+            - variable: item_name
+              type: text-input
+              label: 제품명 (선택)
+              required: false
+              max_length: 100
+              default: ""
+            - variable: entp_name
+              type: text-input
+              label: 업체명 (선택)
+              required: false
+              max_length: 100
+              default: ""
+            - variable: ingredient
+              type: text-input
+              label: 성분명 (선택)
+              required: false
+              max_length: 100
+              default: ""
+            - variable: num_of_rows
+              type: number
+              label: 1회 호출 건수
+              required: false
+              default: 10
+
+      # NO 140 의약품 허가정보
+      - id: node_fetch_approval
+        type: custom
+        position: { x: 360, y: 60 }
+        positionAbsolute: { x: 360, y: 60 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "FetchApproval(NO 140)"
+          desc: "의약품 허가정보 — item_name·entp_name 작동"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/DrugPrdtPrmsnInfoService07/getDrugPrdtPrmsnInq07"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: {{#node_start.num_of_rows#}}
+            type: json
+            item_name: {{#node_start.item_name#}}
+            entp_name: {{#node_start.entp_name#}}
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      # NO 248 e약은요
+      - id: node_fetch_easy
+        type: custom
+        position: { x: 360, y: 220 }
+        positionAbsolute: { x: 360, y: 220 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "FetchEasy(NO 248)"
+          desc: "e약은요 — itemName·entpName 카멜케이스"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/DrbEasyDrugInfoService/getDrbEasyDrugList"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: {{#node_start.num_of_rows#}}
+            type: json
+            itemName: {{#node_start.item_name#}}
+            entpName: {{#node_start.entp_name#}}
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      # NO 563 낱알식별
+      - id: node_fetch_ident
+        type: custom
+        position: { x: 360, y: 380 }
+        positionAbsolute: { x: 360, y: 380 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "FetchIdent(NO 563)"
+          desc: "낱알식별 — item_name·entp_name 작동"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/MdcinGrnIdntfcInfoService03/getMdcinGrnIdntfcInfoList03"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: {{#node_start.num_of_rows#}}
+            type: json
+            item_name: {{#node_start.item_name#}}
+            entp_name: {{#node_start.entp_name#}}
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      # NO 539 회수·판매중지 (파라미터 무시 — 전체 200건 받고 Merge에서 필터)
+      - id: node_fetch_recall
+        type: custom
+        position: { x: 360, y: 540 }
+        positionAbsolute: { x: 360, y: 540 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "FetchRecall(NO 539)"
+          desc: "회수·판매중지 — 검색 파라미터 미지원, 200건 받고 Merge에서 필터"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/MdcinRtrvlSleStpgeInfoService04/getMdcinRtrvlSleStpgelList03"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 200
+            type: json
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      # NO 564 행정처분 (파라미터 작동)
+      - id: node_fetch_disc
+        type: custom
+        position: { x: 360, y: 700 }
+        positionAbsolute: { x: 360, y: 700 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "FetchDisc(NO 564)"
+          desc: "의약품 행정처분 — item_name·entp_name 작동"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/MdcinExaathrService04/getMdcinExaathrList04"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: {{#node_start.num_of_rows#}}
+            type: json
+            order: Y
+            item_name: {{#node_start.item_name#}}
+            entp_name: {{#node_start.entp_name#}}
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      # NO 547 안전성서한 (TITLE 대문자)
+      - id: node_fetch_safety
+        type: custom
+        position: { x: 360, y: 860 }
+        positionAbsolute: { x: 360, y: 860 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "FetchSafety(NO 547)"
+          desc: "안전성서한 — TITLE 파라미터 (대문자)"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/DrugSafeLetterService02/getDrugSafeLetterList02"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: {{#node_start.num_of_rows#}}
+            type: json
+            TITLE: {{#node_start.item_name#}}
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      # NO 531 DUR 품목 병용금기 (itemName 카멜)
+      - id: node_fetch_dur
+        type: custom
+        position: { x: 360, y: 1020 }
+        positionAbsolute: { x: 360, y: 1020 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "FetchDUR(NO 531)"
+          desc: "DUR 품목 병용금기 — itemName 카멜"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/DURPrdlstInfoService03/getUsjntTabooInfoList03"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: {{#node_start.num_of_rows#}}
+            type: json
+            itemName: {{#node_start.item_name#}}
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      # NO 534 공급중단 (파라미터 무시 — 클라이언트 필터)
+      - id: node_fetch_supply
+        type: custom
+        position: { x: 700, y: 60 }
+        positionAbsolute: { x: 700, y: 60 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "FetchSupply(NO 534)"
+          desc: "공급중단 — 파라미터 무시, 200건 받고 Merge 필터"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/MdcinPrdctnIncmeSuplyService2/getMdcinPrdctnIncmeSuplyList"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 200
+            type: json
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      # NO 537 공급부족
+      - id: node_fetch_lack
+        type: custom
+        position: { x: 700, y: 220 }
+        positionAbsolute: { x: 700, y: 220 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "FetchLack(NO 537)"
+          desc: "공급부족 — 파라미터 무시, 200건 받고 Merge 필터"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/MdcinSuplyLackService03/getMdcinSuplyLackList01"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 200
+            type: json
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      # NO 269 묶음의약품 (HIRA/ATC)
+      - id: node_fetch_bundle
+        type: custom
+        position: { x: 700, y: 380 }
+        positionAbsolute: { x: 700, y: 380 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "FetchBundle(NO 269)"
+          desc: "묶음의약품 — trustItemName·trustMainingr"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/DrbBundleInfoService02/getDrbBundleList02"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: {{#node_start.num_of_rows#}}
+            type: json
+            trustItemName: {{#node_start.item_name#}}
+            trustMainingr: {{#node_start.ingredient#}}
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      # NO 132 GMP (BSSH_NM 대문자)
+      - id: node_fetch_gmp
+        type: custom
+        position: { x: 700, y: 540 }
+        positionAbsolute: { x: 700, y: 540 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "FetchGMP(NO 132)"
+          desc: "GMP 적합판정 — BSSH_NM 대문자"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/DrugGmpStbltJgmtIssuStusService/getDrugGmpStbltJgmtIssuStusInq"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: {{#node_start.num_of_rows#}}
+            type: json
+            BSSH_NM: {{#node_start.entp_name#}}
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      # Merge — 11개 응답 통합 + 클라이언트 필터 + Risk Score
+      - id: node_merge
+        type: custom
+        position: { x: 1040, y: 320 }
+        positionAbsolute: { x: 1040, y: 320 }
+        width: 280
+        height: 220
+        data:
+          type: code
+          title: "MergeAndScore"
+          desc: "11개 API 응답 평면화 + 검색어 필터링 + Risk Score 산정"
+          code_language: python3
+          code: |
+            def main(
+                approval_res, easy_res, ident_res,
+                recall_res, disc_res, safety_res, dur_res,
+                supply_res, lack_res, bundle_res, gmp_res,
+                item_name, entp_name, ingredient
+            ) -> dict:
+                """11개 API 응답을 RegHub 360 통합 스키마로 변환."""
+                needle_p = (item_name or "").lower()
+                needle_e = (entp_name or "").lower()
+
+                def items_of(res):
+                    try:
+                        body = (res or {}).get("body", {}) or {}
+                        items = body.get("items", [])
+                        if isinstance(items, dict) and "item" in items:
+                            items = items["item"]
+                        if isinstance(items, dict):
+                            items = [items]
+                        return items or []
+                    except Exception:
+                        return []
+
+                def filter_local(items, fields):
+                    if not needle_p and not needle_e:
+                        return items
+                    out = []
+                    for it in items:
+                        hit = False
+                        for f in fields:
+                            v = str(it.get(f, "")).lower()
+                            if (needle_p and needle_p in v) or (needle_e and needle_e in v):
+                                hit = True
+                                break
+                        if hit:
+                            out.append(it)
+                    return out
+
+                approval_items = items_of(approval_res)
+                easy_items = items_of(easy_res)
+                ident_items = items_of(ident_res)
+                recall_raw = items_of(recall_res)
+                disc_items = items_of(disc_res)
+                safety_raw = items_of(safety_res)
+                dur_items = items_of(dur_res)
+                supply_raw = items_of(supply_res)
+                lack_raw = items_of(lack_res)
+                bundle_items = items_of(bundle_res)
+                gmp_items = items_of(gmp_res)
+
+                # 파라미터 미지원 API 클라이언트 필터
+                recall_items = filter_local(recall_raw, ["PRDUCT", "ENTRPS", "ITEM_NAME"])
+                supply_items = filter_local(supply_raw, ["ENTP_NAME", "ITEM_NAME"])
+                lack_items = filter_local(lack_raw, ["ENTP_NAME", "ITEM_NAME"])
+                safety_items = filter_local(safety_raw, ["TITLE", "SUMRY_CONT"])
+
+                # Risk Score
+                risk_score = (
+                    len(recall_items) * 40
+                    + len(disc_items) * 30
+                    + len(safety_items) * 15
+                    + (len(supply_items) + len(lack_items)) * 20
+                    + len(dur_items) * 10
+                )
+                risk_score = min(risk_score, 100)
+                risk_grade = (
+                    "Critical" if risk_score >= 80
+                    else "High" if risk_score >= 60
+                    else "Medium" if risk_score >= 40
+                    else "Low" if risk_score >= 20
+                    else "Normal"
+                )
+
+                has_risk = len(recall_items) > 0 or len(disc_items) > 0 or len(safety_items) > 0
+
+                parts = []
+                query = (item_name or entp_name or ingredient or "(검색어 없음)").strip()
+                parts.append(f"## RegHub 360 — '{query}' 통합 조회 결과")
+                parts.append(f"**Risk Score: {risk_score}/100 ({risk_grade})**")
+                parts.append("")
+                parts.append(f"- 허가 (NO 140): {len(approval_items)}건")
+                parts.append(f"- e약은요 (NO 248): {len(easy_items)}건")
+                parts.append(f"- 낱알식별 (NO 563): {len(ident_items)}건")
+                parts.append(f"- 회수·판매중지 (NO 539): {len(recall_items)}건 (필터링)")
+                parts.append(f"- 행정처분 (NO 564): {len(disc_items)}건")
+                parts.append(f"- 안전성서한 (NO 547): {len(safety_items)}건 (필터링)")
+                parts.append(f"- DUR 병용금기 (NO 531): {len(dur_items)}건")
+                parts.append(f"- 공급중단 (NO 534): {len(supply_items)}건 (필터링)")
+                parts.append(f"- 공급부족 (NO 537): {len(lack_items)}건 (필터링)")
+                parts.append(f"- 묶음의약품 (NO 269): {len(bundle_items)}건")
+                parts.append(f"- GMP 적합판정 (NO 132): {len(gmp_items)}건")
+
+                if has_risk:
+                    parts.insert(2, "> ⚠️ 위험 신호: 회수·행정처분·안전성서한 등 위해 이벤트 확인됨\n")
+
+                return {
+                    "approval_items": approval_items,
+                    "easy_items": easy_items,
+                    "ident_items": ident_items,
+                    "recall_items": recall_items,
+                    "disc_items": disc_items,
+                    "safety_items": safety_items,
+                    "dur_items": dur_items,
+                    "supply_items": supply_items,
+                    "lack_items": lack_items,
+                    "bundle_items": bundle_items,
+                    "gmp_items": gmp_items,
+                    "risk_score": risk_score,
+                    "risk_grade": risk_grade,
+                    "has_risk": has_risk,
+                    "summary_text": "\n".join(parts),
+                }
+          variables:
+            - { variable: approval_res, value_selector: [node_fetch_approval, body] }
+            - { variable: easy_res, value_selector: [node_fetch_easy, body] }
+            - { variable: ident_res, value_selector: [node_fetch_ident, body] }
+            - { variable: recall_res, value_selector: [node_fetch_recall, body] }
+            - { variable: disc_res, value_selector: [node_fetch_disc, body] }
+            - { variable: safety_res, value_selector: [node_fetch_safety, body] }
+            - { variable: dur_res, value_selector: [node_fetch_dur, body] }
+            - { variable: supply_res, value_selector: [node_fetch_supply, body] }
+            - { variable: lack_res, value_selector: [node_fetch_lack, body] }
+            - { variable: bundle_res, value_selector: [node_fetch_bundle, body] }
+            - { variable: gmp_res, value_selector: [node_fetch_gmp, body] }
+            - { variable: item_name, value_selector: [node_start, item_name] }
+            - { variable: entp_name, value_selector: [node_start, entp_name] }
+            - { variable: ingredient, value_selector: [node_start, ingredient] }
+          outputs:
+            approval_items: { type: array, description: "허가 (NO 140)" }
+            easy_items: { type: array, description: "e약은요 (NO 248)" }
+            ident_items: { type: array, description: "낱알식별 (NO 563)" }
+            recall_items: { type: array, description: "회수 (NO 539, 필터링)" }
+            disc_items: { type: array, description: "행정처분 (NO 564)" }
+            safety_items: { type: array, description: "안전성서한 (NO 547, 필터링)" }
+            dur_items: { type: array, description: "DUR 병용금기 (NO 531)" }
+            supply_items: { type: array, description: "공급중단 (NO 534, 필터링)" }
+            lack_items: { type: array, description: "공급부족 (NO 537, 필터링)" }
+            bundle_items: { type: array, description: "묶음의약품 (NO 269)" }
+            gmp_items: { type: array, description: "GMP (NO 132)" }
+            risk_score: { type: number, description: "0~100 Risk Score" }
+            risk_grade: { type: string, description: "Normal/Low/Medium/High/Critical" }
+            has_risk: { type: boolean, description: "위해 이벤트 존재 여부" }
+            summary_text: { type: string, description: "마크다운 요약" }
+
+      - id: node_end
+        type: custom
+        position: { x: 1400, y: 320 }
+        positionAbsolute: { x: 1400, y: 320 }
+        width: 244
+        height: 280
+        data:
+          type: end
+          title: "끝"
+          desc: "통합 결과 출력"
+          outputs:
+            - { variable: approval_items, value_selector: [node_merge, approval_items] }
+            - { variable: easy_items, value_selector: [node_merge, easy_items] }
+            - { variable: ident_items, value_selector: [node_merge, ident_items] }
+            - { variable: recall_items, value_selector: [node_merge, recall_items] }
+            - { variable: disc_items, value_selector: [node_merge, disc_items] }
+            - { variable: safety_items, value_selector: [node_merge, safety_items] }
+            - { variable: dur_items, value_selector: [node_merge, dur_items] }
+            - { variable: supply_items, value_selector: [node_merge, supply_items] }
+            - { variable: lack_items, value_selector: [node_merge, lack_items] }
+            - { variable: bundle_items, value_selector: [node_merge, bundle_items] }
+            - { variable: gmp_items, value_selector: [node_merge, gmp_items] }
+            - { variable: risk_score, value_selector: [node_merge, risk_score] }
+            - { variable: risk_grade, value_selector: [node_merge, risk_grade] }
+            - { variable: has_risk, value_selector: [node_merge, has_risk] }
+            - { variable: summary_text, value_selector: [node_merge, summary_text] }

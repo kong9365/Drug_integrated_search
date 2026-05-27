@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<title>이벤트 타임라인 — 광동 RegHub 360</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>(function(){try{var t=localStorage.getItem('reghub.theme');if(!t&&matchMedia('(prefers-color-scheme: dark)').matches)t='dark';if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../styles/tokens.css">
+<link rel="stylesheet" href="../styles/components.css">
+<link rel="stylesheet" href="../styles/app.css">
+<link rel="stylesheet" href="../styles/app-extra.css">
+</head>
+<body class="app">
+
+<div class="sidebar-backdrop" data-app-sidebar-backdrop></div>
+
+<div class="shell">
+
+<aside class="sidebar" data-app-sidebar>
+  <div class="sidebar__brand">
+    <a href="../index.html" class="logo logo--sm"><span class="logo__mark"></span><span>RegHub 360</span></a>
+    <button class="theme-toggle" data-theme-toggle aria-label="테마 전환" style="width:32px;height:32px;border-radius:8px">
+      <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+  </div>
+  <div class="sidebar__group">
+    <div class="sidebar__label">Menu</div>
+    <a href="search.html" class="nav-item"><svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>통합 검색</a>
+    <a href="timeline.html" class="nav-item is-active"><svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM12 7v5l3 2"/></svg>이벤트 타임라인<span class="nav-item__count nav-item__count--danger">7</span></a>
+    <a href="watchlist.html" class="nav-item"><svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>워치리스트</a>
+    <a href="reports.html" class="nav-item"><svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>리포트</a>
+    <a href="copilot.html" class="nav-item"><svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>AI 코파일럿<span class="nav-item__count nav-item__count--brand">NEW</span></a>
+  </div>
+  <div class="sidebar__group">
+    <div class="sidebar__label">Workspaces</div>
+    <a href="#" class="nav-item">RA · 허가</a>
+    <a href="workspace.html" class="nav-item">QA / QC <span class="nav-item__count nav-item__count--danger">3</span></a>
+    <a href="#" class="nav-item">SCM · 구매</a>
+    <a href="#" class="nav-item">영업 · 마케팅</a>
+    <a href="#" class="nav-item">R&amp;D · BD</a>
+    <a href="#" class="nav-item">식품 QA · RA</a>
+    <a href="workspace-exec.html" class="nav-item">경영진</a>
+  </div>
+  <div class="sidebar__user">
+    <div class="sidebar__avatar">KQ</div>
+    <div><div class="sidebar__user-name">김QA</div><div class="sidebar__user-meta">광동제약 · QA/QC팀</div></div>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-topbar">
+    <button class="app-topbar__menu" data-app-sidebar-open aria-label="메뉴"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    <div class="app-topbar__crumbs"><span class="crumb-active">이벤트 타임라인</span></div>
+    <div class="app-topbar__search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <span style="flex:1">제품·업체·성분 빠른 검색</span><span class="kbd">⌘ K</span>
+    </div>
+    <button class="btn btn--secondary btn--sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      엑셀 추출
+    </button>
+    <button class="btn btn--primary btn--sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      필터 저장
+    </button>
+  </header>
+
+  <div class="app-content">
+    <div class="page-head">
+      <div>
+        <div class="t-caption">★ F-003 핵심 기능</div>
+        <h1 class="page-head__title">통합 이벤트 타임라인</h1>
+        <p class="page-head__sub">허가·회수·행정처분·안전성서한·DUR·검사부적합·공급중단을 단일 포맷으로 평면화. 자사 + 동성분 + 경쟁사 모두.</p>
+      </div>
+      <div class="page-head__actions">
+        <span class="badge badge--brand badge--dot">실시간</span>
+        <span class="badge">총 24건 · 90일</span>
+      </div>
+    </div>
+
+    <!-- Sev counters -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px">
+      <div class="kpi-card" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="kpi-card__label">CRITICAL</span><span class="badge badge--crit badge--dot" style="height:18px;font-size:10px;padding:0 6px">CRIT</span></div>
+        <div class="kpi-card__num" style="font-size:30px;color:var(--crit)"><span class="tnum">1</span></div>
+      </div>
+      <div class="kpi-card" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="kpi-card__label">HIGH</span><span class="badge badge--danger badge--dot" style="height:18px;font-size:10px;padding:0 6px">HIGH</span></div>
+        <div class="kpi-card__num" style="font-size:30px;color:var(--danger)"><span class="tnum">3</span></div>
+      </div>
+      <div class="kpi-card" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="kpi-card__label">MEDIUM</span><span class="badge badge--warn badge--dot" style="height:18px;font-size:10px;padding:0 6px">MED</span></div>
+        <div class="kpi-card__num" style="font-size:30px;color:var(--warn)"><span class="tnum">8</span></div>
+      </div>
+      <div class="kpi-card" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="kpi-card__label">LOW</span><span class="badge badge--info badge--dot" style="height:18px;font-size:10px;padding:0 6px">LOW</span></div>
+        <div class="kpi-card__num" style="font-size:30px;color:var(--brand)"><span class="tnum">9</span></div>
+      </div>
+      <div class="kpi-card" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="kpi-card__label">INFO</span></div>
+        <div class="kpi-card__num" style="font-size:30px;color:var(--ink-3)"><span class="tnum">3</span></div>
+      </div>
+    </div>
+
+    <!-- Filter row -->
+    <div class="filter-row">
+      <span class="filter-row__label">필터</span>
+      <span class="filter-chip is-active">광동제약 + 동성분 <span class="filter-chip__x">✕</span></span>
+      <span class="filter-chip is-active">최근 90일 <span class="filter-chip__x">✕</span></span>
+      <span class="filter-chip is-active">중요도 ≥ MED <span class="filter-chip__x">✕</span></span>
+      <span style="width:1px;height:20px;background:var(--line-1);margin:0 4px"></span>
+      <span class="filter-chip">이벤트 유형</span>
+      <span class="filter-chip">도메인</span>
+      <span class="filter-chip">영향 부서</span>
+      <span class="filter-chip filter-chip--add">+ 필터 추가</span>
+      <span style="margin-left:auto;display:flex;gap:10px;align-items:center;font-size:12px;color:var(--ink-3)">
+        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--ok)"></span>실시간 동기화 4분 전</span>
+      </span>
+    </div>
+
+    <!-- Subtabs by type -->
+    <div class="subtabs">
+      <button class="subtab is-active">전체 <span class="subtab__count">24</span></button>
+      <button class="subtab">회수·판매중지 <span class="subtab__count">6</span></button>
+      <button class="subtab">행정처분 <span class="subtab__count">5</span></button>
+      <button class="subtab">안전성서한 <span class="subtab__count">3</span></button>
+      <button class="subtab">DUR <span class="subtab__count">2</span></button>
+      <button class="subtab">검사부적합 <span class="subtab__count">4</span></button>
+      <button class="subtab">공급중단 <span class="subtab__count">1</span></button>
+      <button class="subtab">허가 변경 <span class="subtab__count">3</span></button>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline">
+      <!-- 오늘 -->
+      <div class="timeline__date-divider">2026.05.26 화요일 · 오늘<span class="timeline__date-count">3건</span></div>
+
+      <div class="event-card">
+        <div class="event-card__bar sev-bar--crit"></div>
+        <div class="event-card__body">
+          <div class="event-card__time">14:32</div>
+          <div class="event-card__sev">
+            <span class="badge badge--crit badge--dot">CRITICAL</span>
+            <span class="event-card__type">의약품 회수</span>
+          </div>
+          <div>
+            <div class="event-card__title">○○정 (아세트아미노펜 500mg) — 동성분 회수</div>
+            <div class="event-card__meta">○○제약(주) · 사유 함량 부적합 (역가 90% 미만) · 영향 lot 12개 · 자사 매칭: 베니톨정·베니톨씨에이정</div>
+          </div>
+          <div class="event-card__side">
+            <span class="event-card__side-label">영향 부서</span>
+            <div class="event-card__side-tags"><span class="badge">QA</span><span class="badge">RA</span><span class="badge">영업</span></div>
+            <span class="event-card__side-api">API 539 · 4분 전</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card__bar sev-bar--high"></div>
+        <div class="event-card__body">
+          <div class="event-card__time">11:08</div>
+          <div class="event-card__sev">
+            <span class="badge badge--danger badge--dot">HIGH</span>
+            <span class="event-card__type">행정처분</span>
+          </div>
+          <div>
+            <div class="event-card__title">광동제약 식품제조가공업 — 영업정지 7일</div>
+            <div class="event-card__meta">사유 표시기준 위반 (영양성분 오기재) · 처분일 2026.05.26 · 대상 사업장 안성공장</div>
+          </div>
+          <div class="event-card__side">
+            <span class="event-card__side-label">영향 부서</span>
+            <div class="event-card__side-tags"><span class="badge">식품QA</span><span class="badge">RA</span></div>
+            <span class="event-card__side-api">API 6 · 1시간 전</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card__bar sev-bar--med"></div>
+        <div class="event-card__body">
+          <div class="event-card__time">09:41</div>
+          <div class="event-card__sev">
+            <span class="badge badge--warn badge--dot">MEDIUM</span>
+            <span class="event-card__type">검사부적합</span>
+          </div>
+          <div>
+            <div class="event-card__title">홍삼 (원재료) 수입식품 검사부적합 — 잔류농약</div>
+            <div class="event-card__meta">중국산 · 검출 농약 4종 (기준 0.05ppm 초과) · 자동 매칭 자사 영향 품목 3건</div>
+          </div>
+          <div class="event-card__side">
+            <span class="event-card__side-label">영향 부서</span>
+            <div class="event-card__side-tags"><span class="badge">SCM</span><span class="badge">식품QA</span></div>
+            <span class="event-card__side-api">API 469 · 3시간 전</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 어제 -->
+      <div class="timeline__date-divider">2026.05.25 월요일<span class="timeline__date-count">4건</span></div>
+
+      <div class="event-card">
+        <div class="event-card__bar sev-bar--high"></div>
+        <div class="event-card__body">
+          <div class="event-card__time">17:24</div>
+          <div class="event-card__sev">
+            <span class="badge badge--danger badge--dot">HIGH</span>
+            <span class="event-card__type">의약품 회수</span>
+          </div>
+          <div>
+            <div class="event-card__title">△△캡슐 (슈도에페드린 60mg) — 동성분 회수</div>
+            <div class="event-card__meta">△△제약 · 표시기재 오류 (성분 함량) · 영향 lot 8개 · 자사 동성분 12개 영향 가능성</div>
+          </div>
+          <div class="event-card__side">
+            <span class="event-card__side-label">영향 부서</span>
+            <div class="event-card__side-tags"><span class="badge">QA</span><span class="badge">RA</span></div>
+            <span class="event-card__side-api">API 539</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card__bar sev-bar--med"></div>
+        <div class="event-card__body">
+          <div class="event-card__time">14:02</div>
+          <div class="event-card__sev">
+            <span class="badge badge--warn badge--dot">MEDIUM</span>
+            <span class="event-card__type">행정처분</span>
+          </div>
+          <div>
+            <div class="event-card__title">A제약 — 의약품 제조업 정지 30일</div>
+            <div class="event-card__meta">사유 GMP 미준수 · 광동제약 동성분 라인업 영향 없음 · 경쟁사 모니터링</div>
+          </div>
+          <div class="event-card__side">
+            <span class="event-card__side-label">영향 부서</span>
+            <div class="event-card__side-tags"><span class="badge">영업</span><span class="badge">QA</span></div>
+            <span class="event-card__side-api">API 4</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card__bar sev-bar--med"></div>
+        <div class="event-card__body">
+          <div class="event-card__time">10:55</div>
+          <div class="event-card__sev">
+            <span class="badge badge--warn badge--dot">MEDIUM</span>
+            <span class="event-card__type">DUR</span>
+          </div>
+          <div>
+            <div class="event-card__title">아세트아미노펜 — 신규 병용 주의 추가</div>
+            <div class="event-card__meta">와파린 병용 시 INR 모니터링 권고 · 베니톨정 시리즈 표시기재 검토 필요</div>
+          </div>
+          <div class="event-card__side">
+            <span class="event-card__side-label">영향 부서</span>
+            <div class="event-card__side-tags"><span class="badge">RA</span><span class="badge">QA</span></div>
+            <span class="event-card__side-api">API 531</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card__bar sev-bar--low"></div>
+        <div class="event-card__body">
+          <div class="event-card__time">09:14</div>
+          <div class="event-card__sev">
+            <span class="badge badge--info badge--dot">LOW</span>
+            <span class="event-card__type">허가 변경</span>
+          </div>
+          <div>
+            <div class="event-card__title">광동제약 신규 의약외품 허가 1건 — 치약제 일반</div>
+            <div class="event-card__meta">품목명 광동 시린이 케어 · 허가번호 2026-503-0042 · 판매개시 6월 예정</div>
+          </div>
+          <div class="event-card__side">
+            <span class="event-card__side-label">영향 부서</span>
+            <div class="event-card__side-tags"><span class="badge">RA</span><span class="badge">영업</span></div>
+            <span class="event-card__side-api">API 518</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2일 전 -->
+      <div class="timeline__date-divider">2026.05.24 일요일<span class="timeline__date-count">2건</span></div>
+
+      <div class="event-card">
+        <div class="event-card__bar sev-bar--med"></div>
+        <div class="event-card__body">
+          <div class="event-card__time">15:20</div>
+          <div class="event-card__sev">
+            <span class="badge badge--warn badge--dot">MEDIUM</span>
+            <span class="event-card__type">안전성서한</span>
+          </div>
+          <div>
+            <div class="event-card__title">아세트아미노펜 함유 제제 — 간기능 이상 사용주의 권고</div>
+            <div class="event-card__meta">베니톨정 포함 동성분 312품목 영향 · 표시기재 반영 완료 확인 필요</div>
+          </div>
+          <div class="event-card__side">
+            <span class="event-card__side-label">영향 부서</span>
+            <div class="event-card__side-tags"><span class="badge">RA</span><span class="badge">QA</span></div>
+            <span class="event-card__side-api">API 547</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card__bar sev-bar--low"></div>
+        <div class="event-card__body">
+          <div class="event-card__time">10:02</div>
+          <div class="event-card__sev">
+            <span class="badge badge--info badge--dot">LOW</span>
+            <span class="event-card__type">허가 변경</span>
+          </div>
+          <div>
+            <div class="event-card__title">코대원포르테시럽 — 표시기재 변경 (경미)</div>
+            <div class="event-card__meta">사용상의주의사항 추가 · 자사 RA 처리 완료</div>
+          </div>
+          <div class="event-card__side">
+            <span class="event-card__side-label">영향 부서</span>
+            <div class="event-card__side-tags"><span class="badge">RA</span></div>
+            <span class="event-card__side-api">API 140</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3일 전 -->
+      <div class="timeline__date-divider">2026.05.22 금요일<span class="timeline__date-count">2건</span></div>
+
+      <div class="event-card">
+        <div class="event-card__bar sev-bar--med"></div>
+        <div class="event-card__body">
+          <div class="event-card__time">16:48</div>
+          <div class="event-card__sev">
+            <span class="badge badge--warn badge--dot">MEDIUM</span>
+            <span class="event-card__type">검사부적합</span>
+          </div>
+          <div>
+            <div class="event-card__title">감초 추출물 — 미생물 기준 부적합</div>
+            <div class="event-card__meta">자사 영향 품목 없음 · SCM 모니터링 등록 자동 매칭 결과</div>
+          </div>
+          <div class="event-card__side">
+            <span class="event-card__side-label">영향 부서</span>
+            <div class="event-card__side-tags"><span class="badge">SCM</span></div>
+            <span class="event-card__side-api">API 469</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card__bar sev-bar--low"></div>
+        <div class="event-card__body">
+          <div class="event-card__time">11:30</div>
+          <div class="event-card__sev">
+            <span class="badge badge--info badge--dot">LOW</span>
+            <span class="event-card__type">행정처분</span>
+          </div>
+          <div>
+            <div class="event-card__title">B바이오 — 광고법 위반 경고</div>
+            <div class="event-card__meta">경쟁사 모니터링 · 광동제약 사업부 영향 없음</div>
+          </div>
+          <div class="event-card__side">
+            <span class="event-card__side-label">영향 부서</span>
+            <div class="event-card__side-tags"><span class="badge">영업</span></div>
+            <span class="event-card__side-api">API 4</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:24px 0">
+        <button class="btn btn--secondary">더 보기 (12건 남음)</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+</div>
+
+<script src="../scripts/theme.js" defer></script>
+<script src="../scripts/app.js" defer></script>
+</body>
+</html>

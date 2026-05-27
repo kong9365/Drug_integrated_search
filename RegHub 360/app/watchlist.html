@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<title>워치리스트 — 광동 RegHub 360</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>(function(){try{var t=localStorage.getItem('reghub.theme');if(!t&&matchMedia('(prefers-color-scheme: dark)').matches)t='dark';if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../styles/tokens.css">
+<link rel="stylesheet" href="../styles/components.css">
+<link rel="stylesheet" href="../styles/app.css">
+<link rel="stylesheet" href="../styles/app-extra.css">
+</head>
+<body class="app">
+
+<div class="sidebar-backdrop" data-app-sidebar-backdrop></div>
+
+<div class="shell">
+
+<aside class="sidebar" data-app-sidebar>
+  <div class="sidebar__brand">
+    <a href="../index.html" class="logo logo--sm"><span class="logo__mark"></span><span>RegHub 360</span></a>
+    <button class="theme-toggle" data-theme-toggle aria-label="테마 전환" style="width:32px;height:32px;border-radius:8px">
+      <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+  </div>
+  <div class="sidebar__group">
+    <div class="sidebar__label">Menu</div>
+    <a href="search.html" class="nav-item"><svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>통합 검색</a>
+    <a href="timeline.html" class="nav-item"><svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM12 7v5l3 2"/></svg>이벤트 타임라인<span class="nav-item__count nav-item__count--danger">7</span></a>
+    <a href="watchlist.html" class="nav-item is-active"><svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>워치리스트</a>
+    <a href="reports.html" class="nav-item"><svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>리포트</a>
+    <a href="copilot.html" class="nav-item"><svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>AI 코파일럿<span class="nav-item__count nav-item__count--brand">NEW</span></a>
+  </div>
+  <div class="sidebar__group">
+    <div class="sidebar__label">Workspaces</div>
+    <a href="#" class="nav-item">RA · 허가</a>
+    <a href="workspace.html" class="nav-item">QA / QC <span class="nav-item__count nav-item__count--danger">3</span></a>
+    <a href="#" class="nav-item">SCM · 구매</a>
+    <a href="#" class="nav-item">영업 · 마케팅</a>
+    <a href="#" class="nav-item">R&amp;D · BD</a>
+    <a href="#" class="nav-item">식품 QA · RA</a>
+    <a href="workspace-exec.html" class="nav-item">경영진</a>
+  </div>
+  <div class="sidebar__user">
+    <div class="sidebar__avatar">KQ</div>
+    <div><div class="sidebar__user-name">김QA</div><div class="sidebar__user-meta">광동제약 · QA/QC팀</div></div>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-topbar">
+    <button class="app-topbar__menu" data-app-sidebar-open aria-label="메뉴"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    <div class="app-topbar__crumbs"><span class="crumb-active">워치리스트</span></div>
+    <button class="btn btn--secondary btn--sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      CSV 가져오기
+    </button>
+    <button class="btn btn--primary btn--sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      대상 추가
+    </button>
+  </header>
+
+  <div class="app-content">
+    <div class="page-head">
+      <div>
+        <div class="t-caption">F-005 워치리스트 관리</div>
+        <h1 class="page-head__title">관심 대상 모니터링</h1>
+        <p class="page-head__sub">자사 품목·업체·성분·경쟁사를 등록해두면 — 매칭되는 이벤트 발생 시 즉시 알림.</p>
+      </div>
+      <div class="page-head__actions">
+        <span class="badge badge--brand">활성 알림 채널 3개</span>
+      </div>
+    </div>
+
+    <!-- KPI summary -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+      <div class="kpi-card">
+        <div class="kpi-card__label">등록 대상</div>
+        <div class="kpi-card__num"><span class="tnum">62</span><small>개</small></div>
+        <div class="kpi-card__delta" style="color:var(--ink-3)">자사 + 경쟁 + 성분</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__label">미확인 알림</div>
+        <div class="kpi-card__num kpi-card__num--danger"><span class="tnum">7</span><small>건</small></div>
+        <div class="kpi-card__delta" style="color:var(--danger)">↗ 24시간 새 알림</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__label">월 평균 알림</div>
+        <div class="kpi-card__num"><span class="tnum">42</span><small>건</small></div>
+        <div class="kpi-card__delta" style="color:var(--ink-3)">최근 3개월</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__label">알림 채널</div>
+        <div class="kpi-card__num"><span class="tnum">3</span><small>활성</small></div>
+        <div class="kpi-card__delta" style="color:var(--ink-3)">이메일 · 슬랙 · 푸시</div>
+      </div>
+    </div>
+
+    <!-- Subtabs by target type -->
+    <div class="subtabs">
+      <button class="subtab is-active">전체 <span class="subtab__count">62</span></button>
+      <button class="subtab">자사 품목 <span class="subtab__count">28</span></button>
+      <button class="subtab">자사 업체 <span class="subtab__count">12</span></button>
+      <button class="subtab">성분·원재료 <span class="subtab__count">14</span></button>
+      <button class="subtab">경쟁사 <span class="subtab__count">8</span></button>
+    </div>
+
+    <!-- Filter row -->
+    <div class="filter-row">
+      <span class="filter-row__label">필터</span>
+      <span class="filter-chip">미확인 알림 있음</span>
+      <span class="filter-chip">중요도 HIGH 이상</span>
+      <span class="filter-chip">최근 7일 알림</span>
+      <span class="filter-chip filter-chip--add">+ 필터 추가</span>
+      <div style="margin-left:auto;display:flex;gap:6px;align-items:center;font-size:12px;color:var(--ink-3)">
+        <span>정렬:</span>
+        <select style="border:1px solid var(--line-1);background:var(--bg-elevated);color:var(--ink-1);padding:6px 10px;border-radius:6px;font:inherit;font-size:12px;font-weight:500">
+          <option>최근 알림순</option><option>이름순</option><option>등록일순</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <table class="watch-table">
+      <thead>
+        <tr>
+          <th style="width:42%">대상</th>
+          <th>유형</th>
+          <th>알림 룰</th>
+          <th class="is-num">미확인</th>
+          <th class="is-num">최근 알림</th>
+          <th style="width:60px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="watch-target">
+              <div class="watch-target__icon" style="background:var(--domain-drug-soft);color:var(--domain-drug)">💊</div>
+              <div>
+                <div class="watch-target__name">베니톨정</div>
+                <div class="watch-target__sub">의약품 · 광동제약 · 아세트아미노펜 500mg</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge" style="background:var(--domain-drug-soft);color:var(--domain-drug)">자사 품목</span></td>
+          <td><span style="font-size:12px;color:var(--ink-3)">동성분 회수 · 안전성서한 · 행정처분</span></td>
+          <td class="is-num"><span class="badge badge--danger">2</span></td>
+          <td class="is-num" style="color:var(--ink-3);font-size:12px">14분 전</td>
+          <td><button class="btn btn--ghost btn--sm">⋯</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="watch-target">
+              <div class="watch-target__icon" style="background:linear-gradient(135deg,#FFE082,#FB8C00);color:#fff">V5</div>
+              <div>
+                <div class="watch-target__name">비타500</div>
+                <div class="watch-target__sub">식품 · 광동제약 · 혼합음료</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge" style="background:var(--domain-food-soft);color:var(--domain-food)">자사 품목</span></td>
+          <td><span style="font-size:12px;color:var(--ink-3)">행정처분 · 검사부적합 · 표시기준</span></td>
+          <td class="is-num"><span class="badge badge--warn">1</span></td>
+          <td class="is-num" style="color:var(--ink-3);font-size:12px">어제</td>
+          <td><button class="btn btn--ghost btn--sm">⋯</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="watch-target">
+              <div class="watch-target__icon">광</div>
+              <div>
+                <div class="watch-target__name">광동제약(주)</div>
+                <div class="watch-target__sub">자사 업체 · 사업자 110-81-32144</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge">자사 업체</span></td>
+          <td><span style="font-size:12px;color:var(--ink-3)">모든 이벤트 · 전 도메인</span></td>
+          <td class="is-num"><span class="badge badge--danger">3</span></td>
+          <td class="is-num" style="color:var(--ink-3);font-size:12px">1시간 전</td>
+          <td><button class="btn btn--ghost btn--sm">⋯</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="watch-target">
+              <div class="watch-target__icon" style="background:var(--info-soft);color:var(--info)">성</div>
+              <div>
+                <div class="watch-target__name">아세트아미노펜</div>
+                <div class="watch-target__sub">성분 · 자사 12품목 매칭</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge badge--info">성분</span></td>
+          <td><span style="font-size:12px;color:var(--ink-3)">동성분 회수 · DUR · 안전성서한</span></td>
+          <td class="is-num"><span class="badge badge--ok">0</span></td>
+          <td class="is-num" style="color:var(--ink-3);font-size:12px">3일 전</td>
+          <td><button class="btn btn--ghost btn--sm">⋯</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="watch-target">
+              <div class="watch-target__icon" style="background:linear-gradient(135deg,#86EFAC,#16A34A);color:#fff">홍</div>
+              <div>
+                <div class="watch-target__name">홍삼 (원재료)</div>
+                <div class="watch-target__sub">원재료 · 자사 8품목 사용</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge badge--info">원재료</span></td>
+          <td><span style="font-size:12px;color:var(--ink-3)">검사부적합 · 수입통관 · 농약잔류</span></td>
+          <td class="is-num"><span class="badge badge--warn">1</span></td>
+          <td class="is-num" style="color:var(--ink-3);font-size:12px">3시간 전</td>
+          <td><button class="btn btn--ghost btn--sm">⋯</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="watch-target">
+              <div class="watch-target__icon" style="background:var(--danger-soft);color:var(--danger)">A</div>
+              <div>
+                <div class="watch-target__name">A제약</div>
+                <div class="watch-target__sub">경쟁사 · 신규 허가·처분 추적</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge badge--danger">경쟁사</span></td>
+          <td><span style="font-size:12px;color:var(--ink-3)">신규 허가 · 행정처분</span></td>
+          <td class="is-num"><span class="badge">0</span></td>
+          <td class="is-num" style="color:var(--ink-3);font-size:12px">어제</td>
+          <td><button class="btn btn--ghost btn--sm">⋯</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="watch-target">
+              <div class="watch-target__icon" style="background:var(--danger-soft);color:var(--danger)">B</div>
+              <div>
+                <div class="watch-target__name">B바이오</div>
+                <div class="watch-target__sub">경쟁사 · 동일 카테고리</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge badge--danger">경쟁사</span></td>
+          <td><span style="font-size:12px;color:var(--ink-3)">신규 허가 · 광고법</span></td>
+          <td class="is-num"><span class="badge">0</span></td>
+          <td class="is-num" style="color:var(--ink-3);font-size:12px">5일 전</td>
+          <td><button class="btn btn--ghost btn--sm">⋯</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="watch-target">
+              <div class="watch-target__icon" style="background:var(--domain-drug-soft);color:var(--domain-drug)">💊</div>
+              <div>
+                <div class="watch-target__name">광동 우황청심원</div>
+                <div class="watch-target__sub">의약품 · 한방제제</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge" style="background:var(--domain-drug-soft);color:var(--domain-drug)">자사 품목</span></td>
+          <td><span style="font-size:12px;color:var(--ink-3)">동성분 회수 · 안전성서한</span></td>
+          <td class="is-num"><span class="badge">0</span></td>
+          <td class="is-num" style="color:var(--ink-3);font-size:12px">11일 전</td>
+          <td><button class="btn btn--ghost btn--sm">⋯</button></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ink-3)">
+      <span>1 – 8 / 62 표시</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn--ghost btn--sm" disabled style="opacity:0.4">이전</button>
+        <button class="btn btn--ghost btn--sm">1</button>
+        <button class="btn btn--secondary btn--sm" style="background:var(--brand-soft);color:var(--brand);border-color:transparent">2</button>
+        <button class="btn btn--ghost btn--sm">3</button>
+        <button class="btn btn--ghost btn--sm">…</button>
+        <button class="btn btn--ghost btn--sm">8</button>
+        <button class="btn btn--ghost btn--sm">다음</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+</div>
+
+<script src="../scripts/theme.js" defer></script>
+<script src="../scripts/app.js" defer></script>
+</body>
+</html>

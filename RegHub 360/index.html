@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<title>광동 RegHub 360 — 의약품·의약외품·식품 통합 규제정보 허브</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="식약처 공공 API 603건을 RA · QA · SCM · 영업 실무자의 업무 질문 기준으로 통합한 규제정보 플랫폼. API별 조회가 아닌, 제품·업체·성분 단일 검색.">
+<meta name="theme-color" content="#4F46E5">
+
+<!-- Theme: set ASAP to prevent flash -->
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('reghub.theme');
+      if (!t && window.matchMedia('(prefers-color-scheme: dark)').matches) t = 'dark';
+      if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    } catch (e) {}
+  })();
+</script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap">
+
+<link rel="stylesheet" href="styles/tokens.css">
+<link rel="stylesheet" href="styles/components.css">
+<link rel="stylesheet" href="styles/landing.css">
+</head>
+<body>
+
+<!-- ===================== TOPBAR ===================== -->
+<header class="topbar" data-screen-label="Landing · Topbar">
+  <div class="container topbar__inner">
+    <a href="index.html" class="logo">
+      <span class="logo__mark"></span>
+      <span>광동 <span style="color:var(--brand)">RegHub 360</span></span>
+    </a>
+    <nav class="topbar__nav">
+      <a href="#features">기능</a>
+      <a href="#demo">데모</a>
+      <a href="#usecases">부서별 활용</a>
+      <a href="app/index.html">제품 미리보기</a>
+      <a href="#pricing">로드맵</a>
+      <a href="handoff.md">개발자 문서</a>
+    </nav>
+    <div class="topbar__actions">
+      <button class="theme-toggle" data-theme-toggle aria-label="테마 전환">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+      <a href="app/search.html" class="btn btn--ghost btn--sm" style="display:none;" data-show-on-desktop>로그인</a>
+      <a href="#cta" class="btn btn--primary btn--sm">도입 문의</a>
+      <button class="hamburger" data-mobile-nav-open aria-label="메뉴 열기">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== MOBILE NAV ===================== -->
+<nav class="mobile-nav" data-mobile-nav aria-hidden="true">
+  <button class="mobile-nav__close" data-mobile-nav-close aria-label="닫기">✕</button>
+  <a href="#features">기능</a>
+  <a href="#demo">데모</a>
+  <a href="#usecases">부서별 활용</a>
+  <a href="app/index.html">제품 미리보기</a>
+  <a href="#pricing">로드맵</a>
+  <a href="handoff.md">개발자 문서</a>
+  <div style="margin-top:24px;display:flex;flex-direction:column;gap:12px">
+    <a href="#cta" class="btn btn--primary btn--lg" style="justify-content:center">도입 문의</a>
+    <a href="app/index.html" class="btn btn--secondary btn--lg" style="justify-content:center">제품 둘러보기</a>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" data-screen-label="Landing · Hero">
+  <div class="hero__grid"></div>
+  <div class="container">
+    <div class="hero__inner">
+      <div class="hero__badge" data-reveal>
+        <span class="badge badge--brand badge--dot">v1.0 · MVP</span>
+        <span>식약처 공공 API <strong style="color:var(--ink-1);font-weight:600">603건</strong>을 한 곳에</span>
+      </div>
+      <h1 class="hero__title" data-reveal>
+        광동 <span class="hero__title-mark">RegHub 360</span>
+      </h1>
+      <p class="hero__sub" data-reveal>
+        <strong>API별 조회가 아닌, 실무 질문 기준 조회.</strong><br>
+        제품·업체·성분 한 번만 입력하면 — 허가 · 회수 · 행정처분 · 안전성 · 공급망 · 식품표시를
+        단일 화면으로 묶어주는 업무형 규제정보 플랫폼.
+      </p>
+      <div class="hero__ctas" data-reveal>
+        <a href="#demo" class="btn btn--primary btn--lg">
+          라이브 데모 체험
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+        <a href="app/index.html" class="btn btn--secondary btn--lg">제품 미리보기</a>
+      </div>
+      <div class="hero__meta" data-reveal>
+        <span><span class="hero__meta-dot"></span>식약처 공식 API 기반</span>
+        <span>·</span>
+        <span>API 603건 · 12개 축</span>
+        <span>·</span>
+        <span>RA / QA / SCM / 영업 / R&amp;D / 식품QA 전 부서 지원</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero product preview -->
+  <div class="hero__preview" data-reveal>
+    <div class="hero__preview-inner">
+      <div class="preview-chrome">
+        <div class="preview-chrome__dots"><span></span><span></span><span></span></div>
+        <div class="preview-chrome__url">reghub.kwangdong.io / search</div>
+        <div style="width:54px"></div>
+      </div>
+      <div class="mock-app">
+        <!-- Sidebar -->
+        <aside class="mock-side">
+          <div class="logo logo--sm" style="padding:0 10px 4px">
+            <span class="logo__mark"></span>
+            <span>RegHub 360</span>
+          </div>
+          <div class="mock-side__group">
+            <div class="mock-side__label">Workspaces</div>
+            <div class="mock-side__item">RA · 허가</div>
+            <div class="mock-side__item is-active">
+              <span>QA / QC</span>
+              <span class="mock-side__item-count">7</span>
+            </div>
+            <div class="mock-side__item">SCM · 구매</div>
+            <div class="mock-side__item">영업 · 마케팅</div>
+            <div class="mock-side__item">R&amp;D · BD</div>
+            <div class="mock-side__item">식품 QA · RA</div>
+          </div>
+          <div class="mock-side__group">
+            <div class="mock-side__label">Menu</div>
+            <div class="mock-side__item">통합 검색</div>
+            <div class="mock-side__item">이벤트 타임라인</div>
+            <div class="mock-side__item">워치리스트</div>
+            <div class="mock-side__item">리포트</div>
+            <div class="mock-side__item">AI 코파일럿</div>
+          </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="mock-main">
+          <div class="mock-toolbar">
+            <span>통합 검색</span>
+            <span style="color:var(--ink-4)">/</span>
+            <span class="crumb">광동제약</span>
+          </div>
+          <div class="mock-search">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input value="광동제약" readonly tabindex="-1">
+            <span class="kbd">⌘ K</span>
+          </div>
+          <div class="mock-chips">
+            <span class="mock-chip is-active">전체</span>
+            <span class="mock-chip">의약품</span>
+            <span class="mock-chip">의약외품</span>
+            <span class="mock-chip">식품</span>
+            <span class="mock-chip">제품명</span>
+            <span class="mock-chip">업체명</span>
+            <span class="mock-chip">성분</span>
+            <span class="mock-chip">바코드</span>
+          </div>
+          <div class="mock-grid">
+            <div class="mock-card">
+              <div class="mock-card__head">
+                <span>허가 정보</span>
+                <span class="badge badge--brand">312</span>
+              </div>
+              <div class="mock-card__row"><span class="mock-card__title">베니톨정 500mg</span><span class="mock-card__meta">2003-03-12</span></div>
+              <div class="mock-card__row"><span class="mock-card__title">코대원포르테시럽</span><span class="mock-card__meta">2011-07-21</span></div>
+              <div class="mock-card__row"><span class="mock-card__title">광동 우황청심원</span><span class="mock-card__meta">1998-11-04</span></div>
+            </div>
+            <div class="mock-card">
+              <div class="mock-card__head">
+                <span>회수·판매중지</span>
+                <span class="badge badge--danger badge--dot">4 NEW</span>
+              </div>
+              <div class="mock-card__alert-line">
+                <div class="mock-card__alert-bar" style="background:var(--crit)"></div>
+                <div class="flex-1">
+                  <div class="mock-card__alert-title">○○정 · 동성분 회수</div>
+                  <div class="mock-card__alert-meta">함량 부적합 · 14분 전</div>
+                </div>
+              </div>
+              <div class="mock-card__alert-line">
+                <div class="mock-card__alert-bar" style="background:var(--warn)"></div>
+                <div class="flex-1">
+                  <div class="mock-card__alert-title">아세트아미노펜 서한</div>
+                  <div class="mock-card__alert-meta">간기능 사용주의 · 2일 전</div>
+                </div>
+              </div>
+            </div>
+            <div class="mock-card">
+              <div class="mock-card__head">
+                <span>워치리스트 알림</span>
+                <span class="badge badge--info">3</span>
+              </div>
+              <div class="mock-card__alert-line">
+                <div class="mock-card__alert-bar" style="background:var(--danger)"></div>
+                <div class="flex-1">
+                  <div class="mock-card__alert-title">「베니톨정」 동성분 회수</div>
+                  <div class="mock-card__alert-meta">HIGH · QA 영향</div>
+                </div>
+              </div>
+              <div class="mock-card__alert-line">
+                <div class="mock-card__alert-bar" style="background:var(--warn)"></div>
+                <div class="flex-1">
+                  <div class="mock-card__alert-title">광동제약 행정처분 1건</div>
+                  <div class="mock-card__alert-meta">MED · 표시기준 위반</div>
+                </div>
+              </div>
+              <div class="mock-card__alert-line">
+                <div class="mock-card__alert-bar" style="background:var(--brand)"></div>
+                <div class="flex-1">
+                  <div class="mock-card__alert-title">홍삼 원재료 부적합</div>
+                  <div class="mock-card__alert-meta">INFO · SCM 확인</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TRUST BAND ===================== -->
+<section class="trust-band" data-screen-label="Landing · Trust band">
+  <div class="container">
+    <div class="trust-band__label">매일 따로 조회하던 5개 포털을 하나로</div>
+    <div class="trust-band__row">
+      <span>식약처</span>
+      <span>·</span>
+      <span>공공데이터포털</span>
+      <span>·</span>
+      <span>식품안전나라</span>
+      <span>·</span>
+      <span>건강보험심사평가원</span>
+      <span>·</span>
+      <span>식의약 데이터포털</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STATS ===================== -->
+<section class="stats-band" data-screen-label="Landing · Stats">
+  <div class="container">
+    <div class="section-head section-head--center" data-reveal>
+      <span class="t-eyebrow">실무자가 매일 만나는 현실</span>
+      <h2 class="t-h1">제약·식품 실무자는 매일<br>5개 포털을 따로 조회한다.</h2>
+    </div>
+    <div class="stats-grid" data-reveal>
+      <div class="stats-cell">
+        <div class="stats-cell__num tnum">603<small>건</small></div>
+        <div class="stats-cell__label">공공데이터 API 카탈로그<br>(식품 279 · 의약품 99 · 의료기기 84 …)</div>
+      </div>
+      <div class="stats-cell">
+        <div class="stats-cell__num tnum">5<small>개</small></div>
+        <div class="stats-cell__label">매일 수동 조회하는 외부 포털</div>
+      </div>
+      <div class="stats-cell">
+        <div class="stats-cell__num tnum">7<small>부서</small></div>
+        <div class="stats-cell__label">서로 다른 정보 니즈<br>(RA · QA · SCM · 영업 · R&amp;D · 식품QA · 경영)</div>
+      </div>
+      <div class="stats-cell">
+        <div class="stats-cell__num stats-cell__num--danger tnum">0<small>개</small></div>
+        <div class="stats-cell__label">실무 질문 기준의 통합 도구</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FEATURES ===================== -->
+<section class="features" id="features" data-screen-label="Landing · Features">
+  <div class="container">
+    <div class="section-head section-head--center" data-reveal>
+      <span class="t-eyebrow">제품 구성</span>
+      <h2 class="t-h1">단일 검색 한 번, <br>12개 API 동시 호출.</h2>
+      <p class="t-lead">의약품·의약외품·식품 도메인의 모든 규제 데이터를 제품 한 건 기준으로 묶어 보여줍니다.</p>
+    </div>
+
+    <!-- F1: Product 360 -->
+    <div class="feature-row" data-reveal>
+      <div class="feature-row__copy">
+        <span class="t-eyebrow">F-002 · Product 360</span>
+        <h3 class="t-h2">제품 하나에 대해<br>8개 섹션을 한 화면으로.</h3>
+        <p class="t-body">베니톨정 한 번 검색하면 허가·변경 이력, 안전성, 품질·규제 이벤트, 공급망, 개발·BD, 마약류 분석, 낱알식별까지 모두 단일 페이지에서.</p>
+        <ul class="feature-row__list">
+          <li>동성분 회수·행정처분 자동 매칭 — 누락 없는 영향 범위</li>
+          <li>모든 카드에 "출처 API · 동기화 N분 전" 배지 표시</li>
+          <li>식품 도메인은 영양성분 · 원재료 · 푸드QR 6섹션 동일 구조</li>
+          <li>제품·업체별 <strong>Risk Score</strong> 자동 산정</li>
+        </ul>
+      </div>
+      <div class="feature-row__visual">
+        <!-- mini product 360 -->
+        <div style="padding:22px 24px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;gap:14px">
+          <div style="width:48px;height:48px;border-radius:12px;background:var(--bg-muted);border:1px solid var(--line-2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--ink-4);text-align:center;line-height:1.2">낱알<br>식별</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;gap:6px;align-items:center"><span class="badge" style="background:var(--domain-drug-soft);color:var(--domain-drug)">의약품</span><span class="badge">일반의약품</span></div>
+            <div style="font-size:20px;font-weight:700;margin-top:6px;letter-spacing:-0.02em">베니톨정 <span style="color:var(--ink-3);font-weight:400;font-size:14px">· 광동제약(주)</span></div>
+          </div>
+          <div style="text-align:right">
+            <div class="t-caption">Risk Score</div>
+            <div style="font-size:28px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums;line-height:1">18<span style="font-size:13px;color:var(--ink-3);font-weight:500;margin-left:4px">/100</span></div>
+          </div>
+        </div>
+        <div style="display:flex;padding:0 24px;border-bottom:1px solid var(--line-2);font-size:13px;background:var(--bg-subtle);gap:0;overflow-x:auto">
+          <span style="padding:10px 12px;border-bottom:2px solid var(--brand);color:var(--brand);font-weight:600;white-space:nowrap">기본정보</span>
+          <span style="padding:10px 12px;color:var(--ink-3);white-space:nowrap">허가이력</span>
+          <span style="padding:10px 12px;color:var(--ink-3);white-space:nowrap">안전성</span>
+          <span style="padding:10px 12px;color:var(--ink-3);white-space:nowrap">품질·규제</span>
+          <span style="padding:10px 12px;color:var(--ink-3);white-space:nowrap">공급망</span>
+        </div>
+        <div style="padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="padding:14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px"><div class="t-caption">자사 회수 (1년)</div><div style="font-size:26px;font-weight:700;color:var(--ok);margin-top:4px" class="tnum">0</div></div>
+          <div style="padding:14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px"><div class="t-caption">동성분 회수</div><div style="font-size:26px;font-weight:700;color:var(--danger);margin-top:4px" class="tnum">3</div></div>
+          <div style="padding:14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px"><div class="t-caption">DUR 임부금기</div><div style="font-size:26px;font-weight:700;color:var(--warn);margin-top:4px" class="tnum">1</div></div>
+          <div style="padding:14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px"><div class="t-caption">공급중단</div><div style="font-size:26px;font-weight:700;color:var(--ok);margin-top:4px" class="tnum">0</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F2: Integrated Timeline -->
+    <div class="feature-row feature-row--flip" data-reveal>
+      <div class="feature-row__copy">
+        <span class="t-eyebrow">★ F-003 · 통합 이벤트 타임라인</span>
+        <h3 class="t-h2">7종 이벤트를<br>단일 포맷으로 평면화.</h3>
+        <p class="t-body">허가 변경, 회수, 행정처분, 안전성서한, DUR, 검사부적합, 공급중단 — 어디서 발생했든 동일한 카드 포맷으로, severity와 영향 부서가 자동 태깅됩니다.</p>
+        <ul class="feature-row__list">
+          <li>severity 4단계 (CRITICAL · HIGH · MED · LOW) 자동 산정</li>
+          <li>영향 부서 자동 태깅 (QA · RA · SCM · 영업 …)</li>
+          <li>워치리스트 매칭 시 즉시 알림 (이메일 · 슬랙)</li>
+          <li>엑셀 · PDF 한 클릭 추출</li>
+        </ul>
+      </div>
+      <div class="feature-row__visual">
+        <div style="padding:18px 22px;border-bottom:1px solid var(--line-2);display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:13px;color:var(--ink-3);font-weight:600">필터 · 광동제약 · 동성분 포함 · 최근 90일</div>
+          <span class="badge badge--brand tnum">12건</span>
+        </div>
+        <div style="padding:20px 22px;display:flex;flex-direction:column;gap:10px;background:var(--bg-subtle)">
+          <div style="display:flex;background:var(--bg-elevated);border:1px solid var(--line-2);border-radius:10px;overflow:hidden"><div style="width:4px;background:var(--crit)"></div><div style="padding:12px 16px;display:flex;gap:14px;align-items:center;flex:1"><span class="mono" style="font-size:11px;color:var(--ink-3);min-width:38px">14:32</span><div style="flex:1"><div style="font-size:13px;color:var(--ink-1);font-weight:600">○○정 동성분 회수 · 함량 부적합</div><div style="font-size:11px;color:var(--ink-3);margin-top:2px">의약품 회수 · 출처 API 539</div></div><span class="badge badge--crit badge--dot">CRIT</span></div></div>
+          <div style="display:flex;background:var(--bg-elevated);border:1px solid var(--line-2);border-radius:10px;overflow:hidden"><div style="width:4px;background:var(--danger)"></div><div style="padding:12px 16px;display:flex;gap:14px;align-items:center;flex:1"><span class="mono" style="font-size:11px;color:var(--ink-3);min-width:38px">11:08</span><div style="flex:1"><div style="font-size:13px;color:var(--ink-1);font-weight:600">광동제약 식품 — 영업정지 7일</div><div style="font-size:11px;color:var(--ink-3);margin-top:2px">행정처분 · 표시기준 위반</div></div><span class="badge badge--danger badge--dot">HIGH</span></div></div>
+          <div style="display:flex;background:var(--bg-elevated);border:1px solid var(--line-2);border-radius:10px;overflow:hidden"><div style="width:4px;background:var(--warn)"></div><div style="padding:12px 16px;display:flex;gap:14px;align-items:center;flex:1"><span class="mono" style="font-size:11px;color:var(--ink-3);min-width:38px">09:41</span><div style="flex:1"><div style="font-size:13px;color:var(--ink-1);font-weight:600">홍삼 원재료 검사부적합 · 잔류농약</div><div style="font-size:11px;color:var(--ink-3);margin-top:2px">SCM · 자사 영향 3건</div></div><span class="badge badge--warn badge--dot">MED</span></div></div>
+          <div style="display:flex;background:var(--bg-elevated);border:1px solid var(--line-2);border-radius:10px;overflow:hidden"><div style="width:4px;background:var(--brand)"></div><div style="padding:12px 16px;display:flex;gap:14px;align-items:center;flex:1"><span class="mono" style="font-size:11px;color:var(--ink-3);min-width:38px">어제</span><div style="flex:1"><div style="font-size:13px;color:var(--ink-1);font-weight:600">광동제약 신규 의약외품 허가 1건</div><div style="font-size:11px;color:var(--ink-3);margin-top:2px">허가 변경 · 치약제 일반</div></div><span class="badge badge--info badge--dot">LOW</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F3: Department workspace -->
+    <div class="feature-row" data-reveal>
+      <div class="feature-row__copy">
+        <span class="t-eyebrow">F-004 · 부서별 워크스페이스</span>
+        <h3 class="t-h2">로그인하면 부서<br>위젯이 자동으로.</h3>
+        <p class="t-body">RA · QA/QC · SCM · 영업 · R&amp;D · 식품QA · 경영진 — 6+1개 프리셋. 부서가 매일 묻는 KPI와 임박 액션이 한 페이지에.</p>
+        <ul class="feature-row__list">
+          <li>회수 24h · 동성분 회수 24h · 행정처분 7d · GMP 만료 90d</li>
+          <li>위젯 드래그&amp;드롭으로 개인화 (Phase 2)</li>
+          <li>경영진 대시보드 — 사업부별 리스크 스코어 트렌드</li>
+        </ul>
+      </div>
+      <div class="feature-row__visual">
+        <div style="padding:16px 20px 0;display:flex;justify-content:space-between;align-items:flex-end">
+          <div><div class="t-caption">QA / QC 워크스페이스</div><div style="font-size:18px;font-weight:600;margin-top:2px">아침에 가장 먼저 봐야 할 것</div></div>
+          <span class="badge badge--brand">실시간</span>
+        </div>
+        <div style="padding:14px 20px 20px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="padding:16px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px"><div class="t-caption">자사 회수 24h</div><div style="font-size:30px;font-weight:700;color:var(--ok);margin-top:6px" class="tnum">0</div><div style="font-size:11px;color:var(--ok);font-weight:600;margin-top:2px">↘ 전주 -100%</div></div>
+          <div style="padding:16px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px;position:relative"><div style="position:absolute;top:12px;right:12px;width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 4px var(--danger-soft)"></div><div class="t-caption">동성분 회수 24h</div><div style="font-size:30px;font-weight:700;color:var(--danger);margin-top:6px" class="tnum">3</div><div style="font-size:11px;color:var(--danger);font-weight:600;margin-top:2px">↗ 즉시 확인</div></div>
+          <div style="padding:16px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px"><div class="t-caption">행정처분 7d</div><div style="font-size:30px;font-weight:700;color:var(--warn);margin-top:6px" class="tnum">1</div><div style="font-size:11px;color:var(--ink-3);margin-top:2px">광동 식품 · 표시기준</div></div>
+          <div style="padding:16px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px"><div class="t-caption">GMP 만료 90d</div><div style="font-size:30px;font-weight:700;color:var(--ink-1);margin-top:6px" class="tnum">2</div><div style="font-size:11px;color:var(--ink-3);margin-top:2px">평택 1 · 안성 1</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F4: AI Copilot -->
+    <div class="feature-row feature-row--flip" data-reveal>
+      <div class="feature-row__copy">
+        <span class="t-eyebrow">★ F-006 · AI 코파일럿</span>
+        <h3 class="t-h2">실무자 문장 그대로 묻고,<br>근거 카드로 답한다.</h3>
+        <p class="t-body">"회수된 동일 lot이 거래처에 출고됐는지 확인해줘" — 자연어 질문에 공식 API 결과만 인용해 답합니다. 환각(hallucination) 차단 안전장치 내장.</p>
+        <ul class="feature-row__list">
+          <li>응답마다 출처 URL · 동기화 시각 · API 번호 명시</li>
+          <li>근거 카드 0건일 때는 "확인 가능한 공식 데이터가 없습니다" 강제</li>
+          <li>회수 안내 메일 초안 등 RA · QA 후속 액션 자동화</li>
+          <li>기존 MISO 에이전트 자산 재활용</li>
+        </ul>
+      </div>
+      <div class="feature-row__visual">
+        <div style="padding:18px 22px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;gap:10px">
+          <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),color-mix(in oklab,var(--brand) 70%,#000));color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">AI</div>
+          <div><div style="font-size:13px;font-weight:600">RegHub Copilot</div><div style="font-size:11px;color:var(--ink-3)">공식 API 결과만 인용</div></div>
+          <span style="margin-left:auto" class="badge badge--brand">근거 모드</span>
+        </div>
+        <div style="padding:20px 22px;background:var(--bg-subtle);display:flex;flex-direction:column;gap:12px">
+          <div style="align-self:flex-end;max-width:78%;background:var(--brand);color:#fff;padding:10px 14px;border-radius:14px 14px 4px 14px;font-size:13px;line-height:1.5">광동제약 베니톨정 동성분 최근 1년 회수 이력은?</div>
+          <div style="padding:12px 14px;background:var(--bg-elevated);border:1px solid var(--line-2);border-radius:14px 14px 14px 4px;font-size:13px;line-height:1.55;color:var(--ink-2)">
+            아세트아미노펜 500mg 함유 제제 회수 <strong style="color:var(--danger)">3건</strong>. 자사 동일성분 영향 <strong>2건</strong>(베니톨정, 베니톨씨에이정), 자체 회수 이력 없음<sup style="color:var(--brand);font-weight:700">[1][2]</sup>.
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="padding:10px 12px;background:var(--bg-elevated);border:1px solid var(--line-2);border-radius:8px"><div style="font-size:10px;color:var(--brand);font-weight:700">[1] API 539</div><div style="font-size:12px;font-weight:600;margin-top:2px">○○정 함량 부적합</div></div>
+            <div style="padding:10px 12px;background:var(--bg-elevated);border:1px solid var(--line-2);border-radius:8px"><div style="font-size:10px;color:var(--brand);font-weight:700">[2] API 547</div><div style="font-size:12px;font-weight:600;margin-top:2px">안전성서한</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== LIVE DEMO ===================== -->
+<section class="live-demo" id="demo" data-screen-label="Landing · Live demo">
+  <div class="container container--wide">
+    <div class="section-head section-head--center" data-reveal>
+      <span class="t-eyebrow">라이브 데모</span>
+      <h2 class="t-h1">직접 입력해보세요.</h2>
+      <p class="t-lead">제품명·업체명·성분 어떤 키워드라도 — RegHub가 어떤 API에서 무엇을 끌어오는지 실시간으로 확인.</p>
+    </div>
+    <div class="demo-shell" data-reveal>
+      <div class="demo-shell__top">
+        <label class="demo-shell__searchwrap">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" data-demo-input placeholder="광동제약, 베니톨정, 비타500 …" autocomplete="off" value="광동제약">
+          <span class="kbd">↵ 검색</span>
+        </label>
+        <div class="demo-shell__chips">
+          <span class="t-caption" style="text-transform:none;letter-spacing:0;color:var(--ink-3);font-weight:500;padding:8px 4px 8px 0">예시 →</span>
+          <button class="demo-chip" data-demo-chip="광동제약">광동제약</button>
+          <button class="demo-chip" data-demo-chip="베니톨정">베니톨정</button>
+          <button class="demo-chip" data-demo-chip="비타500">비타500</button>
+          <button class="demo-chip" data-demo-chip="아세트아미노펜">아세트아미노펜</button>
+        </div>
+      </div>
+      <div class="demo-results" data-demo-results data-state="loaded">
+        <div class="demo-result-head">
+          <span class="demo-result-head__kind" data-result-kind>업체</span>
+          <h3 class="demo-result-head__title" data-result-title>광동제약</h3>
+          <p class="demo-result-head__quote">→ 12개 API 동시 호출 · 0.4초 · 단일 화면 통합</p>
+          <div style="margin-top:8px"><a href="app/search.html" class="btn btn--secondary btn--sm">제품 화면에서 자세히 보기 →</a></div>
+        </div>
+        <div class="demo-result-stats">
+          <div class="demo-stat">
+            <div class="demo-stat__label"><span>허가 정보</span><span class="demo-stat__api">API 140</span></div>
+            <div class="demo-stat__num tnum" data-result-stat="drug">312</div>
+          </div>
+          <div class="demo-stat">
+            <div class="demo-stat__label"><span>회수·판매중지</span><span class="demo-stat__api">API 539</span></div>
+            <div class="demo-stat__num is-attention tnum" data-result-stat="recall">4</div>
+          </div>
+          <div class="demo-stat">
+            <div class="demo-stat__label"><span>행정처분</span><span class="demo-stat__api">API 6</span></div>
+            <div class="demo-stat__num is-warn tnum" data-result-stat="sanction">2</div>
+          </div>
+          <div class="demo-stat">
+            <div class="demo-stat__label"><span>안전성서한</span><span class="demo-stat__api">API 547</span></div>
+            <div class="demo-stat__num is-warn tnum" data-result-stat="safety">1</div>
+          </div>
+          <div class="demo-stat">
+            <div class="demo-stat__label"><span>공급중단</span><span class="demo-stat__api">API 534</span></div>
+            <div class="demo-stat__num tnum" data-result-stat="supply">0</div>
+          </div>
+          <div class="demo-stat">
+            <div class="demo-stat__label"><span>의약외품·식품</span><span class="demo-stat__api">API 339·1</span></div>
+            <div class="demo-stat__num tnum" data-result-stat="food">87</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== USE CASES ===================== -->
+<section class="use-cases" id="usecases" data-screen-label="Landing · Use cases">
+  <div class="container">
+    <div class="section-head section-head--center" data-reveal>
+      <span class="t-eyebrow">부서별 활용</span>
+      <h2 class="t-h1">한 플랫폼,<br>부서마다 다른 첫 화면.</h2>
+    </div>
+
+    <div class="usecase-shell" data-reveal>
+      <div data-tabs>
+        <div class="usecase-tabs" role="tablist">
+          <button class="usecase-tab is-active" data-tab="qa"><span class="usecase-tab__code">QA</span>품질·회수</button>
+          <button class="usecase-tab" data-tab="ra"><span class="usecase-tab__code">RA</span>허가·갱신</button>
+          <button class="usecase-tab" data-tab="scm"><span class="usecase-tab__code">SCM</span>공급망</button>
+          <button class="usecase-tab" data-tab="sales"><span class="usecase-tab__code">영업</span>모니터링</button>
+          <button class="usecase-tab" data-tab="rnd"><span class="usecase-tab__code">R&amp;D</span>개발·BD</button>
+          <button class="usecase-tab" data-tab="food"><span class="usecase-tab__code">식품</span>식품 QA</button>
+        </div>
+
+        <!-- QA -->
+        <div class="usecase-panel is-active" data-panel="qa">
+          <div class="usecase-panel__copy">
+            <span class="t-eyebrow">QA / QC · 품질 보증</span>
+            <h3 class="t-h2">동성분 회수와 GMP 만료를 놓치지 않는다.</h3>
+            <p class="t-body">자사 233 품목 + 12 업체를 실시간 모니터링. 회수·행정처분이 발생하면 영향 lot까지 자동 매칭.</p>
+            <div class="usecase-panel__quote">"동성분 회수가 발생했는데, 우리 거래처에 출고된 lot이 있는지 30분 안에 확인해야 합니다."</div>
+          </div>
+          <div class="usecase-widgets">
+            <div class="usecase-widget"><div class="usecase-widget__label"><span>자사 회수 24h</span><span class="badge badge--ok">0</span></div><div class="usecase-widget__num tnum">0</div><div class="usecase-widget__delta" style="color:var(--ok)">↘ 전주 -100%</div></div>
+            <div class="usecase-widget usecase-widget--danger"><div class="usecase-widget__label"><span>동성분 회수 24h</span><span class="badge badge--danger">3 NEW</span></div><div class="usecase-widget__num tnum">3</div><div class="usecase-widget__delta" style="color:var(--danger)">↗ 즉시 확인 필요</div></div>
+            <div class="usecase-widget usecase-widget--warn"><div class="usecase-widget__label"><span>행정처분 7d</span><span class="badge badge--warn">자사 + 경쟁</span></div><div class="usecase-widget__num tnum">8</div><div class="usecase-widget__delta" style="color:var(--ink-3)">자사 1 · 경쟁 7</div></div>
+            <div class="usecase-widget"><div class="usecase-widget__label"><span>GMP 만료 90d</span><span class="badge">평택·안성</span></div><div class="usecase-widget__num tnum">2</div><div class="usecase-widget__delta" style="color:var(--ink-3)">평택 D-21 · 안성 D-68</div></div>
+          </div>
+        </div>
+
+        <!-- RA -->
+        <div class="usecase-panel" data-panel="ra">
+          <div class="usecase-panel__copy">
+            <span class="t-eyebrow">RA · 허가</span>
+            <h3 class="t-h2">재심사·재평가 임박 품목을 90일 전에.</h3>
+            <p class="t-body">허가 변경, 안전성서한, 재심사 일정 — 자사 품목의 RA 캘린더가 자동으로 채워집니다.</p>
+            <div class="usecase-panel__quote">"우리 품목 중 재심사 임박은 몇 건이고, 안전성서한 반영이 안 끝난 건 어떤 것들이죠?"</div>
+          </div>
+          <div class="usecase-widgets">
+            <div class="usecase-widget"><div class="usecase-widget__label"><span>재심사 임박 90d</span><span class="badge badge--warn">자사</span></div><div class="usecase-widget__num tnum">5</div></div>
+            <div class="usecase-widget usecase-widget--warn"><div class="usecase-widget__label"><span>안전성서한 미반영</span><span class="badge badge--warn">필수</span></div><div class="usecase-widget__num tnum">2</div></div>
+            <div class="usecase-widget"><div class="usecase-widget__label"><span>허가 변경 신청</span><span class="badge">접수 중</span></div><div class="usecase-widget__num tnum">11</div></div>
+            <div class="usecase-widget usecase-widget--ok"><div class="usecase-widget__label"><span>신규 허가 7d</span><span class="badge badge--ok">완료</span></div><div class="usecase-widget__num tnum">1</div></div>
+          </div>
+        </div>
+
+        <!-- SCM -->
+        <div class="usecase-panel" data-panel="scm">
+          <div class="usecase-panel__copy">
+            <span class="t-eyebrow">SCM · 공급망</span>
+            <h3 class="t-h2">원료 수입중단·DMF 변경을 사전 감지.</h3>
+            <p class="t-body">공급중단 / 공급부족 / 수입식품 검사부적합 / 원료 DMF 변경을 한 페이지에서.</p>
+            <div class="usecase-panel__quote">"중국산 홍삼이 검사부적합 떴는데, 영향받는 자사 품목이 몇 개죠?"</div>
+          </div>
+          <div class="usecase-widgets">
+            <div class="usecase-widget usecase-widget--warn"><div class="usecase-widget__label"><span>원료 검사부적합</span><span class="badge badge--warn">자동 매칭</span></div><div class="usecase-widget__num tnum">2</div><div class="usecase-widget__delta" style="color:var(--ink-3)">자사 영향 품목 3건</div></div>
+            <div class="usecase-widget"><div class="usecase-widget__label"><span>공급중단 진행</span><span class="badge">전체</span></div><div class="usecase-widget__num tnum">14</div></div>
+            <div class="usecase-widget usecase-widget--danger"><div class="usecase-widget__label"><span>DMF 변경 알림</span><span class="badge badge--danger">자사 원료</span></div><div class="usecase-widget__num tnum">1</div></div>
+            <div class="usecase-widget"><div class="usecase-widget__label"><span>수입식품 통관</span><span class="badge">금주</span></div><div class="usecase-widget__num tnum">86</div></div>
+          </div>
+        </div>
+
+        <!-- Sales -->
+        <div class="usecase-panel" data-panel="sales">
+          <div class="usecase-panel__copy">
+            <span class="t-eyebrow">영업 · 마케팅</span>
+            <h3 class="t-h2">경쟁사 신규 허가·행정처분을 자동 추적.</h3>
+            <p class="t-body">경쟁사 코드를 등록하면 — 신규 허가, 행정처분, 광고법 위반까지 알림으로.</p>
+            <div class="usecase-panel__quote">"경쟁사 A제약이 이번 분기에 어떤 품목을 신규 출시했고, 처분 이력은 있나요?"</div>
+          </div>
+          <div class="usecase-widgets">
+            <div class="usecase-widget"><div class="usecase-widget__label"><span>경쟁사 신규 허가</span><span class="badge">30일</span></div><div class="usecase-widget__num tnum">17</div></div>
+            <div class="usecase-widget usecase-widget--warn"><div class="usecase-widget__label"><span>경쟁사 행정처분</span><span class="badge badge--warn">기회</span></div><div class="usecase-widget__num tnum">4</div></div>
+            <div class="usecase-widget"><div class="usecase-widget__label"><span>모니터링 업체</span><span class="badge">활성</span></div><div class="usecase-widget__num tnum">28</div></div>
+            <div class="usecase-widget usecase-widget--ok"><div class="usecase-widget__label"><span>주간 리포트</span><span class="badge badge--ok">자동</span></div><div class="usecase-widget__num" style="font-size:24px">매주 월</div></div>
+          </div>
+        </div>
+
+        <!-- R&D -->
+        <div class="usecase-panel" data-panel="rnd">
+          <div class="usecase-panel__copy">
+            <span class="t-eyebrow">R&amp;D · BD</span>
+            <h3 class="t-h2">임상 · 특허 · 생동성을 한 화면에.</h3>
+            <p class="t-body">개발 대상 성분/제형에 대해 임상시험 등록, 특허, 생동성 시험, 약가 정보까지.</p>
+            <div class="usecase-panel__quote">"이 성분으로 진행 중인 국내 임상이 몇 건이고, 특허는 언제 만료되죠?" <span style="color:var(--ink-4);font-size:13px">(Phase 2)</span></div>
+          </div>
+          <div class="usecase-widgets">
+            <div class="usecase-widget"><div class="usecase-widget__label"><span>진행 임상 (국내)</span><span class="badge">대상 성분</span></div><div class="usecase-widget__num tnum">9</div></div>
+            <div class="usecase-widget"><div class="usecase-widget__label"><span>특허 만료 임박</span><span class="badge">12mo</span></div><div class="usecase-widget__num tnum">3</div></div>
+            <div class="usecase-widget"><div class="usecase-widget__label"><span>생동성 보고</span><span class="badge">최근</span></div><div class="usecase-widget__num tnum">22</div></div>
+            <div class="usecase-widget"><div class="usecase-widget__label"><span>약가 변동</span><span class="badge">분기</span></div><div class="usecase-widget__num tnum">7</div></div>
+          </div>
+        </div>
+
+        <!-- Food -->
+        <div class="usecase-panel" data-panel="food">
+          <div class="usecase-panel__copy">
+            <span class="t-eyebrow">식품 QA · RA</span>
+            <h3 class="t-h2">식품 표시 · HACCP · 회수까지 같은 구조.</h3>
+            <p class="t-body">의약품과 동일한 Product 360 구조로 — 비타500 등 식품 품목도 영양성분·원재료·푸드QR·HACCP·행정처분을 한 페이지에.</p>
+            <div class="usecase-panel__quote">"비타500 표시기준 위반 처분이 떴는데, 동일 제조소 다른 품목은 괜찮나요?"</div>
+          </div>
+          <div class="usecase-widgets">
+            <div class="usecase-widget usecase-widget--warn"><div class="usecase-widget__label"><span>식품 행정처분 7d</span><span class="badge badge--warn">자사</span></div><div class="usecase-widget__num tnum">1</div></div>
+            <div class="usecase-widget"><div class="usecase-widget__label"><span>회수·검사부적합</span><span class="badge">동종</span></div><div class="usecase-widget__num tnum">2</div></div>
+            <div class="usecase-widget"><div class="usecase-widget__label"><span>HACCP 유효</span><span class="badge badge--ok">제조소</span></div><div class="usecase-widget__num tnum">3</div></div>
+            <div class="usecase-widget"><div class="usecase-widget__label"><span>푸드QR 등록 품목</span><span class="badge">자사</span></div><div class="usecase-widget__num tnum">42</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CTA ===================== -->
+<section class="cta-band" id="cta" data-screen-label="Landing · CTA">
+  <div class="container">
+    <div class="cta-inner" data-reveal>
+      <div class="cta-inner__content">
+        <span class="t-eyebrow" style="color:rgba(255,255,255,0.7)">광동 RegHub 360</span>
+        <h2 class="t-h1">규제 정보를 묻는 방식,<br>제품 단위로 바꿔드립니다.</h2>
+        <p class="cta-inner__sub">PoC는 4–6주, 자사 품목 사전 등록만으로 시작할 수 있습니다.
+광동제약 QC 팀과 함께 만든 첫 번째 버전을 직접 체험해보세요.</p>
+        <div class="hero__ctas" style="margin-top:8px">
+          <a href="mailto:reghub@kwangdong.io" class="btn btn--primary btn--lg">도입 문의</a>
+          <a href="app/index.html" class="btn btn--secondary btn--lg">제품 미리보기</a>
+        </div>
+        <div class="cta-inner__meta">
+          <span>· 카드 등록 불필요</span>
+          <span>· PoC 1개월 무상 운영</span>
+          <span>· 사업자번호 기반 자사 품목 자동 등록</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="footer" data-screen-label="Landing · Footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__intro">
+        <a href="index.html" class="logo">
+          <span class="logo__mark"></span>
+          <span>광동 <span style="color:var(--brand)">RegHub 360</span></span>
+        </a>
+        <p>식약처 공공 API 603건을 RA · QA · SCM · 영업 실무자의 업무 질문 기준으로 통합한 규제정보 플랫폼.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span class="badge">v1.0 · MVP</span>
+          <span class="badge">Flask · PostgreSQL</span>
+        </div>
+      </div>
+      <div class="footer__col">
+        <h4>제품</h4>
+        <ul>
+          <li><a href="app/search.html">통합 검색</a></li>
+          <li><a href="app/product.html">Product 360</a></li>
+          <li><a href="app/workspace.html">부서 워크스페이스</a></li>
+          <li><a href="#features">AI 코파일럿</a></li>
+          <li><a href="#features">이벤트 타임라인</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>리소스</h4>
+        <ul>
+          <li><a href="handoff.md">개발자 핸드오프</a></li>
+          <li><a href="#features">API 카탈로그</a></li>
+          <li><a href="#features">리스크 스코어 모델</a></li>
+          <li><a href="#usecases">부서별 활용 사례</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>회사</h4>
+        <ul>
+          <li><a href="#cta">도입 문의</a></li>
+          <li><a href="mailto:reghub@kwangdong.io">reghub@kwangdong.io</a></li>
+          <li><a href="#">개인정보처리방침</a></li>
+          <li><a href="#">서비스 약관</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© 2026 광동제약(주) · RegHub 360. All rights reserved.</span>
+      <div class="footer__bottom-links">
+        <a href="#">상태 페이지</a>
+        <a href="#">변경 이력</a>
+        <a href="handoff.md">v1.0 핸드오프</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="scripts/theme.js" defer></script>
+</body>
+</html>

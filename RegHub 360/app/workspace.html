@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<title>QA/QC 워크스페이스 — 광동 RegHub 360</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>(function(){try{var t=localStorage.getItem('reghub.theme');if(!t&&matchMedia('(prefers-color-scheme: dark)').matches)t='dark';if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../styles/tokens.css">
+<link rel="stylesheet" href="../styles/components.css">
+<link rel="stylesheet" href="../styles/app.css">
+</head>
+<body class="app">
+
+<div class="sidebar-backdrop" data-app-sidebar-backdrop></div>
+
+<div class="shell">
+
+<aside class="sidebar" data-app-sidebar>
+  <div class="sidebar__brand">
+    <a href="../index.html" class="logo logo--sm"><span class="logo__mark"></span><span>RegHub 360</span></a>
+    <button class="theme-toggle" data-theme-toggle aria-label="테마 전환" style="width:32px;height:32px;border-radius:8px">
+      <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+  </div>
+  <div class="sidebar__group">
+    <div class="sidebar__label">Menu</div>
+    <a href="search.html" class="nav-item"><svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>통합 검색</a>
+    <a href="timeline.html" class="nav-item"><svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM12 7v5l3 2"/></svg>이벤트 타임라인<span class="nav-item__count nav-item__count--danger">7</span></a>
+    <a href="watchlist.html" class="nav-item"><svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>워치리스트</a>
+    <a href="reports.html" class="nav-item"><svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>리포트</a>
+    <a href="copilot.html" class="nav-item"><svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>AI 코파일럿<span class="nav-item__count nav-item__count--brand">NEW</span></a>
+  </div>
+  <div class="sidebar__group">
+    <div class="sidebar__label">Workspaces</div>
+    <a href="#" class="nav-item">RA · 허가</a>
+    <a href="workspace.html" class="nav-item is-active">QA / QC <span class="nav-item__count nav-item__count--danger">3</span></a>
+    <a href="#" class="nav-item">SCM · 구매</a>
+    <a href="#" class="nav-item">영업 · 마케팅</a>
+    <a href="#" class="nav-item">R&amp;D · BD</a>
+    <a href="#" class="nav-item">식품 QA · RA</a>
+    <a href="workspace-exec.html" class="nav-item">경영진</a>
+  </div>
+  <div class="sidebar__user">
+    <div class="sidebar__avatar">KQ</div>
+    <div><div class="sidebar__user-name">김QA</div><div class="sidebar__user-meta">광동제약 · QA/QC팀</div></div>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-topbar">
+    <button class="app-topbar__menu" data-app-sidebar-open aria-label="메뉴"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    <div class="app-topbar__crumbs"><span class="crumb-active">QA / QC 워크스페이스</span></div>
+    <div class="app-topbar__search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <span style="flex:1">제품·업체·성분 빠른 검색</span><span class="kbd">⌘ K</span>
+    </div>
+    <button class="app-topbar__icon-btn" aria-label="알림">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="badge-dot"></span>
+    </button>
+    <button class="btn btn--primary btn--sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      일일 리포트
+    </button>
+  </header>
+
+  <div class="app-content">
+    <div class="page-head">
+      <div>
+        <div class="t-caption">QA / QC · 2026.05.26 화요일</div>
+        <h1 class="page-head__title">아침에 가장 먼저 봐야 할 것</h1>
+        <p class="page-head__sub">자사 233 품목 · 12 업체 모니터링 — 실시간 동기화 · 마지막 갱신 4분 전</p>
+      </div>
+      <div class="page-head__actions">
+        <span class="badge badge--brand badge--dot">실시간</span>
+        <span class="badge">자사 233 품목</span>
+        <span class="badge">자사 12 업체</span>
+        <button class="btn btn--secondary btn--sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          위젯 편집
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI row -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+      <div class="kpi-card">
+        <div class="kpi-card__label">자사 회수 24h</div>
+        <div class="kpi-card__num kpi-card__num--ok"><span class="tnum">0</span><small>건</small></div>
+        <div class="kpi-card__delta" style="color:var(--ok)">↘ 전주 동시간 -100%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__pulse"></div>
+        <div class="kpi-card__label">동성분 회수 24h</div>
+        <div class="kpi-card__num kpi-card__num--danger"><span class="tnum">3</span><small>건</small></div>
+        <div class="kpi-card__delta" style="color:var(--danger)">↗ 즉시 확인 필요</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__label">자사 행정처분 7d</div>
+        <div class="kpi-card__num kpi-card__num--warn"><span class="tnum">1</span><small>건</small></div>
+        <div class="kpi-card__delta" style="color:var(--ink-3)">광동 식품 · 표시기준</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__label">GMP 만료 임박 90d</div>
+        <div class="kpi-card__num"><span class="tnum">2</span><small>제조소</small></div>
+        <div class="kpi-card__delta" style="color:var(--ink-3)">평택 1 · 안성 1</div>
+      </div>
+    </div>
+
+    <!-- Widget grid -->
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px">
+      <!-- Left col -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <!-- 동성분 회수 -->
+        <div class="app-card">
+          <div class="app-card__head">
+            <div class="app-card__title">동성분 회수 · 24시간</div>
+            <span class="badge badge--danger badge--dot">3 NEW</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <a href="product.html" style="text-decoration:none">
+              <div class="alert-row" style="background:var(--danger-soft);border-color:transparent">
+                <div class="alert-row__bar" style="background:var(--crit)"></div>
+                <span class="alert-row__time">14:32</span>
+                <div class="flex-1">
+                  <div class="alert-row__title">○○정 · 아세트아미노펜 500mg</div>
+                  <div class="alert-row__meta">베니톨정 동성분 · ○○제약 · 함량 부적합</div>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center">
+                  <span class="badge badge--crit">CRIT</span>
+                  <span style="color:var(--ink-3)">→</span>
+                </div>
+              </div>
+            </a>
+            <div class="alert-row">
+              <div class="alert-row__bar" style="background:var(--danger)"></div>
+              <span class="alert-row__time">09:12</span>
+              <div class="flex-1">
+                <div class="alert-row__title">△△캡슐 · 슈도에페드린 60mg</div>
+                <div class="alert-row__meta">자사 동성분 12건 · △△제약 · 표시오류</div>
+              </div>
+              <span class="badge badge--danger">HIGH</span>
+            </div>
+            <div class="alert-row">
+              <div class="alert-row__bar" style="background:var(--warn)"></div>
+              <span class="alert-row__time">어제</span>
+              <div class="flex-1">
+                <div class="alert-row__title">□□시럽 · 덱스트로메토르판</div>
+                <div class="alert-row__meta">소아과 시즌 · □□약품 · 침전물 발생</div>
+              </div>
+              <span class="badge badge--warn">MED</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 행정처분 table -->
+        <div class="app-card">
+          <div class="app-card__head">
+            <div class="app-card__title">행정처분 · 자사 + 경쟁사 · 7일</div>
+            <span class="badge">8건</span>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="color:var(--ink-3);font-weight:600;text-align:left;font-size:11px;letter-spacing:0.06em;text-transform:uppercase">
+                <th style="padding:8px 0;font-weight:600">업체</th>
+                <th style="padding:8px 0;font-weight:600">위반</th>
+                <th style="padding:8px 0;font-weight:600;text-align:right">처분</th>
+                <th style="padding:8px 0;font-weight:600;text-align:right">일자</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-top:1px solid var(--line-2)">
+                <td style="padding:10px 0"><span style="font-weight:700;color:var(--brand)">광동제약</span></td>
+                <td style="padding:10px 0;color:var(--ink-2)">표시기준</td>
+                <td style="padding:10px 0;text-align:right"><span class="badge badge--warn">정지 7일</span></td>
+                <td style="padding:10px 0;text-align:right;color:var(--ink-3);font-variant-numeric:tabular-nums">05.26</td>
+              </tr>
+              <tr style="border-top:1px solid var(--line-2)">
+                <td style="padding:10px 0;color:var(--ink-1)">A제약</td>
+                <td style="padding:10px 0;color:var(--ink-2)">GMP 미준수</td>
+                <td style="padding:10px 0;text-align:right"><span class="badge badge--danger">정지 30일</span></td>
+                <td style="padding:10px 0;text-align:right;color:var(--ink-3);font-variant-numeric:tabular-nums">05.24</td>
+              </tr>
+              <tr style="border-top:1px solid var(--line-2)">
+                <td style="padding:10px 0;color:var(--ink-1)">B바이오</td>
+                <td style="padding:10px 0;color:var(--ink-2)">광고법</td>
+                <td style="padding:10px 0;text-align:right"><span class="badge">경고</span></td>
+                <td style="padding:10px 0;text-align:right;color:var(--ink-3);font-variant-numeric:tabular-nums">05.22</td>
+              </tr>
+              <tr style="border-top:1px solid var(--line-2)">
+                <td style="padding:10px 0;color:var(--ink-1)">C식품</td>
+                <td style="padding:10px 0;color:var(--ink-2)">위생불량</td>
+                <td style="padding:10px 0;text-align:right"><span class="badge badge--warn">시정명령</span></td>
+                <td style="padding:10px 0;text-align:right;color:var(--ink-3);font-variant-numeric:tabular-nums">05.20</td>
+              </tr>
+              <tr style="border-top:1px solid var(--line-2)">
+                <td style="padding:10px 0;color:var(--ink-1)">D팜</td>
+                <td style="padding:10px 0;color:var(--ink-2)">표시기준</td>
+                <td style="padding:10px 0;text-align:right"><span class="badge">시정</span></td>
+                <td style="padding:10px 0;text-align:right;color:var(--ink-3);font-variant-numeric:tabular-nums">05.19</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="margin-top:14px;text-align:center;padding-top:14px;border-top:1px solid var(--line-2)">
+            <a href="#" style="font-size:13px;color:var(--brand);font-weight:600">전체 8건 보기 →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right col -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <!-- GMP/HACCP calendar -->
+        <div class="app-card">
+          <div class="app-card__head">
+            <div class="app-card__title">GMP · HACCP 만료 캘린더</div>
+            <span class="badge badge--warn">2 임박</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 14px;background:var(--warn-soft);border-radius:10px">
+              <div style="text-align:center;min-width:52px">
+                <div style="font-size:20px;font-weight:700;color:var(--warn);font-variant-numeric:tabular-nums;line-height:1">D-21</div>
+              </div>
+              <div style="flex:1">
+                <div style="font-size:14px;color:var(--ink-1);font-weight:600">평택 제조소 GMP</div>
+                <div style="font-size:12px;color:var(--ink-3);margin-top:2px">2026.06.16 만료 · 갱신 신청 필요</div>
+              </div>
+              <button class="btn btn--secondary btn--sm">갱신</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px">
+              <div style="text-align:center;min-width:52px">
+                <div style="font-size:20px;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums;line-height:1">D-68</div>
+              </div>
+              <div style="flex:1">
+                <div style="font-size:14px;color:var(--ink-1);font-weight:600">안성 HACCP</div>
+                <div style="font-size:12px;color:var(--ink-3);margin-top:2px">2026.08.02 · 식품 라인</div>
+              </div>
+              <button class="btn btn--ghost btn--sm">상세</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px">
+              <div style="text-align:center;min-width:52px">
+                <div style="font-size:20px;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums;line-height:1">D-156</div>
+              </div>
+              <div style="flex:1">
+                <div style="font-size:14px;color:var(--ink-1);font-weight:600">대전 GMP</div>
+                <div style="font-size:12px;color:var(--ink-3);margin-top:2px">2026.10.29 · 의약품</div>
+              </div>
+              <button class="btn btn--ghost btn--sm">상세</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 검사부적합 -->
+        <div class="app-card">
+          <div class="app-card__head">
+            <div class="app-card__title">원재료 검사부적합 · 자동 매칭</div>
+            <span class="badge badge--warn">2건</span>
+          </div>
+          <p style="font-size:12px;color:var(--ink-3);margin:0 0 12px;line-height:1.5">SCM 등록 원재료와 자동 매칭. 자사 품목 영향 시 강조.</p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="padding:12px 14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <div style="font-size:13px;color:var(--ink-1);font-weight:600">홍삼 (중국산) · 잔류농약</div>
+                  <div style="font-size:12px;color:var(--ink-3);margin-top:2px">자사 영향 품목 <strong style="color:var(--danger)">3건</strong></div>
+                </div>
+                <span class="badge badge--danger">확인 필요</span>
+              </div>
+            </div>
+            <div style="padding:12px 14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <div style="font-size:13px;color:var(--ink-1);font-weight:600">감초 추출물 · 미생물 기준</div>
+                  <div style="font-size:12px;color:var(--ink-3);margin-top:2px">자사 영향 품목 <strong style="color:var(--ok)">없음</strong></div>
+                </div>
+                <span class="badge badge--ok">해당없음</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Copilot CTA -->
+        <div class="app-card" style="background:linear-gradient(135deg,var(--brand-soft) 0%, transparent 100%);border-color:transparent">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--brand),color-mix(in oklab,var(--brand) 70%,#000));color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">AI</div>
+            <div><div style="font-size:14px;font-weight:700;color:var(--ink-1)">RegHub Copilot</div><div style="font-size:11px;color:var(--ink-3)">QA 업무에 특화된 질문 예시</div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+            <a href="#" style="padding:10px 12px;background:var(--bg-elevated);border:1px solid var(--line-1);border-radius:8px;color:var(--ink-2);text-decoration:none">동성분 회수 lot 거래처 출고 이력 확인</a>
+            <a href="#" style="padding:10px 12px;background:var(--bg-elevated);border:1px solid var(--line-1);border-radius:8px;color:var(--ink-2);text-decoration:none">회수 안내 메일 초안 작성</a>
+            <a href="#" style="padding:10px 12px;background:var(--bg-elevated);border:1px solid var(--line-1);border-radius:8px;color:var(--ink-2);text-decoration:none">GMP 갱신 일정 요약</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+</div>
+
+<script src="../scripts/theme.js" defer></script>
+<script src="../scripts/app.js" defer></script>
+</body>
+</html>

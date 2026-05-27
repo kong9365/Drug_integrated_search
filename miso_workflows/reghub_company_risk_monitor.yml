@@ -1,0 +1,294 @@
+app:
+  name: "RegHub 360 — 업체 Risk 모니터"
+  description: "업체명 입력 → 자사 보유 품목 + 회수/처분/공급/GMP 통합 + Risk Score 산정 + 마크다운 브리프. 영업 경쟁사 모니터링 / QA 자사 모니터링 양용."
+  icon: "🏢"
+  icon_background: "#EAF0FF"
+  mode: workflow
+  use_icon_as_answer_icon: false
+kind: app
+version: 1.0.0
+
+workflow:
+  conversation_variables: []
+  environment_variables:
+    - name: DATA_GO_KR_BASE
+      value_type: string
+      value: "https://apis.data.go.kr/1471000"
+    - name: SERVICE_KEY
+      value_type: secret
+      value: "REDACTED_KEY"
+
+  features:
+    file_upload: { image: { enabled: false, number_limits: 3, transfer_methods: [local_file, remote_url] } }
+    opening_statement: ""
+    retriever_resource: { enabled: false }
+    sensitive_word_avoidance: { enabled: false }
+    speech_to_text: { enabled: false }
+    suggested_questions: []
+    suggested_questions_after_answer: { enabled: false }
+    text_to_speech: { enabled: false, language: "", voice: "" }
+
+  graph:
+    edges:
+      - { id: e1, source: node_start, target: node_fetch_approval, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: start, targetType: http-request, isInIteration: false } }
+      - { id: e2, source: node_start, target: node_fetch_recall, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: start, targetType: http-request, isInIteration: false } }
+      - { id: e3, source: node_start, target: node_fetch_disc, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: start, targetType: http-request, isInIteration: false } }
+      - { id: e4, source: node_start, target: node_fetch_supply, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: start, targetType: http-request, isInIteration: false } }
+      - { id: e5, source: node_start, target: node_fetch_gmp, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: start, targetType: http-request, isInIteration: false } }
+      - { id: m1, source: node_fetch_approval, target: node_score, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: m2, source: node_fetch_recall, target: node_score, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: m3, source: node_fetch_disc, target: node_score, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: m4, source: node_fetch_supply, target: node_score, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: m5, source: node_fetch_gmp, target: node_score, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: http-request, targetType: code, isInIteration: false } }
+      - { id: e_end, source: node_score, target: node_end, sourceHandle: source, targetHandle: target, type: custom, data: { sourceType: code, targetType: end, isInIteration: false } }
+
+    nodes:
+      - id: node_start
+        type: custom
+        position: { x: 40, y: 240 }
+        positionAbsolute: { x: 40, y: 240 }
+        width: 244
+        height: 160
+        data:
+          type: start
+          title: "시작"
+          variables:
+            - { variable: entp_name, type: text-input, label: 업체명 (필수), required: true, max_length: 100 }
+            - { variable: period_days, type: number, label: 모니터링 기간(일), required: false, default: 90 }
+
+      - id: node_fetch_approval
+        type: custom
+        position: { x: 360, y: 60 }
+        positionAbsolute: { x: 360, y: 60 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "허가 품목 (NO 140)"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/DrugPrdtPrmsnInfoService07/getDrugPrdtPrmsnInq07"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 100
+            type: json
+            entp_name: {{#node_start.entp_name#}}
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      - id: node_fetch_recall
+        type: custom
+        position: { x: 360, y: 220 }
+        positionAbsolute: { x: 360, y: 220 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "회수 (NO 539, 전체→필터)"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/MdcinRtrvlSleStpgeInfoService04/getMdcinRtrvlSleStpgelList03"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 200
+            type: json
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      - id: node_fetch_disc
+        type: custom
+        position: { x: 360, y: 380 }
+        positionAbsolute: { x: 360, y: 380 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "행정처분 (NO 564)"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/MdcinExaathrService04/getMdcinExaathrList04"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 50
+            type: json
+            order: Y
+            entp_name: {{#node_start.entp_name#}}
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      - id: node_fetch_supply
+        type: custom
+        position: { x: 360, y: 540 }
+        positionAbsolute: { x: 360, y: 540 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "공급중단 (NO 534, 전체→필터)"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/MdcinPrdctnIncmeSuplyService2/getMdcinPrdctnIncmeSuplyList"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 200
+            type: json
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      - id: node_fetch_gmp
+        type: custom
+        position: { x: 360, y: 700 }
+        positionAbsolute: { x: 360, y: 700 }
+        width: 244
+        height: 140
+        data:
+          type: http-request
+          title: "GMP (NO 132)"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/DrugGmpStbltJgmtIssuStusService/getDrugGmpStbltJgmtIssuStusInq"
+          authorization: { type: no-auth }
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 20
+            type: json
+            BSSH_NM: {{#node_start.entp_name#}}
+          body: { type: none, data: [] }
+          timeout: { max_connect_timeout: 10, max_read_timeout: 30, max_write_timeout: 10 }
+
+      - id: node_score
+        type: custom
+        position: { x: 720, y: 380 }
+        positionAbsolute: { x: 720, y: 380 }
+        width: 280
+        height: 220
+        data:
+          type: code
+          title: "ScoreAndFormat"
+          desc: "Risk Score 산정 + 마크다운 브리프 생성"
+          code_language: python3
+          code: |
+            def main(approval_res, recall_res, disc_res, supply_res, gmp_res, entp_name) -> dict:
+                needle = (entp_name or "").lower()
+
+                def items_of(r):
+                    body = (r or {}).get("body", {}) or {}
+                    items = body.get("items", [])
+                    if isinstance(items, dict) and "item" in items: items = items["item"]
+                    if isinstance(items, dict): items = [items]
+                    return items or []
+
+                def matches(items, fields):
+                    if not needle: return items
+                    out = []
+                    for it in items:
+                        for f in fields:
+                            if needle in str(it.get(f, "")).lower():
+                                out.append(it); break
+                    return out
+
+                approval = items_of(approval_res)
+                recalls = matches(items_of(recall_res), ["ENTRPS", "BIZRNO"])
+                discs = items_of(disc_res)
+                supplies = matches(items_of(supply_res), ["ENTP_NAME"])
+                gmps = items_of(gmp_res)
+
+                product_count = len(approval)
+                event_count = len(recalls) + len(discs) + len(supplies)
+                risk_score = min(
+                    len(recalls) * 40 + len(discs) * 30
+                    + len(supplies) * 20 + (5 if len(gmps) == 0 else 0),
+                    100
+                )
+                risk_grade = (
+                    "Critical" if risk_score >= 80
+                    else "High" if risk_score >= 60
+                    else "Medium" if risk_score >= 40
+                    else "Low" if risk_score >= 20
+                    else "Normal"
+                )
+
+                parts = [
+                    f"## RegHub 360 — '{entp_name}' Risk 모니터",
+                    f"**Risk Score: {risk_score}/100 ({risk_grade})**",
+                    "",
+                    f"- 보유 품목 (NO 140): **{product_count}건**",
+                    f"- 회수·판매중지 (NO 539): **{len(recalls)}건**",
+                    f"- 행정처분 (NO 564): **{len(discs)}건**",
+                    f"- 공급중단 (NO 534): **{len(supplies)}건**",
+                    f"- GMP 적합판정 (NO 132): **{len(gmps)}건**",
+                ]
+                if risk_score >= 60:
+                    parts.insert(2, "> ⚠️ High Risk: 회수·처분·공급중단 이슈 확인 — 즉시 검토 필요\n")
+                if risk_score == 0:
+                    parts.append("\n현재 모니터링 가능한 위해 이벤트가 없습니다. 정상 운영 중.")
+
+                return {
+                    "entity_summary": entp_name or "(미입력)",
+                    "product_count": product_count,
+                    "event_count": event_count,
+                    "recall_count": len(recalls),
+                    "disc_count": len(discs),
+                    "supply_count": len(supplies),
+                    "gmp_count": len(gmps),
+                    "risk_score": risk_score,
+                    "risk_grade": risk_grade,
+                    "markdown_brief": "\n".join(parts),
+                    "products": approval[:10],
+                    "recalls": recalls[:5],
+                    "discs": discs[:5],
+                }
+          variables:
+            - { variable: approval_res, value_selector: [node_fetch_approval, body] }
+            - { variable: recall_res, value_selector: [node_fetch_recall, body] }
+            - { variable: disc_res, value_selector: [node_fetch_disc, body] }
+            - { variable: supply_res, value_selector: [node_fetch_supply, body] }
+            - { variable: gmp_res, value_selector: [node_fetch_gmp, body] }
+            - { variable: entp_name, value_selector: [node_start, entp_name] }
+          outputs:
+            entity_summary: { type: string }
+            product_count: { type: number }
+            event_count: { type: number }
+            recall_count: { type: number }
+            disc_count: { type: number }
+            supply_count: { type: number }
+            gmp_count: { type: number }
+            risk_score: { type: number }
+            risk_grade: { type: string }
+            markdown_brief: { type: string }
+            products: { type: array }
+            recalls: { type: array }
+            discs: { type: array }
+
+      - id: node_end
+        type: custom
+        position: { x: 1080, y: 380 }
+        positionAbsolute: { x: 1080, y: 380 }
+        width: 244
+        height: 240
+        data:
+          type: end
+          title: "끝"
+          outputs:
+            - { variable: entity_summary, value_selector: [node_score, entity_summary] }
+            - { variable: product_count, value_selector: [node_score, product_count] }
+            - { variable: event_count, value_selector: [node_score, event_count] }
+            - { variable: risk_score, value_selector: [node_score, risk_score] }
+            - { variable: risk_grade, value_selector: [node_score, risk_grade] }
+            - { variable: markdown_brief, value_selector: [node_score, markdown_brief] }
+            - { variable: recalls, value_selector: [node_score, recalls] }
+            - { variable: discs, value_selector: [node_score, discs] }

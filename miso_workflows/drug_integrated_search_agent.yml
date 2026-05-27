@@ -1,0 +1,688 @@
+app:
+  name: "의약품 통합 조회 에이전트"
+  description: "사용자의 자연어 질의에서 품목명/업체명을 추출하여 식약처 공공데이터포털 4종 API(허가·회수·행정처분·낱알식별)를 병렬 호출하고, 통합 결과를 자연어로 답변하는 GMP 품질 담당자용 어시스턴트."
+  icon: "💬"
+  icon_background: "#E8F4E4"
+  mode: advanced-chat
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.1.0
+
+workflow:
+  conversation_variables: []
+  environment_variables:
+    - name: DATA_GO_KR_BASE
+      description: "공공데이터포털 식약처 Base URL (service prefix 포함)"
+      value_type: string
+      value: "https://apis.data.go.kr/1471000"
+    - name: SERVICE_KEY
+      description: "공공데이터포털 인증키 (Decoding 버전, MISO 가 자동 URL 인코딩)"
+      value_type: secret
+      value: "REDACTED_KEY"
+
+  features:
+    file_upload:
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+          - local_file
+          - remote_url
+    opening_statement: "안녕하세요. 의약품 통합 조회 어시스턴트입니다.\n제품명이나 업체명을 알려주시면 식약처 허가정보, 회수·판매중지, 행정처분, 낱알식별 정보를 한번에 조회해 드립니다.\n\n예) '타이레놀정 조회해줘', '한국얀센 제품 중 최근 회수 있었어?', '가스디알정50밀리그램 정보 알려줘'"
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+      - "타이레놀정 허가정보 조회해줘"
+      - "한국얀센 최근 행정처분 건 있어?"
+      - "가스디알정50밀리그램 통합 조회"
+      - "광동제약 회수·판매중지 정보"
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ""
+      voice: ""
+
+  graph:
+    edges:
+      - id: edge-start-extract
+        source: node_start
+        sourceHandle: source
+        target: node_extract
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: start
+          targetType: llm
+          isInIteration: false
+      - id: edge-extract-parse
+        source: node_extract
+        sourceHandle: source
+        target: node_parse_query
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: llm
+          targetType: code
+          isInIteration: false
+
+      # 병렬 4분기
+      - id: edge-parse-approval
+        source: node_parse_query
+        sourceHandle: source
+        target: node_fetch_approval
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: code
+          targetType: http-request
+          isInIteration: false
+      - id: edge-parse-recall
+        source: node_parse_query
+        sourceHandle: source
+        target: node_fetch_recall
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: code
+          targetType: http-request
+          isInIteration: false
+      - id: edge-parse-disc
+        source: node_parse_query
+        sourceHandle: source
+        target: node_fetch_disc
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: code
+          targetType: http-request
+          isInIteration: false
+      - id: edge-parse-ident
+        source: node_parse_query
+        sourceHandle: source
+        target: node_fetch_ident
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: code
+          targetType: http-request
+          isInIteration: false
+
+      # 병합
+      - id: edge-approval-merge
+        source: node_fetch_approval
+        sourceHandle: source
+        target: node_merge
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: http-request
+          targetType: code
+          isInIteration: false
+      - id: edge-recall-merge
+        source: node_fetch_recall
+        sourceHandle: source
+        target: node_merge
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: http-request
+          targetType: code
+          isInIteration: false
+      - id: edge-disc-merge
+        source: node_fetch_disc
+        sourceHandle: source
+        target: node_merge
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: http-request
+          targetType: code
+          isInIteration: false
+      - id: edge-ident-merge
+        source: node_fetch_ident
+        sourceHandle: source
+        target: node_merge
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: http-request
+          targetType: code
+          isInIteration: false
+
+      - id: edge-merge-answer
+        source: node_merge
+        sourceHandle: source
+        target: node_answer_llm
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: code
+          targetType: llm
+          isInIteration: false
+      - id: edge-answer-end
+        source: node_answer_llm
+        sourceHandle: source
+        target: node_end
+        targetHandle: target
+        type: custom
+        data:
+          sourceType: llm
+          targetType: answer
+          isInIteration: false
+
+    nodes:
+      # -----------------------------------------------------------
+      - id: node_start
+        type: custom
+        position: { x: 40, y: 360 }
+        positionAbsolute: { x: 40, y: 360 }
+        width: 244
+        height: 100
+        data:
+          type: start
+          title: "시작"
+          desc: "사용자 채팅 입력"
+          variables: []
+
+      # -----------------------------------------------------------
+      - id: node_extract
+        type: custom
+        position: { x: 360, y: 360 }
+        positionAbsolute: { x: 360, y: 360 }
+        width: 244
+        height: 140
+        data:
+          type: llm
+          title: "ExtractQuery"
+          desc: "자연어 질의에서 품목명/업체명 JSON 추출"
+          model:
+            provider: openai
+            name: gpt-4o-mini
+            mode: chat
+            completion_params:
+              temperature: 0
+              max_tokens: 200
+              top_p: 1
+              response_format:
+                type: json_object
+          prompt_template:
+            - role: system
+              text: |
+                너는 한국 의약품 조회 질의에서 검색 조건을 추출하는 파서다.
+                사용자 질의에서 품목명(item_name)과 업체명(entp_name)을 추출해 다음 JSON 만 출력한다.
+                - 품목명이 불명확하면 빈 문자열.
+                - 업체명이 불명확하면 빈 문자열.
+                - 둘 다 없으면 두 값 모두 빈 문자열.
+                - 설명, 주석, 마크다운 금지. JSON 단일 객체만.
+                {"item_name": "...", "entp_name": "..."}
+            - role: user
+              text: |
+                질의: {{#sys.query#}}
+          context:
+            enabled: false
+            variable_selector: []
+          vision:
+            enabled: false
+
+      # -----------------------------------------------------------
+      - id: node_parse_query
+        type: custom
+        position: { x: 680, y: 360 }
+        positionAbsolute: { x: 680, y: 360 }
+        width: 244
+        height: 120
+        data:
+          type: code
+          title: "ParseQuery"
+          desc: "LLM JSON 출력을 안전하게 파싱"
+          code_language: python3
+          variables:
+            - variable: llm_text
+              value_selector:
+                - node_extract
+                - text
+          outputs:
+            item_name:
+              type: string
+              children: null
+            entp_name:
+              type: string
+              children: null
+          code: |
+            import json
+            import re
+
+            def main(llm_text: str) -> dict:
+                txt = (llm_text or "").strip()
+                m = re.search(r"\{[\s\S]*\}", txt)
+                raw = m.group(0) if m else txt
+                item_name, entp_name = "", ""
+                try:
+                    obj = json.loads(raw)
+                    item_name = str(obj.get("item_name", "") or "").strip()
+                    entp_name = str(obj.get("entp_name", "") or "").strip()
+                except Exception:
+                    item_name = ""
+                    entp_name = ""
+                return {"item_name": item_name, "entp_name": entp_name}
+
+      # -----------------------------------------------------------
+      - id: node_fetch_approval
+        type: custom
+        position: { x: 1000, y: 120 }
+        positionAbsolute: { x: 1000, y: 120 }
+        width: 244
+        height: 160
+        data:
+          type: http-request
+          title: "FetchApproval"
+          desc: "의약품 허가정보 조회"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/DrugPrdtPrmsnInfoService07/getDrugPrdtPrmsnInq07"
+          authorization:
+            type: no-auth
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 10
+            type: json
+            item_name: {{#node_parse_query.item_name#}}
+            entp_name: {{#node_parse_query.entp_name#}}
+          body:
+            type: none
+            data: []
+          timeout:
+            max_connect_timeout: 10
+            max_read_timeout: 30
+            max_write_timeout: 10
+
+      # -----------------------------------------------------------
+      - id: node_fetch_recall
+        type: custom
+        position: { x: 1000, y: 300 }
+        positionAbsolute: { x: 1000, y: 300 }
+        width: 244
+        height: 160
+        data:
+          type: http-request
+          title: "FetchRecall"
+          desc: "의약품 회수·판매중지 조회"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/MdcinRtrvlSleStpgeInfoService04/getMdcinRtrvlSleStpgeItem03"
+          authorization:
+            type: no-auth
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 10
+            type: json
+            item_name: {{#node_parse_query.item_name#}}
+            entp_name: {{#node_parse_query.entp_name#}}
+          body:
+            type: none
+            data: []
+          timeout:
+            max_connect_timeout: 10
+            max_read_timeout: 30
+            max_write_timeout: 10
+
+      # -----------------------------------------------------------
+      - id: node_fetch_disc
+        type: custom
+        position: { x: 1000, y: 480 }
+        positionAbsolute: { x: 1000, y: 480 }
+        width: 244
+        height: 160
+        data:
+          type: http-request
+          title: "FetchDisciplinary"
+          desc: "의약품 행정처분 조회 (최신순)"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/MdcinExaathrService04/getMdcinExaathrList04"
+          authorization:
+            type: no-auth
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 10
+            type: json
+            order: Y
+            item_name: {{#node_parse_query.item_name#}}
+            entp_name: {{#node_parse_query.entp_name#}}
+          body:
+            type: none
+            data: []
+          timeout:
+            max_connect_timeout: 10
+            max_read_timeout: 30
+            max_write_timeout: 10
+
+      # -----------------------------------------------------------
+      - id: node_fetch_ident
+        type: custom
+        position: { x: 1000, y: 660 }
+        positionAbsolute: { x: 1000, y: 660 }
+        width: 244
+        height: 160
+        data:
+          type: http-request
+          title: "FetchIdentification"
+          desc: "의약품 낱알식별 조회"
+          method: get
+          url: "{{#env.DATA_GO_KR_BASE#}}/MdcinGrnIdntfcInfoService03/getMdcinGrnIdntfcInfoList03"
+          authorization:
+            type: no-auth
+          headers: |
+            Accept: application/json
+          params: |
+            serviceKey: {{#env.SERVICE_KEY#}}
+            pageNo: 1
+            numOfRows: 10
+            type: json
+            item_name: {{#node_parse_query.item_name#}}
+            entp_name: {{#node_parse_query.entp_name#}}
+          body:
+            type: none
+            data: []
+          timeout:
+            max_connect_timeout: 10
+            max_read_timeout: 30
+            max_write_timeout: 10
+
+      # -----------------------------------------------------------
+      - id: node_merge
+        type: custom
+        position: { x: 1400, y: 360 }
+        positionAbsolute: { x: 1400, y: 360 }
+        width: 280
+        height: 160
+        data:
+          type: code
+          title: "MergeResults"
+          desc: "4개 응답 병합 → 요약 텍스트"
+          code_language: python3
+          variables:
+            - variable: approval_body
+              value_selector:
+                - node_fetch_approval
+                - body
+            - variable: recall_body
+              value_selector:
+                - node_fetch_recall
+                - body
+            - variable: disc_body
+              value_selector:
+                - node_fetch_disc
+                - body
+            - variable: ident_body
+              value_selector:
+                - node_fetch_ident
+                - body
+            - variable: item_name
+              value_selector:
+                - node_parse_query
+                - item_name
+            - variable: entp_name
+              value_selector:
+                - node_parse_query
+                - entp_name
+          outputs:
+            summary_text:
+              type: string
+              children: null
+            approval_count:
+              type: number
+              children: null
+            recall_count:
+              type: number
+              children: null
+            disciplinary_count:
+              type: number
+              children: null
+            identification_count:
+              type: number
+              children: null
+          code: |
+            import json
+            import re
+
+            try:
+                from defusedxml import ElementTree as _XET  # type: ignore
+                _XML_OK = True
+            except Exception:
+                _XET = None
+                _XML_OK = False
+
+            def _clean(v):
+                if v is None:
+                    return ""
+                s = str(v).strip()
+                if s.lower() in ("none", "null"):
+                    return ""
+                return s
+
+            def _norm_date(s):
+                s = _clean(s)
+                if not s:
+                    return ""
+                m = re.search(r"(\d{4})[.\-/ ]?(\d{2})[.\-/ ]?(\d{2})", s)
+                if m:
+                    return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+                return s
+
+            def _unwrap(raw_items):
+                out = []
+                for it in raw_items:
+                    if isinstance(it, dict):
+                        if "item" in it and isinstance(it["item"], dict) and len(it) == 1:
+                            out.append(it["item"])
+                        else:
+                            out.append(it)
+                return out
+
+            def _load_dict(body):
+                if isinstance(body, dict):
+                    return body
+                if isinstance(body, str) and body.lstrip().startswith(("{", "[")):
+                    try:
+                        return json.loads(body)
+                    except Exception:
+                        return None
+                return None
+
+            def _api_error(body) -> str:
+                data = _load_dict(body)
+                if not isinstance(data, dict):
+                    return ""
+                hdr = None
+                resp = data.get("response")
+                if isinstance(resp, dict):
+                    hdr = resp.get("header")
+                if hdr is None:
+                    hdr = data.get("header")
+                if isinstance(hdr, dict):
+                    code = str(hdr.get("resultCode", "")).strip()
+                    msg = str(hdr.get("resultMsg", "")).strip()
+                    if code and code != "00":
+                        return f"[{code}] {msg}"
+                return ""
+
+            def _extract_items(body):
+                data = _load_dict(body)
+                if isinstance(data, dict):
+                    node = data
+                    for k in ("response", "body", "items"):
+                        if isinstance(node, dict) and k in node:
+                            node = node[k]
+                    if isinstance(node, list):
+                        return _unwrap(node)
+                    if isinstance(node, dict) and "item" in node:
+                        item = node["item"]
+                        if isinstance(item, list):
+                            return _unwrap(item)
+                        if isinstance(item, dict):
+                            return [item]
+                if _XML_OK and isinstance(body, str) and body.lstrip().startswith("<"):
+                    try:
+                        root = _XET.fromstring(body)
+                        return [{c.tag: (c.text or "") for c in it}
+                                for it in root.findall(".//item")]
+                    except Exception:
+                        return []
+                return []
+
+            def main(approval_body, recall_body, disc_body, ident_body,
+                     item_name: str, entp_name: str) -> dict:
+                errors = {}
+                for label, body in (
+                    ("허가정보", approval_body), ("회수", recall_body),
+                    ("행정처분", disc_body), ("낱알식별", ident_body),
+                ):
+                    e = _api_error(body)
+                    if e:
+                        errors[label] = e
+
+                approval = _extract_items(approval_body)
+                recall = _extract_items(recall_body)
+                disc = _extract_items(disc_body)
+                ident = _extract_items(ident_body)
+
+                parts = [
+                    f"조회 조건: item_name='{item_name or ''}', "
+                    f"entp_name='{entp_name or ''}'",
+                ]
+                if errors:
+                    parts.append("")
+                    parts.append("⚠️ API 응답 오류:")
+                    for label, e in errors.items():
+                        parts.append(f"  - {label}: {e}")
+                parts.append("")
+                parts.append(f"[허가정보] {len(approval)}건")
+                for i, a in enumerate(approval[:5], 1):
+                    parts.append(
+                        f"  {i}. {_clean(a.get('ITEM_NAME'))} / "
+                        f"{_clean(a.get('ENTP_NAME'))} "
+                        f"(허가일: {_norm_date(a.get('ITEM_PERMIT_DATE'))}, "
+                        f"전문일반: {_clean(a.get('SPCLTY_PBLC'))}, "
+                        f"분류: {_clean(a.get('PRDUCT_TYPE'))})"
+                    )
+
+                parts += ["", f"[회수·판매중지] {len(recall)}건"]
+                for i, r in enumerate(recall[:5], 1):
+                    date = _norm_date(
+                        r.get("RECALL_COMMAND_DATE") or r.get("RTRVL_CMMND_DT")
+                    )
+                    name = _clean(r.get("PRDUCT"))
+                    ent = _clean(r.get("ENTRPS"))
+                    reason = _clean(r.get("RTRVL_RESN"))
+                    mfr = _clean(r.get("MNFCTUR_NO"))
+                    mfr_s = f" (제조번호: {mfr})" if mfr else ""
+                    parts.append(f"  {i}. [{date}] {name} / {ent} — {reason}{mfr_s}")
+
+                parts += ["", f"[행정처분] {len(disc)}건"]
+                for i, d in enumerate(disc[:5], 1):
+                    date = _norm_date(d.get("LAST_SETTLE_DATE"))
+                    ent = _clean(d.get("ENTP_NAME"))
+                    name = _clean(d.get("ITEM_NAME"))
+                    disps = _clean(d.get("ADM_DISPS_NAME"))
+                    cont = _clean(d.get("EXPOSE_CONT"))
+                    name_s = f"/{name}" if name else ""
+                    parts.append(
+                        f"  {i}. [{date}] {ent}{name_s} — {disps} ({cont})"
+                    )
+
+                parts += ["", f"[낱알식별] {len(ident)}건"]
+                for i, p in enumerate(ident[:5], 1):
+                    parts.append(
+                        f"  {i}. {_clean(p.get('ITEM_NAME'))} / "
+                        f"{_clean(p.get('ENTP_NAME'))} "
+                        f"(각인: {_clean(p.get('PRINT_FRONT'))}/"
+                        f"{_clean(p.get('PRINT_BACK'))}, "
+                        f"색상: {_clean(p.get('COLOR_CLASS1'))}, "
+                        f"모양: {_clean(p.get('DRUG_SHAPE'))})"
+                    )
+
+                return {
+                    "summary_text": "\n".join(parts),
+                    "approval_count": len(approval),
+                    "recall_count": len(recall),
+                    "disciplinary_count": len(disc),
+                    "identification_count": len(ident),
+                }
+
+      # -----------------------------------------------------------
+      - id: node_answer_llm
+        type: custom
+        position: { x: 1760, y: 360 }
+        positionAbsolute: { x: 1760, y: 360 }
+        width: 244
+        height: 140
+        data:
+          type: llm
+          title: "AnswerLLM"
+          desc: "자연어 응답 생성"
+          model:
+            provider: openai
+            name: gpt-4o
+            mode: chat
+            completion_params:
+              temperature: 0.2
+              max_tokens: 3000
+              top_p: 1
+          prompt_template:
+            - role: system
+              text: |
+                너는 제약 GMP 환경의 품질·규제 담당자를 돕는 의약품 정보 조회 어시스턴트다.
+                - 반드시 한국어로 답변한다.
+                - 사실에 없는 내용을 추측·창작하지 않는다. 데이터에 없으면 "해당 없음"이라 명시.
+                - 허가정보·회수·행정처분·낱알식별 결과를 각 섹션(## 머리말)으로 구분해 마크다운으로 표시.
+                - 회수 또는 행정처분이 존재하면 답변 최상단에 경고 블록( > ⚠️ ) 으로 요약.
+                - 질의와 무관한 추가 설명은 하지 않는다.
+            - role: user
+              text: |
+                # 사용자 질의
+                {{#sys.query#}}
+
+                # 추출된 조건
+                - item_name: {{#node_parse_query.item_name#}}
+                - entp_name: {{#node_parse_query.entp_name#}}
+
+                # 4종 API 조회 결과 요약
+                - 허가정보: {{#node_merge.approval_count#}}건
+                - 회수·판매중지: {{#node_merge.recall_count#}}건
+                - 행정처분: {{#node_merge.disciplinary_count#}}건
+                - 낱알식별: {{#node_merge.identification_count#}}건
+
+                # 원본 데이터
+                {{#node_merge.summary_text#}}
+
+                위 데이터만 근거로 사용자 질의에 맞는 답변을 작성하라.
+          context:
+            enabled: false
+            variable_selector: []
+          vision:
+            enabled: false
+
+      # -----------------------------------------------------------
+      - id: node_end
+        type: custom
+        position: { x: 2080, y: 360 }
+        positionAbsolute: { x: 2080, y: 360 }
+        width: 244
+        height: 100
+        data:
+          type: answer
+          title: "답변"
+          desc: "채팅 응답 출력"
+          answer: "{{#node_answer_llm.text#}}"

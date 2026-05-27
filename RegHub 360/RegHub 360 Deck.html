@@ -1,0 +1,1357 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>RegHub 360 — 의약품·의약외품·식품 통합 규제정보 허브</title>
+<link rel="stylesheet" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root{
+    --bg:#FAFAFA;
+    --bg-deep:#0B0B11;
+    --ink:#0E0E14;
+    --ink-2:#2A2D35;
+    --mute:#5B5F6B;
+    --faint:#9498A1;
+    --line:#E7E9EE;
+    --line-2:#EFF1F4;
+    --card:#FFFFFF;
+    --card-soft:#F4F5F7;
+    --accent:#4F46E5;
+    --accent-2:#3730A3;
+    --accent-soft:#EEF0FF;
+    --ok:#0F9D58;
+    --ok-soft:#E5F4EB;
+    --warn:#C2700A;
+    --warn-soft:#FCEFD5;
+    --danger:#C92A2A;
+    --danger-soft:#FBE5E5;
+    --crit:#7F1D1D;
+    --crit-soft:#F1D7D7;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#0a0a0c;color:var(--ink);font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,system-ui,sans-serif;}
+  deck-stage{ --slide-w:1920px; --slide-h:1080px; }
+  section{
+    width:1920px;height:1080px;background:var(--bg);position:relative;overflow:hidden;
+    font-feature-settings:"ss01","tnum","kern";
+    color:var(--ink);
+    letter-spacing:-0.01em;
+  }
+  /* Slide chrome */
+  .chrome{
+    position:absolute;left:80px;right:80px;top:64px;display:flex;justify-content:space-between;align-items:center;
+    font-size:18px;color:var(--faint);font-weight:500;letter-spacing:0;
+  }
+  .chrome .brand{display:flex;align-items:center;gap:14px;color:var(--ink-2);font-weight:600}
+  .chrome .brand .dot{width:14px;height:14px;border-radius:4px;background:var(--accent);position:relative}
+  .chrome .brand .dot::after{content:"";position:absolute;inset:3px;background:var(--bg);border-radius:1px}
+  .chrome .meta{display:flex;gap:24px}
+  .chrome .meta span{display:inline-flex;align-items:center;gap:8px}
+  .pad{position:absolute;inset:140px 100px 80px 100px;display:flex;flex-direction:column}
+  /* Typography */
+  .eyebrow{font-size:18px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin:0 0 28px}
+  .eyebrow.mute{color:var(--mute)}
+  h1.title{font-size:88px;line-height:1.02;letter-spacing:-0.035em;font-weight:700;margin:0;color:var(--ink)}
+  h1.title em{font-style:normal;color:var(--accent)}
+  h2.title{font-size:64px;line-height:1.05;letter-spacing:-0.03em;font-weight:700;margin:0;color:var(--ink)}
+  h2.title em{font-style:normal;color:var(--accent)}
+  .lead{font-size:30px;line-height:1.45;color:var(--mute);max-width:1280px;font-weight:400;margin:32px 0 0}
+  .body{font-size:22px;line-height:1.55;color:var(--mute)}
+  /* Generic pill */
+  .pill{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:999px;font-size:14px;font-weight:600;background:var(--card-soft);color:var(--ink-2);border:1px solid var(--line)}
+  .pill.accent{background:var(--accent-soft);color:var(--accent-2);border-color:#D9DEFB}
+  .pill.ok{background:var(--ok-soft);color:var(--ok);border-color:#CDE7D6}
+  .pill.warn{background:var(--warn-soft);color:var(--warn);border-color:#F0D9A3}
+  .pill.danger{background:var(--danger-soft);color:var(--danger);border-color:#EFC2C2}
+  .pill.crit{background:var(--crit-soft);color:var(--crit);border-color:#E4B4B4}
+  .pill.dark{background:#16161D;color:#fff;border-color:#16161D}
+  .dot{width:8px;height:8px;border-radius:50%;background:currentColor;display:inline-block}
+  .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.85em;padding:2px 8px;border-radius:6px;background:var(--card-soft);border:1px solid var(--line);color:var(--ink-2)}
+  /* Footer */
+  .footnum{position:absolute;left:80px;bottom:48px;font-size:16px;color:var(--faint);letter-spacing:0.04em;font-variant-numeric:tabular-nums}
+  .footnum b{color:var(--ink-2);font-weight:600}
+  .footnote{position:absolute;right:80px;bottom:48px;font-size:16px;color:var(--faint)}
+</style>
+</head>
+<body>
+<deck-stage>
+
+<!-- ========== 01 · TITLE ========== -->
+<section data-screen-label="01 표지" style="background:#0B0B11;color:#fff;overflow:hidden">
+  <!-- grid backdrop -->
+  <div style="position:absolute;inset:0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size:80px 80px;mask-image:radial-gradient(ellipse 70% 70% at 70% 30%, #000 30%, transparent 75%);"></div>
+  <!-- accent halo -->
+  <div style="position:absolute;right:-180px;top:-220px;width:900px;height:900px;border-radius:50%;
+    background:radial-gradient(circle, rgba(79,70,229,0.55) 0%, rgba(79,70,229,0.18) 35%, transparent 70%);filter:blur(20px)"></div>
+
+  <div class="chrome" style="color:#7E8088">
+    <div class="brand" style="color:#fff">
+      <div class="dot" style="background:#4F46E5"></div>
+      RegHub 360
+    </div>
+    <div class="meta">
+      <span>v1.0 제안 발표</span><span>2026.05.26</span>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:120px;right:120px;top:280px;">
+    <div style="display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 18px;border-radius:999px;background:rgba(79,70,229,0.18);color:#C7C9F8;font-size:20px;font-weight:600;letter-spacing:0.02em;border:1px solid rgba(199,201,248,0.3)">
+      <span style="width:8px;height:8px;border-radius:50%;background:#A5B4FC;box-shadow:0 0 12px #818CF8"></span>
+      의약품 · 의약외품 · 식품 통합 규제정보 허브
+    </div>
+    <h1 style="font-size:144px;line-height:0.98;letter-spacing:-0.04em;font-weight:700;margin:48px 0 0;color:#fff">
+      RegHub <span style="color:#A5B4FC">360</span>
+    </h1>
+    <div style="font-size:42px;line-height:1.35;color:#C7C9D2;font-weight:400;max-width:1280px;margin-top:48px;letter-spacing:-0.02em">
+      <span style="color:#fff;font-weight:600">"API별 조회"가 아닌, 실무 질문 기준 조회.</span><br>
+      식약처 공공 API 603건을 RA · QA · SCM · 영업 · R&amp;D 업무 단위로<br>재구성한 규제정보 플랫폼.
+    </div>
+  </div>
+
+  <div style="position:absolute;left:120px;bottom:120px;display:flex;gap:48px;align-items:flex-end">
+    <div>
+      <div style="font-size:16px;letter-spacing:0.18em;color:#9598A1;text-transform:uppercase;font-weight:600">MVP 범위</div>
+      <div style="font-size:28px;color:#fff;margin-top:10px;font-weight:600">12개 API 축 · 7개 화면</div>
+    </div>
+    <div style="width:1px;height:56px;background:#2A2D35;margin-bottom:4px"></div>
+    <div>
+      <div style="font-size:16px;letter-spacing:0.18em;color:#9598A1;text-transform:uppercase;font-weight:600">로드맵</div>
+      <div style="font-size:28px;color:#fff;margin-top:10px;font-weight:600">해커톤 MVP → PoC → 상용 SaaS</div>
+    </div>
+    <div style="width:1px;height:56px;background:#2A2D35;margin-bottom:4px"></div>
+    <div>
+      <div style="font-size:16px;letter-spacing:0.18em;color:#9598A1;text-transform:uppercase;font-weight:600">기술 스택</div>
+      <div style="font-size:28px;color:#fff;margin-top:10px;font-weight:600">Flask · PostgreSQL · Redis</div>
+    </div>
+  </div>
+
+  <div class="footnum" style="color:#7E8088"><b style="color:#A5B4FC">01</b> / 11</div>
+  <div class="footnote" style="color:#7E8088">RegHub 360 · 식약처 공공 API 기반</div>
+</section>
+
+
+<!-- ========== 02 · PROBLEM ========== -->
+<section data-screen-label="02 문제 정의">
+  <div class="chrome">
+    <div class="brand"><div class="dot"></div>RegHub 360</div>
+    <div class="meta"><span>1. 문제 정의</span></div>
+  </div>
+
+  <div class="pad">
+    <div class="eyebrow">The Problem</div>
+    <h2 class="title">제약·식품 실무자는 매일<br>
+      <em>5개 포털</em>을 따로 조회한다.</h2>
+    <div class="lead">식약처, 공공데이터포털, 식품안전나라, 심평원, 식의약 데이터포털을 부서별로 따로 매일 수동 조회. 회수 · 행정처분 · 안전성서한 · 공급중단을 놓치면 즉시 실손해로 이어진다.</div>
+
+    <!-- 부서 매트릭스 -->
+    <div style="margin-top:80px;display:grid;grid-template-columns:repeat(4,1fr);gap:24px">
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:20px;padding:36px 32px">
+        <div style="display:flex;align-items:center;gap:12px;font-size:18px;font-weight:600;color:var(--accent);letter-spacing:0.04em">
+          <span style="font-family:ui-monospace,monospace;font-size:14px;background:var(--accent-soft);color:var(--accent-2);padding:4px 10px;border-radius:6px">RA</span>
+          허가
+        </div>
+        <div style="font-size:24px;line-height:1.4;color:var(--ink);font-weight:500;margin-top:20px">허가 · 갱신 · 임상 · 특허</div>
+        <div style="font-size:18px;color:var(--mute);margin-top:14px">"우리 품목 재심사 임박은?"</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:20px;padding:36px 32px">
+        <div style="display:flex;align-items:center;gap:12px;font-size:18px;font-weight:600;color:var(--danger);letter-spacing:0.04em">
+          <span style="font-family:ui-monospace,monospace;font-size:14px;background:var(--danger-soft);color:var(--danger);padding:4px 10px;border-radius:6px">QA/QC</span>
+          품질
+        </div>
+        <div style="font-size:24px;line-height:1.4;color:var(--ink);font-weight:500;margin-top:20px">회수 · 행정처분 · GMP · 검사부적합</div>
+        <div style="font-size:18px;color:var(--mute);margin-top:14px">"동성분 회수 누락 없나?"</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:20px;padding:36px 32px">
+        <div style="display:flex;align-items:center;gap:12px;font-size:18px;font-weight:600;color:var(--warn);letter-spacing:0.04em">
+          <span style="font-family:ui-monospace,monospace;font-size:14px;background:var(--warn-soft);color:var(--warn);padding:4px 10px;border-radius:6px">SCM</span>
+          공급
+        </div>
+        <div style="font-size:24px;line-height:1.4;color:var(--ink);font-weight:500;margin-top:20px">공급중단 · 공급부족 · 원료 DMF</div>
+        <div style="font-size:18px;color:var(--mute);margin-top:14px">"주요 원료 수입중단은?"</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:20px;padding:36px 32px">
+        <div style="display:flex;align-items:center;gap:12px;font-size:18px;font-weight:600;color:var(--ok);letter-spacing:0.04em">
+          <span style="font-family:ui-monospace,monospace;font-size:14px;background:var(--ok-soft);color:var(--ok);padding:4px 10px;border-radius:6px">영업</span>
+          모니터링
+        </div>
+        <div style="font-size:24px;line-height:1.4;color:var(--ink);font-weight:500;margin-top:20px">경쟁사 제품 · 행정처분</div>
+        <div style="font-size:18px;color:var(--mute);margin-top:14px">"경쟁사 신규 허가는?"</div>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;padding-top:48px;display:flex;gap:64px;align-items:flex-end">
+      <div>
+        <div style="font-size:80px;font-weight:700;color:var(--ink);letter-spacing:-0.03em;font-variant-numeric:tabular-nums">603<span style="font-size:36px;color:var(--mute);margin-left:8px;font-weight:500">건</span></div>
+        <div style="font-size:18px;color:var(--mute);margin-top:8px">공공데이터 API 카탈로그</div>
+      </div>
+      <div>
+        <div style="font-size:80px;font-weight:700;color:var(--ink);letter-spacing:-0.03em;font-variant-numeric:tabular-nums">5<span style="font-size:36px;color:var(--mute);margin-left:8px;font-weight:500">개</span></div>
+        <div style="font-size:18px;color:var(--mute);margin-top:8px">매일 수동 조회 포털</div>
+      </div>
+      <div>
+        <div style="font-size:80px;font-weight:700;color:var(--ink);letter-spacing:-0.03em;font-variant-numeric:tabular-nums">7<span style="font-size:36px;color:var(--mute);margin-left:8px;font-weight:500">부서</span></div>
+        <div style="font-size:18px;color:var(--mute);margin-top:8px">서로 다른 정보 니즈</div>
+      </div>
+      <div>
+        <div style="font-size:80px;font-weight:700;color:var(--danger);letter-spacing:-0.03em;font-variant-numeric:tabular-nums">0<span style="font-size:36px;color:var(--mute);margin-left:8px;font-weight:500">개</span></div>
+        <div style="font-size:18px;color:var(--mute);margin-top:8px">실무 질문 기준의 통합 도구</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnum"><b>02</b> / 11</div>
+  <div class="footnote">출처: 공공데이터 목록.xlsx (식품 279 · 의약품 99 · 의료기기 84 · 바이오 44 · 기타 97)</div>
+</section>
+
+
+<!-- ========== 03 · INSIGHT (vs) ========== -->
+<section data-screen-label="03 차별점">
+  <div class="chrome">
+    <div class="brand"><div class="dot"></div>RegHub 360</div>
+    <div class="meta"><span>2. 차별점</span></div>
+  </div>
+
+  <div class="pad">
+    <div class="eyebrow">The Insight</div>
+    <h2 class="title">API별 조회가 아니라,<br><em>실무 질문 기준 조회</em>.</h2>
+    <div class="lead">사용자가 <span class="kbd">광동제약</span>, <span class="kbd">베니톨정</span>, <span class="kbd">아세트아미노펜</span> 한 번만 입력하면 — RegHub 360이 12개 API를 동시에 호출해 단일 화면으로 묶어준다.</div>
+
+    <div style="margin-top:64px;display:grid;grid-template-columns:1fr 88px 1fr;align-items:stretch;gap:0">
+      <!-- BEFORE -->
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:24px;padding:36px 40px;position:relative">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="pill" style="background:#F4F5F7">BEFORE</div>
+          <div style="font-size:14px;color:var(--faint);font-weight:600;letter-spacing:0.1em">기존 서비스</div>
+        </div>
+        <div style="font-size:32px;font-weight:600;color:var(--ink);margin-top:18px;letter-spacing:-0.02em">API별 따로 조회</div>
+        <div style="margin-top:24px;display:flex;flex-direction:column;gap:10px;font-family:ui-monospace,monospace;font-size:17px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 18px;background:var(--card-soft);border-radius:10px;color:var(--mute)">
+            <span>식약처 의약품 허가</span><span style="color:var(--faint)">↗ 별도</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 18px;background:var(--card-soft);border-radius:10px;color:var(--mute)">
+            <span>공공데이터 회수·처분</span><span style="color:var(--faint)">↗ 별도</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 18px;background:var(--card-soft);border-radius:10px;color:var(--mute)">
+            <span>식품안전나라 회수</span><span style="color:var(--faint)">↗ 별도</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 18px;background:var(--card-soft);border-radius:10px;color:var(--mute)">
+            <span>심평원 DUR·묶음의약품</span><span style="color:var(--faint)">↗ 별도</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 18px;background:var(--card-soft);border-radius:10px;color:var(--mute)">
+            <span>식의약 데이터포털</span><span style="color:var(--faint)">↗ 별도</span>
+          </div>
+        </div>
+        <div style="font-size:18px;color:var(--mute);margin-top:22px;line-height:1.5">
+          → 12회 검색 · 부서별 수동 조합 · <strong style="color:var(--danger)">놓치는 이벤트 발생</strong>
+        </div>
+      </div>
+
+      <!-- arrow -->
+      <div style="display:flex;align-items:center;justify-content:center">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </div>
+      </div>
+
+      <!-- AFTER -->
+      <div style="background:linear-gradient(180deg,#fff 0%, #F8F9FF 100%);border:1.5px solid var(--accent);border-radius:24px;padding:36px 40px;position:relative;box-shadow:0 24px 60px -28px rgba(79,70,229,0.35)">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="pill accent">AFTER</div>
+          <div style="font-size:14px;color:var(--accent);font-weight:600;letter-spacing:0.1em">RegHub 360</div>
+        </div>
+        <div style="font-size:32px;font-weight:600;color:var(--ink);margin-top:18px;letter-spacing:-0.02em">단일 검색 → 자동 통합</div>
+
+        <!-- search bar -->
+        <div style="margin-top:24px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 22px;display:flex;align-items:center;gap:16px;box-shadow:0 4px 14px -8px rgba(11,11,17,0.12)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <span style="font-size:26px;color:var(--ink);font-weight:600">광동제약</span>
+          <span style="margin-left:auto" class="kbd">↵</span>
+        </div>
+
+        <!-- autoresult -->
+        <div style="margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="padding:14px 16px;background:var(--accent-soft);border-radius:10px;font-size:16px;color:var(--accent-2);font-weight:600;display:flex;justify-content:space-between"><span>허가 정보</span><span style="font-variant-numeric:tabular-nums">312</span></div>
+          <div style="padding:14px 16px;background:var(--accent-soft);border-radius:10px;font-size:16px;color:var(--accent-2);font-weight:600;display:flex;justify-content:space-between"><span>회수·판매중지</span><span style="font-variant-numeric:tabular-nums">4</span></div>
+          <div style="padding:14px 16px;background:var(--accent-soft);border-radius:10px;font-size:16px;color:var(--accent-2);font-weight:600;display:flex;justify-content:space-between"><span>행정처분</span><span style="font-variant-numeric:tabular-nums">2</span></div>
+          <div style="padding:14px 16px;background:var(--accent-soft);border-radius:10px;font-size:16px;color:var(--accent-2);font-weight:600;display:flex;justify-content:space-between"><span>안전성서한</span><span style="font-variant-numeric:tabular-nums">1</span></div>
+          <div style="padding:14px 16px;background:var(--accent-soft);border-radius:10px;font-size:16px;color:var(--accent-2);font-weight:600;display:flex;justify-content:space-between"><span>공급중단</span><span style="font-variant-numeric:tabular-nums">0</span></div>
+          <div style="padding:14px 16px;background:var(--accent-soft);border-radius:10px;font-size:16px;color:var(--accent-2);font-weight:600;display:flex;justify-content:space-between"><span>의약외품·식품</span><span style="font-variant-numeric:tabular-nums">87</span></div>
+        </div>
+
+        <div style="font-size:18px;color:var(--mute);margin-top:22px;line-height:1.5">
+          → 1회 검색 · 단일 화면 · <strong style="color:var(--accent)">놓치지 않는 통합 타임라인</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnum"><b>03</b> / 11</div>
+  <div class="footnote">검색 기준 6종: 제품명 · 업체명 · 성분명 · 원재료명 · 인허가번호 · 바코드/푸드QR</div>
+</section>
+
+
+<!-- ========== 04 · SEARCH HOME ========== -->
+<section data-screen-label="04 통합 검색 홈">
+  <div class="chrome">
+    <div class="brand"><div class="dot"></div>RegHub 360</div>
+    <div class="meta"><span>3. 제품 · 화면 1 / 6</span></div>
+  </div>
+
+  <div style="position:absolute;left:80px;right:80px;top:140px">
+    <div class="eyebrow">F-001 통합 검색 (홈)</div>
+    <h2 style="font-size:52px;font-weight:700;letter-spacing:-0.03em;margin:8px 0 0;color:var(--ink)">한 번 입력하면 12개 API를 동시에.</h2>
+  </div>
+
+  <!-- Product window -->
+  <div style="position:absolute;left:80px;right:80px;top:300px;bottom:110px;background:#fff;border-radius:20px;border:1px solid var(--line);box-shadow:0 32px 80px -40px rgba(11,11,17,0.22);overflow:hidden;display:flex;flex-direction:column">
+
+    <!-- Product top nav -->
+    <div style="height:60px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 28px;gap:28px;background:#FCFCFD;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;color:var(--ink)">
+        <div style="width:16px;height:16px;border-radius:5px;background:var(--accent);position:relative">
+          <div style="position:absolute;inset:4px;background:#fff;border-radius:1px"></div>
+        </div>
+        RegHub 360
+      </div>
+      <div style="display:flex;gap:2px;font-size:15px;color:var(--mute)">
+        <span style="padding:8px 14px;background:var(--accent-soft);color:var(--accent-2);border-radius:8px;font-weight:600">통합 검색</span>
+        <span style="padding:8px 14px">이벤트</span>
+        <span style="padding:8px 14px">워크스페이스</span>
+        <span style="padding:8px 14px">워치리스트</span>
+        <span style="padding:8px 14px">리포트</span>
+        <span style="padding:8px 14px">코파일럿</span>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:14px;font-size:13px;color:var(--mute)">
+        <span class="kbd">⌘ K</span>
+        <span style="display:inline-flex;width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;font-size:14px;font-weight:600">KW</span>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div style="flex:1;display:flex;flex-direction:column;padding:56px 88px 32px;background:linear-gradient(180deg,#fff 0%, #F7F8FD 100%);min-height:0">
+      <div style="font-size:18px;color:var(--mute);font-weight:500">실무자가 묻는 모든 질문을 한 곳에서</div>
+      <div style="font-size:48px;font-weight:700;letter-spacing:-0.03em;color:var(--ink);margin-top:6px">제품 · 업체 · 성분 · 원재료를 검색하세요</div>
+
+      <!-- search bar -->
+      <div style="margin-top:32px;background:#fff;border:1.5px solid var(--accent);border-radius:18px;height:88px;display:flex;align-items:center;padding:0 30px;gap:20px;box-shadow:0 16px 50px -20px rgba(79,70,229,0.35)">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <span style="font-size:30px;color:var(--ink);font-weight:600">광동제약</span>
+        <span style="width:2px;height:36px;background:var(--accent)"></span>
+        <span style="margin-left:auto;display:flex;gap:10px;align-items:center;color:var(--mute);font-size:14px"><span class="kbd">↵ 검색</span></span>
+      </div>
+
+      <!-- scope chips -->
+      <div style="margin-top:18px;display:flex;gap:8px;font-size:14px;flex-wrap:wrap;align-items:center">
+        <span style="padding:8px 14px;border:1px solid var(--accent);color:var(--accent-2);background:var(--accent-soft);border-radius:999px;font-weight:600">전체</span>
+        <span style="padding:8px 14px;border:1px solid var(--line);color:var(--mute);border-radius:999px;background:#fff">의약품</span>
+        <span style="padding:8px 14px;border:1px solid var(--line);color:var(--mute);border-radius:999px;background:#fff">의약외품</span>
+        <span style="padding:8px 14px;border:1px solid var(--line);color:var(--mute);border-radius:999px;background:#fff">식품</span>
+        <span style="width:1px;height:24px;background:var(--line);margin:0 8px"></span>
+        <span style="padding:8px 14px;border:1px solid var(--line);color:var(--mute);border-radius:999px;background:#fff">제품명</span>
+        <span style="padding:8px 14px;border:1px solid var(--line);color:var(--mute);border-radius:999px;background:#fff">업체명</span>
+        <span style="padding:8px 14px;border:1px solid var(--line);color:var(--mute);border-radius:999px;background:#fff">성분</span>
+        <span style="padding:8px 14px;border:1px solid var(--line);color:var(--mute);border-radius:999px;background:#fff">원재료</span>
+        <span style="padding:8px 14px;border:1px solid var(--line);color:var(--mute);border-radius:999px;background:#fff">인허가번호</span>
+        <span style="padding:8px 14px;border:1px solid var(--line);color:var(--mute);border-radius:999px;background:#fff">바코드 · 푸드QR</span>
+      </div>
+
+      <!-- below the fold panels -->
+      <div style="margin-top:36px;display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:18px;min-height:0;flex:1">
+        <div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:0.1em;font-weight:600">
+            <span>최근 검색</span><span style="color:var(--faint)">5</span>
+          </div>
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:14px;font-size:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--ink-2);font-weight:500">광동제약</span><span style="color:var(--faint);font-size:13px">2시간 전</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--ink-2);font-weight:500">베니톨정</span><span style="color:var(--faint);font-size:13px">어제</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--ink-2);font-weight:500">비타500</span><span style="color:var(--faint);font-size:13px">2일 전</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--ink-2);font-weight:500">아세트아미노펜</span><span style="color:var(--faint);font-size:13px">3일 전</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--ink-2);font-weight:500">홍삼정</span><span style="color:var(--faint);font-size:13px">3일 전</span></div>
+          </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:0.1em;font-weight:600">
+            <span>실무진 인기 검색</span><span style="color:var(--faint)">금주</span>
+          </div>
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:14px;font-size:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--ink-2);font-weight:500"><span style="display:inline-block;width:22px;color:var(--accent);font-weight:700">1</span>라니티딘</span><span class="pill danger" style="height:22px;font-size:11px;padding:0 8px">회수 3</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--ink-2);font-weight:500"><span style="display:inline-block;width:22px;color:var(--accent);font-weight:700">2</span>슈도에페드린</span><span class="pill warn" style="height:22px;font-size:11px;padding:0 8px">DUR</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--ink-2);font-weight:500"><span style="display:inline-block;width:22px;color:var(--accent);font-weight:700">3</span>아세트아미노펜</span><span class="pill ok" style="height:22px;font-size:11px;padding:0 8px">안정</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--ink-2);font-weight:500"><span style="display:inline-block;width:22px;color:var(--accent);font-weight:700">4</span>홍삼</span><span class="pill" style="height:22px;font-size:11px;padding:0 8px">신규</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--ink-2);font-weight:500"><span style="display:inline-block;width:22px;color:var(--accent);font-weight:700">5</span>가르시니아</span><span class="pill warn" style="height:22px;font-size:11px;padding:0 8px">처분 1</span></div>
+          </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:0.1em;font-weight:600">
+            <span>워치리스트 알림</span><span style="color:var(--danger);font-weight:700">3 NEW</span>
+          </div>
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <span style="width:6px;height:40px;border-radius:3px;background:var(--danger);flex-shrink:0;margin-top:4px"></span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:15px;color:var(--ink);font-weight:600">「베니톨정」 동일성분 회수 발생</div>
+                <div style="font-size:13px;color:var(--mute);margin-top:3px">○○제약 · 14분 전 · 의약품 회수</div>
+              </div>
+              <span class="pill danger" style="height:22px;font-size:11px;padding:0 8px;align-self:flex-start;margin-top:2px">HIGH</span>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <span style="width:6px;height:40px;border-radius:3px;background:var(--warn);flex-shrink:0;margin-top:4px"></span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:15px;color:var(--ink);font-weight:600">「광동제약」 행정처분 신규 1건</div>
+                <div style="font-size:13px;color:var(--mute);margin-top:3px">식품 · 1시간 전 · 표시기준 위반</div>
+              </div>
+              <span class="pill warn" style="height:22px;font-size:11px;padding:0 8px;align-self:flex-start;margin-top:2px">MED</span>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <span style="width:6px;height:40px;border-radius:3px;background:var(--accent);flex-shrink:0;margin-top:4px"></span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:15px;color:var(--ink);font-weight:600">「홍삼」 원재료 수입식품 부적합</div>
+                <div style="font-size:13px;color:var(--mute);margin-top:3px">SCM · 3시간 전 · 잔류농약</div>
+              </div>
+              <span class="pill accent" style="height:22px;font-size:11px;padding:0 8px;align-self:flex-start;margin-top:2px">INFO</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnum"><b>04</b> / 11</div>
+  <div class="footnote">검색 기준 6종 · 도메인 3종 · 동의어/별칭/영문표기 자동 매칭</div>
+</section>
+
+
+<!-- ========== 05 · PRODUCT 360 — DRUG (베니톨정) ========== -->
+<section data-screen-label="05 Product 360 의약품">
+  <div class="chrome">
+    <div class="brand"><div class="dot"></div>RegHub 360</div>
+    <div class="meta"><span>3. 제품 · 화면 2 / 6</span></div>
+  </div>
+
+  <div style="position:absolute;left:80px;right:80px;top:140px">
+    <div class="eyebrow">F-002 Product 360 · 의약품</div>
+    <h2 style="font-size:52px;font-weight:700;letter-spacing:-0.03em;margin:8px 0 0;color:var(--ink)">제품 하나에 대해 8개 섹션을 한 화면으로.</h2>
+  </div>
+
+  <!-- Mockup window -->
+  <div style="position:absolute;left:80px;right:80px;top:300px;bottom:110px;background:#fff;border-radius:20px;border:1px solid var(--line);box-shadow:0 32px 80px -40px rgba(11,11,17,0.22);overflow:hidden;display:flex;flex-direction:column">
+
+    <!-- Top nav (mini) -->
+    <div style="height:48px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 28px;gap:16px;background:#FCFCFD;flex-shrink:0;font-size:13px;color:var(--mute)">
+      <span style="display:flex;align-items:center;gap:8px;color:var(--ink-2);font-weight:600"><div style="width:12px;height:12px;border-radius:4px;background:var(--accent);position:relative"><div style="position:absolute;inset:3px;background:#fff;border-radius:1px"></div></div>RegHub 360</span>
+      <span style="color:var(--faint)">/</span>
+      <span>통합 검색</span>
+      <span style="color:var(--faint)">/</span>
+      <span>광동제약</span>
+      <span style="color:var(--faint)">/</span>
+      <span style="color:var(--ink);font-weight:600">베니톨정</span>
+      <span style="margin-left:auto;display:flex;gap:10px"><span class="kbd">★ 워치리스트</span><span class="kbd">↗ 공유</span><span class="kbd">⤓ 리포트</span></span>
+    </div>
+
+    <!-- Hero strip -->
+    <div style="padding:28px 36px 22px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;gap:32px;flex-shrink:0">
+      <div style="width:96px;height:96px;border-radius:18px;background:var(--card-soft);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:11px;text-align:center;line-height:1.3;flex-shrink:0">
+        낱알식별<br>이미지
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="pill" style="background:#EAF1FE;color:#1E40AF;border-color:#CFDFFB">의약품</span>
+          <span class="pill">일반의약품</span>
+          <span class="pill">경구제 · 정제</span>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:14px;margin-top:10px">
+          <div style="font-size:42px;font-weight:700;color:var(--ink);letter-spacing:-0.02em">베니톨정</div>
+          <div style="font-size:18px;color:var(--mute)">광동제약(주)</div>
+        </div>
+        <div style="display:flex;gap:24px;margin-top:10px;font-size:14px;color:var(--mute);font-family:ui-monospace,monospace">
+          <span>품목기준코드 <span style="color:var(--ink-2);font-weight:600">200305423</span></span>
+          <span>허가일자 <span style="color:var(--ink-2);font-weight:600">2003-03-12</span></span>
+          <span>주성분 <span style="color:var(--ink-2);font-weight:600">아세트아미노펜 500mg</span></span>
+        </div>
+      </div>
+      <div style="text-align:right;display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+        <div style="font-size:11px;color:var(--mute);letter-spacing:0.12em;font-weight:600;text-transform:uppercase">RISK SCORE</div>
+        <div style="display:flex;align-items:baseline;gap:6px">
+          <span style="font-size:54px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums;line-height:1">18</span>
+          <span style="font-size:18px;color:var(--mute)">/ 100</span>
+        </div>
+        <span class="pill ok" style="height:28px">● Normal · 특이사항 없음</span>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;padding:0 36px;border-bottom:1px solid var(--line);background:#FCFCFD;flex-shrink:0;font-size:15px">
+      <div style="padding:14px 18px;border-bottom:2px solid var(--accent);color:var(--accent-2);font-weight:600">기본정보</div>
+      <div style="padding:14px 18px;color:var(--mute)">허가·변경 이력</div>
+      <div style="padding:14px 18px;color:var(--mute)">안전성 정보</div>
+      <div style="padding:14px 18px;color:var(--mute)">품질·규제 이벤트</div>
+      <div style="padding:14px 18px;color:var(--mute)">공급망</div>
+      <div style="padding:14px 18px;color:var(--mute)">개발·BD</div>
+      <div style="padding:14px 18px;color:var(--mute)">마약류 분석</div>
+      <div style="padding:14px 18px;color:var(--mute)">낱알식별</div>
+    </div>
+
+    <!-- Body -->
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;min-height:0;background:#FCFCFD">
+      <!-- col 1 -->
+      <div style="padding:24px 28px;border-right:1px solid var(--line-2);display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mute);font-weight:600;letter-spacing:0.06em;text-transform:uppercase">
+          <span>허가·변경 이력</span><span class="pill" style="height:22px;font-size:11px;padding:0 8px">출처 · API 140 · 12분 전</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;gap:14px;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:10px">
+            <div style="font-family:ui-monospace,monospace;font-size:13px;color:var(--mute);min-width:80px">2024-09-30</div>
+            <div style="flex:1"><div style="font-size:15px;color:var(--ink);font-weight:600">표시기재 변경</div><div style="font-size:13px;color:var(--mute);margin-top:2px">사용상의주의사항 추가</div></div>
+          </div>
+          <div style="display:flex;gap:14px;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:10px">
+            <div style="font-family:ui-monospace,monospace;font-size:13px;color:var(--mute);min-width:80px">2021-06-15</div>
+            <div style="flex:1"><div style="font-size:15px;color:var(--ink);font-weight:600">재심사 완료</div><div style="font-size:13px;color:var(--mute);margin-top:2px">차기 재평가 대상 없음</div></div>
+          </div>
+          <div style="display:flex;gap:14px;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:10px">
+            <div style="font-family:ui-monospace,monospace;font-size:13px;color:var(--mute);min-width:80px">2003-03-12</div>
+            <div style="flex:1"><div style="font-size:15px;color:var(--ink);font-weight:600">최초 허가</div><div style="font-size:13px;color:var(--mute);margin-top:2px">일반의약품 · 경구제</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- col 2 -->
+      <div style="padding:24px 28px;border-right:1px solid var(--line-2);display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mute);font-weight:600;letter-spacing:0.06em;text-transform:uppercase">
+          <span>품질·규제 이벤트</span><span class="pill" style="height:22px;font-size:11px;padding:0 8px">자사+동성분</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="padding:14px;background:#fff;border:1px solid var(--line);border-radius:10px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums">0</div>
+            <div style="font-size:12px;color:var(--mute);margin-top:2px">자사 회수 (1년)</div>
+          </div>
+          <div style="padding:14px;background:#fff;border:1px solid var(--line);border-radius:10px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--danger);font-variant-numeric:tabular-nums">3</div>
+            <div style="font-size:12px;color:var(--mute);margin-top:2px">동성분 회수 (1년)</div>
+          </div>
+          <div style="padding:14px;background:#fff;border:1px solid var(--line);border-radius:10px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums">0</div>
+            <div style="font-size:12px;color:var(--mute);margin-top:2px">자사 행정처분</div>
+          </div>
+          <div style="padding:14px;background:#fff;border:1px solid var(--line);border-radius:10px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--warn);font-variant-numeric:tabular-nums">1</div>
+            <div style="font-size:12px;color:var(--mute);margin-top:2px">안전성서한</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;gap:10px;align-items:center;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:10px">
+            <span style="width:4px;height:32px;border-radius:2px;background:var(--danger);flex-shrink:0"></span>
+            <div style="flex:1;min-width:0"><div style="font-size:14px;color:var(--ink);font-weight:600">○○정 (동성분) 회수</div><div style="font-size:12px;color:var(--mute);margin-top:2px">2025-12-04 · 함량 부적합</div></div>
+            <span class="pill danger" style="height:20px;font-size:10px;padding:0 6px">HIGH</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:10px">
+            <span style="width:4px;height:32px;border-radius:2px;background:var(--warn);flex-shrink:0"></span>
+            <div style="flex:1;min-width:0"><div style="font-size:14px;color:var(--ink);font-weight:600">안전성서한 발송</div><div style="font-size:12px;color:var(--mute);margin-top:2px">2025-08-22 · 간기능 이상</div></div>
+            <span class="pill warn" style="height:20px;font-size:10px;padding:0 6px">MED</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- col 3 -->
+      <div style="padding:24px 28px;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mute);font-weight:600;letter-spacing:0.06em;text-transform:uppercase">
+          <span>안전성 · 공급망</span><span class="pill" style="height:22px;font-size:11px;padding:0 8px">DUR · 공급중단 API</span>
+        </div>
+        <div style="padding:14px 16px;background:#fff;border:1px solid var(--line);border-radius:10px">
+          <div style="font-size:13px;color:var(--mute);font-weight:600">DUR 점검</div>
+          <div style="font-size:18px;color:var(--ink);margin-top:6px;font-weight:600">병용금기 0 · 연령금기 0 · 임부금기 1</div>
+          <div style="font-size:13px;color:var(--mute);margin-top:4px">출처 · API 531 · 533</div>
+        </div>
+        <div style="padding:14px 16px;background:#fff;border:1px solid var(--line);border-radius:10px">
+          <div style="font-size:13px;color:var(--mute);font-weight:600">공급중단·공급부족</div>
+          <div style="font-size:18px;color:var(--ink);margin-top:6px;font-weight:600">현재 0건 · 최근 1년 0건</div>
+          <div style="font-size:13px;color:var(--mute);margin-top:4px">출처 · API 534 · 537</div>
+        </div>
+        <div style="padding:14px 16px;background:#fff;border:1px solid var(--line);border-radius:10px">
+          <div style="font-size:13px;color:var(--mute);font-weight:600">e약은요 · 장애인 안전사용</div>
+          <div style="font-size:14px;color:var(--ink);margin-top:6px;line-height:1.5">통증 · 발열의 완화. 식후 30분 복용 권장. 1회 1정, 1일 3~4회. 음성 안내 제공.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnum"><b>05</b> / 11</div>
+  <div class="footnote">모든 카드에 "출처 API · 동기화 N분 전" 배지 — 식의약 데이터포털 누락 가능성 안내 동시 노출</div>
+</section>
+
+
+<!-- ========== 06 · PRODUCT 360 — FOOD (비타500) ========== -->
+<section data-screen-label="06 Product 360 식품">
+  <div class="chrome">
+    <div class="brand"><div class="dot"></div>RegHub 360</div>
+    <div class="meta"><span>3. 제품 · 화면 3 / 6</span></div>
+  </div>
+
+  <div style="position:absolute;left:80px;right:80px;top:140px">
+    <div class="eyebrow">F-002 Product 360 · 식품</div>
+    <h2 style="font-size:52px;font-weight:700;letter-spacing:-0.03em;margin:8px 0 0;color:var(--ink)">의약품과 같은 구조, 식품 도메인 6개 섹션.</h2>
+  </div>
+
+  <div style="position:absolute;left:80px;right:80px;top:300px;bottom:110px;background:#fff;border-radius:20px;border:1px solid var(--line);box-shadow:0 32px 80px -40px rgba(11,11,17,0.22);overflow:hidden;display:flex;flex-direction:column">
+
+    <!-- Top -->
+    <div style="height:48px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 28px;gap:16px;background:#FCFCFD;flex-shrink:0;font-size:13px;color:var(--mute)">
+      <span style="display:flex;align-items:center;gap:8px;color:var(--ink-2);font-weight:600"><div style="width:12px;height:12px;border-radius:4px;background:var(--accent);position:relative"><div style="position:absolute;inset:3px;background:#fff;border-radius:1px"></div></div>RegHub 360</span>
+      <span style="color:var(--faint)">/</span>
+      <span>통합 검색</span>
+      <span style="color:var(--faint)">/</span>
+      <span>광동제약</span>
+      <span style="color:var(--faint)">/</span>
+      <span style="color:var(--ink);font-weight:600">비타500</span>
+      <span style="margin-left:auto;display:flex;gap:10px"><span class="kbd">★ 워치리스트</span><span class="kbd">↗ 공유</span><span class="kbd">⤓ 리포트</span></span>
+    </div>
+
+    <!-- Hero -->
+    <div style="padding:28px 36px 22px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;gap:32px;flex-shrink:0">
+      <div style="width:96px;height:96px;border-radius:18px;background:linear-gradient(135deg,#FFE082 0%, #FB8C00 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:700;flex-shrink:0;letter-spacing:-0.02em">
+        V500
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="pill" style="background:#FDEFE5;color:#9A3412;border-color:#F6CFB8">식품</span>
+          <span class="pill">혼합음료</span>
+          <span class="pill">푸드QR 등록</span>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:14px;margin-top:10px">
+          <div style="font-size:42px;font-weight:700;color:var(--ink);letter-spacing:-0.02em">비타500</div>
+          <div style="font-size:18px;color:var(--mute)">광동제약(주)</div>
+        </div>
+        <div style="display:flex;gap:24px;margin-top:10px;font-size:14px;color:var(--mute);font-family:ui-monospace,monospace">
+          <span>인허가번호 <span style="color:var(--ink-2);font-weight:600">19850713-01</span></span>
+          <span>품목제조보고 <span style="color:var(--ink-2);font-weight:600">2001-A-00342</span></span>
+          <span>100mL 기준</span>
+        </div>
+      </div>
+      <div style="text-align:right;display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+        <div style="font-size:11px;color:var(--mute);letter-spacing:0.12em;font-weight:600;text-transform:uppercase">RISK SCORE</div>
+        <div style="display:flex;align-items:baseline;gap:6px">
+          <span style="font-size:54px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1">24</span>
+          <span style="font-size:18px;color:var(--mute)">/ 100</span>
+        </div>
+        <span class="pill accent" style="height:28px">● Low · 참고</span>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;padding:0 36px;border-bottom:1px solid var(--line);background:#FCFCFD;flex-shrink:0;font-size:15px">
+      <div style="padding:14px 18px;color:var(--mute)">기본정보</div>
+      <div style="padding:14px 18px;border-bottom:2px solid var(--accent);color:var(--accent-2);font-weight:600">표시 · 영양</div>
+      <div style="padding:14px 18px;color:var(--mute)">위해 이벤트</div>
+      <div style="padding:14px 18px;color:var(--mute)">행정처분</div>
+      <div style="padding:14px 18px;color:var(--mute)">인증 · HACCP</div>
+      <div style="padding:14px 18px;color:var(--mute)">푸드QR</div>
+    </div>
+
+    <!-- Body -->
+    <div style="flex:1;display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:0;min-height:0;background:#FCFCFD">
+      <!-- 영양성분 chart -->
+      <div style="padding:24px 28px;border-right:1px solid var(--line-2);display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mute);font-weight:600;letter-spacing:0.06em;text-transform:uppercase">
+          <span>영양성분 (100mL)</span><span class="pill" style="height:22px;font-size:11px;padding:0 8px">API 1 · 555</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;font-size:14px">
+          <!-- bar row -->
+          <div>
+            <div style="display:flex;justify-content:space-between;color:var(--ink-2);font-weight:600"><span>열량</span><span style="font-variant-numeric:tabular-nums">36 kcal</span></div>
+            <div style="height:8px;background:var(--card-soft);border-radius:4px;margin-top:6px;overflow:hidden"><div style="width:18%;height:100%;background:var(--accent)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;color:var(--ink-2);font-weight:600"><span>탄수화물</span><span style="font-variant-numeric:tabular-nums">8.7 g</span></div>
+            <div style="height:8px;background:var(--card-soft);border-radius:4px;margin-top:6px;overflow:hidden"><div style="width:28%;height:100%;background:var(--accent)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;color:var(--ink-2);font-weight:600"><span>당류</span><span style="font-variant-numeric:tabular-nums">8.5 g</span></div>
+            <div style="height:8px;background:var(--card-soft);border-radius:4px;margin-top:6px;overflow:hidden"><div style="width:85%;height:100%;background:var(--warn)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;color:var(--ink-2);font-weight:600"><span>나트륨</span><span style="font-variant-numeric:tabular-nums">5 mg</span></div>
+            <div style="height:8px;background:var(--card-soft);border-radius:4px;margin-top:6px;overflow:hidden"><div style="width:3%;height:100%;background:var(--accent)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;color:var(--ink-2);font-weight:600"><span>비타민 C</span><span style="font-variant-numeric:tabular-nums">100 mg</span></div>
+            <div style="height:8px;background:var(--card-soft);border-radius:4px;margin-top:6px;overflow:hidden"><div style="width:100%;height:100%;background:var(--ok)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 원재료 -->
+      <div style="padding:24px 28px;border-right:1px solid var(--line-2);display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mute);font-weight:600;letter-spacing:0.06em;text-transform:uppercase">
+          <span>원재료 · 표시</span><span class="pill" style="height:22px;font-size:11px;padding:0 8px">API 444 · 470</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <span class="pill">정제수</span>
+          <span class="pill">백설탕</span>
+          <span class="pill">L-아스코르브산</span>
+          <span class="pill">시트르산</span>
+          <span class="pill">니코틴산아미드</span>
+          <span class="pill">향료</span>
+          <span class="pill">감미료</span>
+        </div>
+        <div style="font-size:13px;color:var(--mute);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-top:8px">알레르기 유발</div>
+        <div style="font-size:18px;color:var(--ink);font-weight:600">해당 없음</div>
+        <div style="font-size:13px;color:var(--mute);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-top:8px">보관 · 용기</div>
+        <div style="font-size:15px;color:var(--ink-2);line-height:1.55">서늘한 곳 보관 · 갈색 유리병 100mL · 회수 가능</div>
+      </div>
+
+      <!-- 위해/처분 -->
+      <div style="padding:24px 28px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mute);font-weight:600;letter-spacing:0.06em;text-transform:uppercase">
+          <span>위해 · 행정처분</span><span class="pill" style="height:22px;font-size:11px;padding:0 8px">API 339 · 6 · 5 · 3</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="padding:14px;background:#fff;border:1px solid var(--line);border-radius:10px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums">0</div>
+            <div style="font-size:12px;color:var(--mute);margin-top:2px">자사 회수 (1년)</div>
+          </div>
+          <div style="padding:14px;background:#fff;border:1px solid var(--line);border-radius:10px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--warn);font-variant-numeric:tabular-nums">2</div>
+            <div style="font-size:12px;color:var(--mute);margin-top:2px">동종 식품 회수</div>
+          </div>
+          <div style="padding:14px;background:#fff;border:1px solid var(--line);border-radius:10px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--warn);font-variant-numeric:tabular-nums">1</div>
+            <div style="font-size:12px;color:var(--mute);margin-top:2px">행정처분</div>
+          </div>
+          <div style="padding:14px;background:#fff;border:1px solid var(--line);border-radius:10px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums">0</div>
+            <div style="font-size:12px;color:var(--mute);margin-top:2px">검사부적합</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:10px">
+          <span style="width:4px;height:34px;border-radius:2px;background:var(--warn);flex-shrink:0"></span>
+          <div style="flex:1"><div style="font-size:14px;color:var(--ink);font-weight:600">표시기준 위반 (경고)</div><div style="font-size:12px;color:var(--mute);margin-top:2px">2025-04-18 · 영양표시 오기재</div></div>
+          <span class="pill warn" style="height:20px;font-size:10px;padding:0 6px">MED</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:10px">
+          <span style="width:4px;height:34px;border-radius:2px;background:var(--ok);flex-shrink:0"></span>
+          <div style="flex:1"><div style="font-size:14px;color:var(--ink);font-weight:600">HACCP 유지 (제조소)</div><div style="font-size:12px;color:var(--mute);margin-top:2px">2027-08 만료</div></div>
+          <span class="pill ok" style="height:20px;font-size:10px;padding:0 6px">유효</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnum"><b>06</b> / 11</div>
+  <div class="footnote">의약품 8섹션 · 의약외품 동일 구조 · 식품 6섹션 — Product 360 공통 레이아웃</div>
+</section>
+
+
+<!-- ========== 07 · INTEGRATED EVENT TIMELINE ========== -->
+<section data-screen-label="07 통합 이벤트 타임라인">
+  <div class="chrome">
+    <div class="brand"><div class="dot"></div>RegHub 360</div>
+    <div class="meta"><span>3. 제품 · 화면 4 / 6 · ★ 핵심</span></div>
+  </div>
+
+  <div style="position:absolute;left:80px;right:80px;top:140px">
+    <div class="eyebrow" style="color:var(--accent)">★ F-003 통합 이벤트 타임라인 — 핵심 기능</div>
+    <h2 style="font-size:52px;font-weight:700;letter-spacing:-0.03em;margin:8px 0 0;color:var(--ink)">7개 이벤트를 단일 포맷으로 평면화.</h2>
+  </div>
+
+  <div style="position:absolute;left:80px;right:80px;top:300px;bottom:110px;background:#fff;border-radius:20px;border:1px solid var(--line);box-shadow:0 32px 80px -40px rgba(11,11,17,0.22);overflow:hidden;display:flex;flex-direction:column">
+
+    <!-- Filter bar -->
+    <div style="padding:20px 32px;border-bottom:1px solid var(--line);background:#FCFCFD;display:flex;align-items:center;gap:14px;flex-wrap:wrap;flex-shrink:0">
+      <span style="font-size:13px;color:var(--mute);font-weight:600;letter-spacing:0.06em;text-transform:uppercase">필터</span>
+      <span style="padding:8px 14px;background:var(--accent);color:#fff;border-radius:999px;font-size:14px;font-weight:600">광동제약 · 동성분 포함</span>
+      <span style="padding:8px 14px;border:1px solid var(--line);color:var(--ink-2);border-radius:999px;font-size:14px;background:#fff">최근 90일</span>
+      <span style="padding:8px 14px;border:1px solid var(--line);color:var(--ink-2);border-radius:999px;font-size:14px;background:#fff">중요도 ≥ MED</span>
+      <span style="padding:8px 14px;border:1px solid var(--line);color:var(--mute);border-radius:999px;font-size:14px;background:#fff">+ 도메인</span>
+      <span style="padding:8px 14px;border:1px solid var(--line);color:var(--mute);border-radius:999px;font-size:14px;background:#fff">+ 부서</span>
+      <span style="margin-left:auto;display:flex;gap:10px;align-items:center">
+        <span style="font-size:13px;color:var(--mute)">전체</span>
+        <span style="font-size:13px;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums">12건</span>
+        <span class="kbd">⤓ 엑셀</span>
+      </span>
+    </div>
+
+    <!-- Timeline body -->
+    <div style="flex:1;padding:24px 40px;display:flex;flex-direction:column;gap:14px;background:#FCFCFD;overflow:hidden">
+
+      <!-- Date divider -->
+      <div style="display:flex;align-items:center;gap:14px;font-size:13px;color:var(--mute);font-weight:600;letter-spacing:0.06em;text-transform:uppercase">
+        <span>2026.05.26 · 오늘</span><span style="flex:1;height:1px;background:var(--line)"></span><span style="color:var(--faint)">3건</span>
+      </div>
+
+      <!-- CRIT card -->
+      <div style="display:flex;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 4px 14px -10px rgba(11,11,17,0.1)">
+        <div style="width:6px;background:var(--crit);flex-shrink:0"></div>
+        <div style="flex:1;padding:18px 24px;display:flex;gap:24px;align-items:center">
+          <div style="font-family:ui-monospace,monospace;font-size:13px;color:var(--mute);min-width:60px">14:32</div>
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:200px">
+            <span class="pill crit" style="height:24px;padding:0 10px;width:fit-content">● CRITICAL</span>
+            <span style="font-size:13px;color:var(--mute);font-weight:600">의약품 회수</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:20px;color:var(--ink);font-weight:600">○○정 (아세트아미노펜 500mg) — 동성분 회수</div>
+            <div style="font-size:15px;color:var(--mute);margin-top:4px">○○제약(주) · 사유: 함량 부적합 (역가 90% 미만) · 영향 lot 12개</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;text-align:right;min-width:220px">
+            <div style="font-size:12px;color:var(--mute)">영향 부서</div>
+            <div style="display:flex;gap:4px"><span class="pill" style="height:22px;font-size:11px;padding:0 7px">QA</span><span class="pill" style="height:22px;font-size:11px;padding:0 7px">RA</span><span class="pill" style="height:22px;font-size:11px;padding:0 7px">영업</span></div>
+            <div style="font-size:12px;color:var(--mute);margin-top:6px">출처 · API 539 · 4분 전</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HIGH card -->
+      <div style="display:flex;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden">
+        <div style="width:6px;background:var(--danger);flex-shrink:0"></div>
+        <div style="flex:1;padding:18px 24px;display:flex;gap:24px;align-items:center">
+          <div style="font-family:ui-monospace,monospace;font-size:13px;color:var(--mute);min-width:60px">11:08</div>
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:200px">
+            <span class="pill danger" style="height:24px;padding:0 10px;width:fit-content">● HIGH</span>
+            <span style="font-size:13px;color:var(--mute);font-weight:600">행정처분</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:20px;color:var(--ink);font-weight:600">광동제약 식품제조가공업 — 영업정지 7일</div>
+            <div style="font-size:15px;color:var(--mute);margin-top:4px">사유: 표시기준 위반(영양성분 오기재) · 처분일 2026.05.26</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;text-align:right;min-width:220px">
+            <div style="font-size:12px;color:var(--mute)">영향 부서</div>
+            <div style="display:flex;gap:4px"><span class="pill" style="height:22px;font-size:11px;padding:0 7px">식품QA</span><span class="pill" style="height:22px;font-size:11px;padding:0 7px">RA</span></div>
+            <div style="font-size:12px;color:var(--mute);margin-top:6px">출처 · API 6 · 1시간 전</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MED card -->
+      <div style="display:flex;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden">
+        <div style="width:6px;background:var(--warn);flex-shrink:0"></div>
+        <div style="flex:1;padding:18px 24px;display:flex;gap:24px;align-items:center">
+          <div style="font-family:ui-monospace,monospace;font-size:13px;color:var(--mute);min-width:60px">09:41</div>
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:200px">
+            <span class="pill warn" style="height:24px;padding:0 10px;width:fit-content">● MEDIUM</span>
+            <span style="font-size:13px;color:var(--mute);font-weight:600">검사부적합</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:20px;color:var(--ink);font-weight:600">홍삼 (원재료) 수입식품 검사부적합 — 잔류농약</div>
+            <div style="font-size:15px;color:var(--mute);margin-top:4px">중국산 · 사용 가능성 있는 자사 품목 3건 자동 매칭</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;text-align:right;min-width:220px">
+            <div style="font-size:12px;color:var(--mute)">영향 부서</div>
+            <div style="display:flex;gap:4px"><span class="pill" style="height:22px;font-size:11px;padding:0 7px">SCM</span><span class="pill" style="height:22px;font-size:11px;padding:0 7px">식품QA</span></div>
+            <div style="font-size:12px;color:var(--mute);margin-top:6px">출처 · API 469 · 3시간 전</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Date divider -->
+      <div style="display:flex;align-items:center;gap:14px;font-size:13px;color:var(--mute);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-top:6px">
+        <span>2026.05.24 · 토요일</span><span style="flex:1;height:1px;background:var(--line)"></span><span style="color:var(--faint)">2건</span>
+      </div>
+
+      <!-- INFO/MED -->
+      <div style="display:flex;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden">
+        <div style="width:6px;background:var(--warn);flex-shrink:0"></div>
+        <div style="flex:1;padding:18px 24px;display:flex;gap:24px;align-items:center">
+          <div style="font-family:ui-monospace,monospace;font-size:13px;color:var(--mute);min-width:60px">15:20</div>
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:200px">
+            <span class="pill warn" style="height:24px;padding:0 10px;width:fit-content">● MEDIUM</span>
+            <span style="font-size:13px;color:var(--mute);font-weight:600">안전성서한</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:20px;color:var(--ink);font-weight:600">아세트아미노펜 함유 제제 — 간기능 이상 사용 주의 권고</div>
+            <div style="font-size:15px;color:var(--mute);margin-top:4px">베니톨정 포함 동성분 312품목 영향 · 표시기재 반영 필요</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;text-align:right;min-width:220px">
+            <div style="font-size:12px;color:var(--mute)">영향 부서</div>
+            <div style="display:flex;gap:4px"><span class="pill" style="height:22px;font-size:11px;padding:0 7px">RA</span><span class="pill" style="height:22px;font-size:11px;padding:0 7px">QA</span></div>
+            <div style="font-size:12px;color:var(--mute);margin-top:6px">출처 · API 547</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOW -->
+      <div style="display:flex;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden">
+        <div style="width:6px;background:var(--accent);flex-shrink:0"></div>
+        <div style="flex:1;padding:18px 24px;display:flex;gap:24px;align-items:center">
+          <div style="font-family:ui-monospace,monospace;font-size:13px;color:var(--mute);min-width:60px">10:02</div>
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:200px">
+            <span class="pill accent" style="height:24px;padding:0 10px;width:fit-content">● LOW</span>
+            <span style="font-size:13px;color:var(--mute);font-weight:600">허가 변경</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:20px;color:var(--ink);font-weight:600">광동제약 신규 의약외품 허가 1건</div>
+            <div style="font-size:15px;color:var(--mute);margin-top:4px">치약제 · 일반 / 부서 확인 권고</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;text-align:right;min-width:220px">
+            <div style="font-size:12px;color:var(--mute)">영향 부서</div>
+            <div style="display:flex;gap:4px"><span class="pill" style="height:22px;font-size:11px;padding:0 7px">RA</span><span class="pill" style="height:22px;font-size:11px;padding:0 7px">영업</span></div>
+            <div style="font-size:12px;color:var(--mute);margin-top:6px">출처 · API 518</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnum"><b>07</b> / 11</div>
+  <div class="footnote">7종 이벤트 통합 · severity 자동 산정 · 영향 부서 자동 태깅 · 워치리스트 매칭 → 즉시 알림</div>
+</section>
+
+
+<!-- ========== 08 · QA/QC WORKSPACE ========== -->
+<section data-screen-label="08 QA/QC 워크스페이스">
+  <div class="chrome">
+    <div class="brand"><div class="dot"></div>RegHub 360</div>
+    <div class="meta"><span>3. 제품 · 화면 5 / 6</span></div>
+  </div>
+
+  <div style="position:absolute;left:80px;right:80px;top:140px">
+    <div class="eyebrow">F-004 부서별 워크스페이스 · QA/QC</div>
+    <h2 style="font-size:52px;font-weight:700;letter-spacing:-0.03em;margin:8px 0 0;color:var(--ink)">로그인하면 부서 위젯이 자동으로.</h2>
+  </div>
+
+  <div style="position:absolute;left:80px;right:80px;top:300px;bottom:110px;background:#fff;border-radius:20px;border:1px solid var(--line);box-shadow:0 32px 80px -40px rgba(11,11,17,0.22);overflow:hidden;display:flex">
+
+    <!-- Sidebar -->
+    <div style="width:240px;border-right:1px solid var(--line);background:#FCFCFD;padding:20px 16px;display:flex;flex-direction:column;gap:24px;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 10px">
+        <div style="width:14px;height:14px;border-radius:4px;background:var(--accent);position:relative"><div style="position:absolute;inset:3px;background:#fff;border-radius:1px"></div></div>
+        <span style="font-size:15px;font-weight:700;color:var(--ink)">RegHub 360</span>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--faint);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0 10px 8px">WORKSPACES</div>
+        <div style="display:flex;flex-direction:column;gap:2px;font-size:14px">
+          <div style="padding:8px 10px;color:var(--mute);border-radius:8px">RA · 허가</div>
+          <div style="padding:8px 10px;background:var(--accent-soft);color:var(--accent-2);font-weight:600;border-radius:8px;display:flex;justify-content:space-between"><span>QA / QC</span><span style="background:var(--danger);color:#fff;font-size:10px;padding:2px 6px;border-radius:6px;font-variant-numeric:tabular-nums">7</span></div>
+          <div style="padding:8px 10px;color:var(--mute);border-radius:8px">SCM · 구매</div>
+          <div style="padding:8px 10px;color:var(--mute);border-radius:8px">영업 · 마케팅</div>
+          <div style="padding:8px 10px;color:var(--mute);border-radius:8px">R&amp;D · BD</div>
+          <div style="padding:8px 10px;color:var(--mute);border-radius:8px">식품 QA · RA</div>
+          <div style="padding:8px 10px;color:var(--mute);border-radius:8px">경영진</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--faint);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0 10px 8px">메뉴</div>
+        <div style="display:flex;flex-direction:column;gap:2px;font-size:14px">
+          <div style="padding:8px 10px;color:var(--mute)">통합 검색</div>
+          <div style="padding:8px 10px;color:var(--mute)">이벤트 타임라인</div>
+          <div style="padding:8px 10px;color:var(--mute)">워치리스트</div>
+          <div style="padding:8px 10px;color:var(--mute)">리포트</div>
+          <div style="padding:8px 10px;color:var(--mute)">AI 코파일럿</div>
+        </div>
+      </div>
+      <div style="margin-top:auto;padding:10px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">KQ</div>
+        <div style="font-size:13px"><div style="color:var(--ink);font-weight:600">김QA</div><div style="color:var(--mute);font-size:11px">광동제약 · QA/QC팀</div></div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0;background:#FCFCFD">
+      <div style="padding:20px 32px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+        <div>
+          <div style="font-size:13px;color:var(--mute);font-weight:600;letter-spacing:0.06em">QA / QC 워크스페이스 · 2026.05.26 화요일</div>
+          <div style="font-size:30px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;margin-top:4px">아침에 가장 먼저 봐야 할 것</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <span class="pill">자사 233 품목</span>
+          <span class="pill">자사 12 업체</span>
+          <span class="pill accent">실시간 동기화</span>
+        </div>
+      </div>
+
+      <!-- KPI row -->
+      <div style="padding:0 32px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;flex-shrink:0">
+        <div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px">
+          <div style="font-size:13px;color:var(--mute);font-weight:600">자사 회수 (24h)</div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px"><span style="font-size:42px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums;letter-spacing:-0.02em">0</span><span style="font-size:14px;color:var(--mute)">건</span></div>
+          <div style="font-size:12px;color:var(--ok);font-weight:600;margin-top:4px">↘ 전주 동시간 -100%</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;position:relative">
+          <div style="position:absolute;top:14px;right:14px;width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 4px var(--danger-soft)"></div>
+          <div style="font-size:13px;color:var(--mute);font-weight:600">동성분 회수 (24h)</div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px"><span style="font-size:42px;font-weight:700;color:var(--danger);font-variant-numeric:tabular-nums;letter-spacing:-0.02em">3</span><span style="font-size:14px;color:var(--mute)">건</span></div>
+          <div style="font-size:12px;color:var(--danger);font-weight:600;margin-top:4px">↗ 즉시 확인 필요</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px">
+          <div style="font-size:13px;color:var(--mute);font-weight:600">자사 행정처분 (7d)</div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px"><span style="font-size:42px;font-weight:700;color:var(--warn);font-variant-numeric:tabular-nums;letter-spacing:-0.02em">1</span><span style="font-size:14px;color:var(--mute)">건</span></div>
+          <div style="font-size:12px;color:var(--warn);font-weight:600;margin-top:4px">광동 식품 · 표시기준</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px">
+          <div style="font-size:13px;color:var(--mute);font-weight:600">GMP 만료 임박 (90d)</div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px"><span style="font-size:42px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-0.02em">2</span><span style="font-size:14px;color:var(--mute)">제조소</span></div>
+          <div style="font-size:12px;color:var(--mute);font-weight:600;margin-top:4px">평택 1 · 안성 1</div>
+        </div>
+      </div>
+
+      <!-- Widgets grid -->
+      <div style="flex:1;padding:18px 32px 22px;display:grid;grid-template-columns:1.2fr 1fr;grid-template-rows:1fr 1fr;gap:14px;min-height:0">
+        <!-- 동성분 회수 list -->
+        <div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 22px;display:flex;flex-direction:column;gap:12px;min-height:0">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:15px;color:var(--ink);font-weight:600">동성분 회수 · 24시간</div>
+            <span class="pill danger" style="height:22px;font-size:11px">3 NEW</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:12px;align-items:center;padding:10px 12px;background:var(--danger-soft);border-radius:8px">
+              <span style="font-family:ui-monospace,monospace;font-size:11px;color:var(--danger);font-weight:600;min-width:52px">14:32</span>
+              <div style="flex:1;min-width:0"><div style="font-size:14px;color:var(--ink);font-weight:600">○○정 · 아세트아미노펜 500mg</div><div style="font-size:12px;color:var(--mute);margin-top:2px">베니톨정 동성분 · ○○제약</div></div>
+              <span class="pill crit" style="height:20px;font-size:10px;padding:0 6px">CRIT</span>
+            </div>
+            <div style="display:flex;gap:12px;align-items:center;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:8px">
+              <span style="font-family:ui-monospace,monospace;font-size:11px;color:var(--mute);font-weight:600;min-width:52px">09:12</span>
+              <div style="flex:1;min-width:0"><div style="font-size:14px;color:var(--ink);font-weight:600">△△캡슐 · 슈도에페드린 60mg</div><div style="font-size:12px;color:var(--mute);margin-top:2px">자가품 동성분 12건 · △△제약</div></div>
+              <span class="pill danger" style="height:20px;font-size:10px;padding:0 6px">HIGH</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- GMP -->
+        <div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 22px;display:flex;flex-direction:column;gap:12px;min-height:0">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:15px;color:var(--ink);font-weight:600">GMP · HACCP 만료 캘린더</div>
+            <span class="pill warn" style="height:22px;font-size:11px">2 임박</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:14px;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:8px">
+              <div style="text-align:center;min-width:48px"><div style="font-size:20px;font-weight:700;color:var(--warn);font-variant-numeric:tabular-nums;line-height:1">D-21</div></div>
+              <div style="flex:1"><div style="font-size:14px;color:var(--ink);font-weight:600">평택 제조소 GMP</div><div style="font-size:12px;color:var(--mute);margin-top:2px">2026.06.16 만료 · 갱신 필요</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:8px">
+              <div style="text-align:center;min-width:48px"><div style="font-size:20px;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums;line-height:1">D-68</div></div>
+              <div style="flex:1"><div style="font-size:14px;color:var(--ink);font-weight:600">안성 HACCP</div><div style="font-size:12px;color:var(--mute);margin-top:2px">2026.08.02 · 식품 라인</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 행정처분 (last 7d) -->
+        <div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 22px;display:flex;flex-direction:column;gap:12px;min-height:0">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:15px;color:var(--ink);font-weight:600">행정처분 · 자사 + 경쟁 · 7일</div>
+            <span class="pill" style="height:22px;font-size:11px">8건</span>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="color:var(--mute);font-weight:600;text-align:left">
+                <th style="padding:6px 0;font-weight:600">업체</th>
+                <th style="padding:6px 0;font-weight:600">위반</th>
+                <th style="padding:6px 0;font-weight:600;text-align:right">처분</th>
+                <th style="padding:6px 0;font-weight:600;text-align:right">일자</th>
+              </tr>
+            </thead>
+            <tbody style="color:var(--ink-2)">
+              <tr style="border-top:1px solid var(--line-2)"><td style="padding:8px 0;font-weight:600">광동제약</td><td>표시기준</td><td style="text-align:right"><span class="pill warn" style="height:18px;font-size:10px;padding:0 6px">정지 7일</span></td><td style="text-align:right;color:var(--mute);font-variant-numeric:tabular-nums">05.26</td></tr>
+              <tr style="border-top:1px solid var(--line-2)"><td style="padding:8px 0">A제약</td><td>GMP 미준수</td><td style="text-align:right"><span class="pill danger" style="height:18px;font-size:10px;padding:0 6px">정지 30일</span></td><td style="text-align:right;color:var(--mute);font-variant-numeric:tabular-nums">05.24</td></tr>
+              <tr style="border-top:1px solid var(--line-2)"><td style="padding:8px 0">B바이오</td><td>광고법</td><td style="text-align:right"><span class="pill" style="height:18px;font-size:10px;padding:0 6px">경고</span></td><td style="text-align:right;color:var(--mute);font-variant-numeric:tabular-nums">05.22</td></tr>
+              <tr style="border-top:1px solid var(--line-2)"><td style="padding:8px 0">C식품</td><td>위생불량</td><td style="text-align:right"><span class="pill warn" style="height:18px;font-size:10px;padding:0 6px">시정명령</span></td><td style="text-align:right;color:var(--mute);font-variant-numeric:tabular-nums">05.20</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 검사부적합 -->
+        <div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 22px;display:flex;flex-direction:column;gap:12px;min-height:0">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:15px;color:var(--ink);font-weight:600">검사부적합 · 원재료 영향</div>
+            <span class="pill warn" style="height:22px;font-size:11px">자동 매칭</span>
+          </div>
+          <div style="font-size:13px;color:var(--mute);line-height:1.55">SCM 등록 원재료와 자동 매칭. 자사 품목에 영향 가능 시 즉시 강조.</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="padding:12px;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
+              <div><div style="font-size:14px;color:var(--ink);font-weight:600">홍삼 (중국산) · 잔류농약</div><div style="font-size:12px;color:var(--mute);margin-top:2px">자사 영향 품목 <strong style="color:var(--danger)">3건</strong></div></div>
+              <span class="pill danger" style="height:22px;font-size:11px;padding:0 8px">확인</span>
+            </div>
+            <div style="padding:12px;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
+              <div><div style="font-size:14px;color:var(--ink);font-weight:600">감초 추출물 · 미생물 기준</div><div style="font-size:12px;color:var(--mute);margin-top:2px">자사 영향 품목 <strong style="color:var(--ok)">없음</strong></div></div>
+              <span class="pill ok" style="height:22px;font-size:11px;padding:0 8px">해당없음</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnum"><b>08</b> / 11</div>
+  <div class="footnote">6개 부서 프리셋 — RA / QA / SCM / 영업 / R&amp;D / 식품QA / 경영진 — 부서별 위젯 자동 구성</div>
+</section>
+
+
+<!-- ========== 09 · AI COPILOT ========== -->
+<section data-screen-label="09 AI 코파일럿">
+  <div class="chrome">
+    <div class="brand"><div class="dot"></div>RegHub 360</div>
+    <div class="meta"><span>3. 제품 · 화면 6 / 6 · ★ 메인</span></div>
+  </div>
+
+  <div style="position:absolute;left:80px;right:80px;top:140px">
+    <div class="eyebrow" style="color:var(--accent)">★ F-006 AI 자연어 검색 · 코파일럿</div>
+    <h2 style="font-size:52px;font-weight:700;letter-spacing:-0.03em;margin:8px 0 0;color:var(--ink)">실무자 문장 그대로 묻고, <em style="font-style:normal;color:var(--accent)">근거 카드</em>로 답한다.</h2>
+  </div>
+
+  <div style="position:absolute;left:80px;right:80px;top:300px;bottom:110px;background:#fff;border-radius:20px;border:1px solid var(--line);box-shadow:0 32px 80px -40px rgba(11,11,17,0.22);overflow:hidden;display:flex">
+
+    <!-- Conversation pane -->
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+      <!-- Header -->
+      <div style="padding:18px 32px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;background:#FCFCFD;flex-shrink:0">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#6366F1,#4F46E5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px">AI</div>
+          <div><div style="font-size:15px;font-weight:600;color:var(--ink)">RegHub Copilot</div><div style="font-size:12px;color:var(--mute)">MISO 에이전트 · 공식 API 결과만 인용</div></div>
+        </div>
+        <div style="display:flex;gap:8px"><span class="pill">스레드 · 광동제약</span><span class="pill accent">근거 모드 ON</span></div>
+      </div>
+
+      <!-- Messages -->
+      <div style="flex:1;padding:28px 36px;display:flex;flex-direction:column;gap:20px;background:#FCFCFD;overflow:hidden">
+        <!-- user msg -->
+        <div style="align-self:flex-end;max-width:78%;background:var(--accent);color:#fff;padding:16px 22px;border-radius:18px 18px 4px 18px;font-size:18px;line-height:1.5;font-weight:500;box-shadow:0 6px 22px -10px rgba(79,70,229,0.45)">
+          광동제약 베니톨정과 동일 성분 제품의 <strong>최근 1년 회수 이력</strong>을 알려주고,<br>자사 품목 영향도 같이 정리해줘.
+        </div>
+
+        <!-- assistant msg -->
+        <div style="align-self:flex-start;max-width:88%;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mute);font-weight:600">
+            <div style="width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,#6366F1,#4F46E5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11px">AI</div>
+            RegHub Copilot · 2초 만에 답변
+          </div>
+          <div style="font-size:19px;line-height:1.55;color:var(--ink);font-weight:500;letter-spacing:-0.01em">
+            베니톨정의 주성분 <strong>아세트아미노펜 500mg</strong> 함유 제제에 대한 최근 1년 회수는
+            <strong style="color:var(--danger)">총 3건</strong>입니다. 사유는 모두 함량 부적합이며,
+            자사 품목 중 동일 성분·제형 제품은 <strong>베니톨정 · 베니톨씨에이정</strong> 2건이 영향 범위입니다.
+            현재 두 품목 모두 자체 회수 이력은 없습니다<sup style="color:var(--accent);font-weight:700"> [1][2]</sup>.
+          </div>
+
+          <!-- source cards -->
+          <div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+            <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;color:var(--accent);font-weight:700">[1] 회수·판매중지</span><span style="font-size:11px;color:var(--mute);font-family:ui-monospace,monospace">API 539</span></div>
+              <div style="font-size:14px;color:var(--ink);font-weight:600;margin-top:6px;line-height:1.4">○○정 — 함량 부적합 (역가)</div>
+              <div style="font-size:12px;color:var(--mute);margin-top:4px;font-family:ui-monospace,monospace">2025-12-04 · ○○제약</div>
+            </div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;color:var(--accent);font-weight:700">[2] 안전성서한</span><span style="font-size:11px;color:var(--mute);font-family:ui-monospace,monospace">API 547</span></div>
+              <div style="font-size:14px;color:var(--ink);font-weight:600;margin-top:6px;line-height:1.4">아세트아미노펜 — 간기능 사용주의</div>
+              <div style="font-size:12px;color:var(--mute);margin-top:4px;font-family:ui-monospace,monospace">2025-08-22 · MFDS</div>
+            </div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;color:var(--accent);font-weight:700">[3] DUR</span><span style="font-size:11px;color:var(--mute);font-family:ui-monospace,monospace">API 531</span></div>
+              <div style="font-size:14px;color:var(--ink);font-weight:600;margin-top:6px;line-height:1.4">병용·임부 금기 점검 결과</div>
+              <div style="font-size:12px;color:var(--mute);margin-top:4px;font-family:ui-monospace,monospace">실시간 · 적용 시점 2026.05.26</div>
+            </div>
+          </div>
+
+          <div style="margin-top:6px;padding:14px 18px;background:var(--accent-soft);border:1px solid #D9DEFB;border-radius:12px;font-size:14px;color:var(--accent-2);display:flex;gap:10px;align-items:center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+            <span><strong>안전장치</strong> · 공식 API 근거 카드 없이는 추측 답변을 만들지 않습니다. 응답마다 출처 URL·동기화 시각이 함께 출력됩니다.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input -->
+      <div style="padding:20px 32px;border-top:1px solid var(--line);background:#fff;flex-shrink:0">
+        <div style="background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:14px 18px;display:flex;gap:12px;align-items:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9498A1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          <span style="flex:1;color:var(--faint);font-size:16px">질문을 입력하세요 — 예: "회수된 동일 lot이 거래처에 출고됐는지 확인해줘"</span>
+          <span class="kbd">↵ 보내기</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suggestions -->
+    <div style="width:340px;border-left:1px solid var(--line);background:#FCFCFD;padding:24px 22px;display:flex;flex-direction:column;gap:16px;flex-shrink:0">
+      <div style="font-size:11px;color:var(--faint);font-weight:700;letter-spacing:0.12em;text-transform:uppercase">이어서 물어볼 만한 것</div>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:14px">
+        <div style="padding:14px 16px;background:#fff;border:1px solid var(--line);border-radius:12px;color:var(--ink-2);line-height:1.45;cursor:pointer">동일 성분 제품의 <strong>FDA 회수 이력</strong>과 비교해줘</div>
+        <div style="padding:14px 16px;background:#fff;border:1px solid var(--line);border-radius:12px;color:var(--ink-2);line-height:1.45;cursor:pointer">베니톨정의 <strong>재심사·재평가 일정</strong>을 알려줘</div>
+        <div style="padding:14px 16px;background:#fff;border:1px solid var(--line);border-radius:12px;color:var(--ink-2);line-height:1.45;cursor:pointer">회수 lot 거래처에 보낼 <strong>안내 메일 초안</strong>을 만들어줘</div>
+        <div style="padding:14px 16px;background:#fff;border:1px solid var(--line);border-radius:12px;color:var(--ink-2);line-height:1.45;cursor:pointer">동성분 경쟁사 GMP·행정처분 요약</div>
+      </div>
+      <div style="margin-top:auto;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--mute);line-height:1.55">
+        <div style="font-weight:600;color:var(--ink-2)">근거 카드 0건일 때</div>
+        "확인 가능한 공식 데이터가 없습니다"로 강제 응답 — hallucination 차단.
+      </div>
+    </div>
+  </div>
+
+  <div class="footnum"><b>09</b> / 11</div>
+  <div class="footnote">기존 자산 MISO 에이전트 <code style="font-family:ui-monospace,monospace;font-size:13px;color:var(--ink-2)">drug_consult_agent.yml</code> 재활용 · 공식 API 결과 인용 강제</div>
+</section>
+
+
+<!-- ========== 10 · ROADMAP + RISK SCORE ========== -->
+<section data-screen-label="10 로드맵">
+  <div class="chrome">
+    <div class="brand"><div class="dot"></div>RegHub 360</div>
+    <div class="meta"><span>4. 실행</span></div>
+  </div>
+
+  <div class="pad">
+    <div class="eyebrow">로드맵 · 리스크 스코어 · MVP 카탈로그</div>
+    <h2 class="title">해커톤 MVP → 실무형 PoC → <em>상용 SaaS</em></h2>
+
+    <!-- 3 phases -->
+    <div style="margin-top:44px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px">
+      <div style="background:var(--card);border:1.5px solid var(--accent);border-radius:20px;padding:24px 26px;position:relative;box-shadow:0 12px 40px -24px rgba(79,70,229,0.4)">
+        <div style="position:absolute;top:-12px;left:20px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;letter-spacing:0.1em;padding:5px 12px;border-radius:6px">PHASE 1 · NOW</div>
+        <div style="font-size:14px;color:var(--accent-2);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-top:10px">해커톤 MVP</div>
+        <div style="font-size:30px;font-weight:700;color:var(--ink);margin-top:2px;letter-spacing:-0.02em">4 – 6주</div>
+        <div style="font-size:17px;color:var(--mute);margin-top:10px;line-height:1.5">12개 API 축, Product 360, 통합 타임라인, 부서 워크스페이스 6종, 워치리스트, AI 코파일럿.</div>
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--ink-2)">
+          <div>W1 · DB 스키마 + 의약품 5 API</div>
+          <div>W2 · 검색 + Product 360</div>
+          <div>W3 · 식품 4 API</div>
+          <div>W4 · 워크스페이스 + 알림</div>
+          <div>W5 · 리포트 + 코파일럿</div>
+          <div>W6 · 통합/부하 테스트</div>
+        </div>
+      </div>
+
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px 26px">
+        <div style="font-size:14px;color:var(--mute);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-top:10px">실무형 PoC</div>
+        <div style="font-size:30px;font-weight:700;color:var(--ink);margin-top:2px;letter-spacing:-0.02em">+ 2 – 3개월</div>
+        <div style="font-size:17px;color:var(--mute);margin-top:10px;line-height:1.5">위젯 프리셋 편집기, 엑셀/PDF 4종 템플릿, 마약류 통계 시리즈, 임상·특허·생동성, HACCP·건기식 GMP.</div>
+        <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;color:var(--ink-2)">
+          <span class="pill">위젯 프리셋</span>
+          <span class="pill">리포트 4종</span>
+          <span class="pill">마약류 통계</span>
+          <span class="pill">임상·특허</span>
+          <span class="pill">HACCP</span>
+          <span class="pill">건기식 GMP</span>
+        </div>
+      </div>
+
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px 26px">
+        <div style="font-size:14px;color:var(--mute);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-top:10px">상용 SaaS</div>
+        <div style="font-size:30px;font-weight:700;color:var(--ink);margin-top:2px;letter-spacing:-0.02em">+ 6개월</div>
+        <div style="font-size:17px;color:var(--mute);margin-top:10px;line-height:1.5">멀티테넌트, 사업자번호 기반 자사 품목 자동 등록, 일일 리스크 메일, 정교한 알림 룰, 감사 로그.</div>
+        <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;color:var(--ink-2)">
+          <span class="pill">멀티테넌트</span>
+          <span class="pill">자동 등록</span>
+          <span class="pill">일일 메일</span>
+          <span class="pill">감사 로그</span>
+          <span class="pill">SLA</span>
+          <span class="pill">감사 추적</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk score + Catalog -->
+    <div style="margin-top:24px;display:grid;grid-template-columns:1.1fr 1fr;gap:18px">
+      <!-- Risk -->
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px 26px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end">
+          <div>
+            <div style="font-size:12px;color:var(--mute);font-weight:600;letter-spacing:0.12em;text-transform:uppercase">리스크 스코어 엔진</div>
+            <div style="font-size:22px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;margin-top:2px">제품·업체 자동 점수 → KPI · 정렬 기준</div>
+          </div>
+          <span class="pill accent" style="height:26px">services/risk_scoring.py</span>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px;font-family:ui-monospace,monospace;font-size:14px;color:var(--mute);align-items:center;flex-wrap:wrap;line-height:1.8">
+          <span style="color:var(--ink);font-weight:600">Score</span>
+          <span>=</span>
+          <span style="color:var(--accent-2);background:var(--accent-soft);padding:3px 8px;border-radius:6px">Σ(이벤트 가중치)</span>
+          <span>×</span>
+          <span style="color:var(--accent-2);background:var(--accent-soft);padding:3px 8px;border-radius:6px">최근성 보정</span>
+          <span>×</span>
+          <span style="color:var(--accent-2);background:var(--accent-soft);padding:3px 8px;border-radius:6px">반복발생 보정</span>
+        </div>
+        <!-- bar -->
+        <div style="margin-top:16px;height:12px;border-radius:6px;overflow:hidden;display:flex;border:1px solid var(--line)">
+          <div style="flex:20;background:#E5E7EB"></div>
+          <div style="flex:20;background:#A5B4FC"></div>
+          <div style="flex:20;background:#FCD34D"></div>
+          <div style="flex:20;background:#F87171"></div>
+          <div style="flex:20;background:#991B1B"></div>
+        </div>
+        <div style="margin-top:6px;display:grid;grid-template-columns:repeat(5,1fr);font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums">
+          <div><div style="color:var(--ink-2);font-weight:600">0–19</div>Normal</div>
+          <div><div style="color:var(--ink-2);font-weight:600">20–39</div>Low</div>
+          <div><div style="color:var(--ink-2);font-weight:600">40–59</div>Medium</div>
+          <div><div style="color:var(--ink-2);font-weight:600">60–79</div>High</div>
+          <div><div style="color:var(--ink-2);font-weight:600">80 +</div>Critical</div>
+        </div>
+      </div>
+
+      <!-- Catalog -->
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px 26px">
+        <div style="font-size:12px;color:var(--mute);font-weight:600;letter-spacing:0.12em;text-transform:uppercase">MVP API 카탈로그</div>
+        <div style="font-size:22px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;margin-top:2px">12개 축</div>
+        <div style="margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:13px">
+          <span class="pill" style="background:#EAF1FE;color:#1E40AF;border-color:#CFDFFB">의약품 허가</span>
+          <span class="pill" style="background:#EAF1FE;color:#1E40AF;border-color:#CFDFFB">의약품 회수</span>
+          <span class="pill" style="background:#EAF1FE;color:#1E40AF;border-color:#CFDFFB">의약품 처분</span>
+          <span class="pill" style="background:#EAF1FE;color:#1E40AF;border-color:#CFDFFB">안전성·DUR</span>
+          <span class="pill" style="background:#EAF1FE;color:#1E40AF;border-color:#CFDFFB">공급중단</span>
+          <span class="pill" style="background:#F3EAFE;color:#5B21B6;border-color:#DCC7F8">의약외품</span>
+          <span class="pill" style="background:#F3EAFE;color:#5B21B6;border-color:#DCC7F8">마스크 회수</span>
+          <span class="pill" style="background:#F3EAFE;color:#5B21B6;border-color:#DCC7F8">마스크 처분</span>
+          <span class="pill" style="background:#FDEFE5;color:#9A3412;border-color:#F6CFB8">식품 회수</span>
+          <span class="pill" style="background:#FDEFE5;color:#9A3412;border-color:#F6CFB8">식품 처분</span>
+          <span class="pill" style="background:#FDEFE5;color:#9A3412;border-color:#F6CFB8">품목제조</span>
+          <span class="pill" style="background:#FDEFE5;color:#9A3412;border-color:#F6CFB8">푸드QR · 영양</span>
+        </div>
+        <div style="margin-top:12px;font-size:13px;color:var(--mute);line-height:1.5">전체 603건 중 12개 축으로 시작 → 마약류 통계, 임상, 특허, HACCP 등 단계적 확장.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnum"><b>10</b> / 11</div>
+  <div class="footnote">기존 자산 4개 API 연동 · MISO 워크플로우 5종 · 엑셀 캐시 폴백 — 재활용 후 확장</div>
+</section>
+
+
+<!-- ========== 11 · CLOSING ========== -->
+<section data-screen-label="11 마무리" style="background:#0B0B11;color:#fff;overflow:hidden">
+  <div style="position:absolute;inset:0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size:80px 80px;mask-image:radial-gradient(ellipse 60% 60% at 30% 70%, #000 30%, transparent 75%);"></div>
+  <div style="position:absolute;left:-200px;bottom:-260px;width:900px;height:900px;border-radius:50%;
+    background:radial-gradient(circle, rgba(79,70,229,0.5) 0%, rgba(79,70,229,0.15) 35%, transparent 70%);filter:blur(20px)"></div>
+
+  <div class="chrome" style="color:#7E8088">
+    <div class="brand" style="color:#fff"><div class="dot" style="background:#4F46E5"></div>RegHub 360</div>
+    <div class="meta"><span>마무리</span></div>
+  </div>
+
+  <div style="position:absolute;left:120px;right:120px;top:240px">
+    <div style="font-size:18px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#A5B4FC">한 문장 요약</div>
+    <div style="font-size:72px;line-height:1.18;letter-spacing:-0.03em;font-weight:600;margin-top:32px;color:#fff;max-width:1600px">
+      식약처 공공 API를 <span style="color:#A5B4FC">단순 나열</span>하지 않고,<br>
+      제약·식품 실무자가 실제로 묻는 <span style="background:linear-gradient(90deg,#A5B4FC,#fff);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700">질문 기준</span>으로<br>
+      허가·회수·행정처분·안전성·공급망·식품표시를 <span style="color:#A5B4FC">통합</span>해주는<br>
+      <span style="color:#fff;font-weight:700">업무형 규제정보 플랫폼</span>입니다.
+    </div>
+  </div>
+
+  <!-- KPI summary -->
+  <div style="position:absolute;left:120px;right:120px;bottom:140px;display:grid;grid-template-columns:repeat(4,1fr);gap:36px;border-top:1px solid #2A2D35;padding-top:36px">
+    <div>
+      <div style="font-size:13px;letter-spacing:0.18em;color:#7E8088;text-transform:uppercase;font-weight:600">문제</div>
+      <div style="font-size:24px;color:#fff;margin-top:10px;font-weight:600;line-height:1.4">매일 5개 포털을<br>부서별 수동 조회</div>
+    </div>
+    <div>
+      <div style="font-size:13px;letter-spacing:0.18em;color:#7E8088;text-transform:uppercase;font-weight:600">해결</div>
+      <div style="font-size:24px;color:#fff;margin-top:10px;font-weight:600;line-height:1.4">제품명 하나로<br>12개 API 통합</div>
+    </div>
+    <div>
+      <div style="font-size:13px;letter-spacing:0.18em;color:#7E8088;text-transform:uppercase;font-weight:600">차별점</div>
+      <div style="font-size:24px;color:#fff;margin-top:10px;font-weight:600;line-height:1.4">API별 조회가 아닌<br>업무 질문 기준 조회</div>
+    </div>
+    <div>
+      <div style="font-size:13px;letter-spacing:0.18em;color:#7E8088;text-transform:uppercase;font-weight:600">확장성</div>
+      <div style="font-size:24px;color:#fff;margin-top:10px;font-weight:600;line-height:1.4">API 603건 → 의료기기<br>· 바이오까지 확장</div>
+    </div>
+  </div>
+
+  <div class="footnum" style="color:#7E8088"><b style="color:#A5B4FC">11</b> / 11</div>
+  <div class="footnote" style="color:#7E8088">감사합니다 · RegHub 360 v1.0 · 2026.05.26</div>
+</section>
+
+</deck-stage>
+<script src="deck-stage.js"></script>
+</body>
+</html>
