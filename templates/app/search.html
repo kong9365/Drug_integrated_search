@@ -1,6 +1,6 @@
 {% extends "_layout.html" %}
 
-{% block title %}통합 검색 — 광동 RegHub 360{% endblock %}
+{% block title %}통합 검색 — 광동 KD-IRIS{% endblock %}
 
 {% block breadcrumb %}
   <span class="crumb-active">통합 검색</span>
@@ -63,23 +63,23 @@
         <div class="kpi-card">
           <div class="kpi-card__label">허가 정보</div>
           <div class="kpi-card__num"><span class="tnum">{{ sr.counts.drug }}</span><small>품목</small></div>
-          <div class="kpi-card__delta" style="color:var(--ink-3)">의약품 NO 140 + 의약외품 NO 145</div>
+          <div class="kpi-card__delta" style="color:var(--ink-3)">의약품·의약외품 허가</div>
         </div>
         <div class="kpi-card">
           {% if sr.counts.recall > 0 %}<div class="kpi-card__pulse"></div>{% endif %}
           <div class="kpi-card__label">회수·판매중지</div>
           <div class="kpi-card__num {% if sr.counts.recall > 0 %}kpi-card__num--danger{% endif %}"><span class="tnum">{{ sr.counts.recall }}</span><small>건</small></div>
-          <div class="kpi-card__delta" style="color:{% if sr.counts.recall %}var(--danger){% else %}var(--ink-3){% endif %}">NO 539 · 클라이언트 필터링</div>
+          <div class="kpi-card__delta" style="color:{% if sr.counts.recall %}var(--danger){% else %}var(--ink-3){% endif %}">실시간 매칭</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-card__label">행정처분</div>
           <div class="kpi-card__num {% if sr.counts.sanction > 0 %}kpi-card__num--warn{% endif %}"><span class="tnum">{{ sr.counts.sanction }}</span><small>건</small></div>
-          <div class="kpi-card__delta" style="color:var(--ink-3)">NO 564 의약품 행정처분</div>
+          <div class="kpi-card__delta" style="color:var(--ink-3)">의약품 행정처분</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-card__label">의약외품·식품</div>
           <div class="kpi-card__num"><span class="tnum">{{ sr.counts.food }}</span><small>품목</small></div>
-          <div class="kpi-card__delta" style="color:var(--ink-3)">NO 1 영양 + NO 153 수입회수</div>
+          <div class="kpi-card__delta" style="color:var(--ink-3)">식품 영양·수입 회수</div>
         </div>
       </div>
 
@@ -88,18 +88,18 @@
         <div class="kpi-card">
           <div class="kpi-card__label">안전성·DUR</div>
           <div class="kpi-card__num {% if sr.counts.safety > 0 %}kpi-card__num--warn{% endif %}"><span class="tnum">{{ sr.counts.safety }}</span><small>건</small></div>
-          <div class="kpi-card__delta" style="color:var(--ink-3)">NO 547 안전성서한 + NO 531 DUR</div>
+          <div class="kpi-card__delta" style="color:var(--ink-3)">안전성서한·DUR</div>
         </div>
         <div class="kpi-card">
           {% if sr.counts.supply > 0 %}<div class="kpi-card__pulse"></div>{% endif %}
           <div class="kpi-card__label">공급망</div>
           <div class="kpi-card__num {% if sr.counts.supply > 0 %}kpi-card__num--danger{% endif %}"><span class="tnum">{{ sr.counts.supply }}</span><small>건</small></div>
-          <div class="kpi-card__delta" style="color:var(--ink-3)">NO 534 공급중단 + NO 537 부족</div>
+          <div class="kpi-card__delta" style="color:var(--ink-3)">공급중단·부족</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-card__label">R&amp;D</div>
           <div class="kpi-card__num"><span class="tnum">{{ sr.counts.rnd_total or 0 }}</span><small>건</small></div>
-          <div class="kpi-card__delta" style="color:var(--ink-3)">특허·임상·대조약·생동성 (7 API)</div>
+          <div class="kpi-card__delta" style="color:var(--ink-3)">특허·임상·대조약·생동성</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-card__label">품질·심사</div>
@@ -161,12 +161,12 @@
             <div style="display:flex;flex-direction:column;gap:8px">
               {% for ev in search_results.watch_events %}
               <div class="alert-row">
-                <div class="alert-row__bar" style="background:{% if ev.severity == 'HIGH' %}var(--danger){% elif ev.severity == 'MED' %}var(--warn){% else %}var(--brand){% endif %}"></div>
+                <div class="alert-row__bar" style="background:var(--{{ ev.severity_color or 'brand' }})"></div>
                 <div class="flex-1">
                   <div class="alert-row__title">「{{ ev.title }}」 {{ ev.type }}</div>
-                  <div class="alert-row__meta">{{ ev.api }} · {{ ev.date or '-' }} · {{ ev.meta|truncate(40) }}</div>
+                  <div class="alert-row__meta">{{ ev.date or '-' }} · {{ ev.summary|truncate(40) }}</div>
                 </div>
-                <span class="badge badge--{{ 'danger' if ev.severity == 'HIGH' else 'warn' }}">{{ ev.severity }}</span>
+                <span class="badge badge--{{ 'danger' if ev.severity == 'HIGH' else 'warn' }}">{{ ev.severity_level }}</span>
               </div>
               {% else %}
               <div style="padding:14px;background:var(--ok-soft);border-radius:10px;color:var(--ok);font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px">
@@ -187,37 +187,37 @@
             <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
               {% if sr.counts.rnd.patent > 0 %}
               <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-2)">
-                <span><span class="badge">특허</span> <span style="color:var(--ink-3);font-size:12px">NO 561</span></span>
+                <span><span class="badge">특허</span> <span style="color:var(--ink-3);font-size:12px"></span></span>
                 <strong style="color:var(--brand)">{{ sr.counts.rnd.patent }}건</strong>
               </div>
               {% endif %}
               {% if sr.counts.rnd.clinical > 0 %}
               <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-2)">
-                <span><span class="badge">임상시험</span> <span style="color:var(--ink-3);font-size:12px">NO 566</span></span>
+                <span><span class="badge">임상시험</span> <span style="color:var(--ink-3);font-size:12px"></span></span>
                 <strong style="color:var(--brand)">{{ sr.counts.rnd.clinical }}건</strong>
               </div>
               {% endif %}
               {% if sr.counts.rnd.reference > 0 %}
               <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-2)">
-                <span><span class="badge">대조약</span> <span style="color:var(--ink-3);font-size:12px">NO 484</span></span>
+                <span><span class="badge">대조약</span> <span style="color:var(--ink-3);font-size:12px"></span></span>
                 <strong style="color:var(--brand)">{{ sr.counts.rnd.reference }}건</strong>
               </div>
               {% endif %}
               {% if sr.counts.rnd.bioeq > 0 %}
               <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-2)">
-                <span><span class="badge">생동성</span> <span style="color:var(--ink-3);font-size:12px">NO 485</span></span>
+                <span><span class="badge">생동성</span> <span style="color:var(--ink-3);font-size:12px"></span></span>
                 <strong style="color:var(--brand)">{{ sr.counts.rnd.bioeq }}건</strong>
               </div>
               {% endif %}
               {% if sr.counts.rnd.lawsuit > 0 %}
               <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-2)">
-                <span><span class="badge">국내소송</span> <span style="color:var(--ink-3);font-size:12px">NO 557</span></span>
+                <span><span class="badge">국내소송</span> <span style="color:var(--ink-3);font-size:12px"></span></span>
                 <strong style="color:var(--brand)">{{ sr.counts.rnd.lawsuit }}건</strong>
               </div>
               {% endif %}
               {% if sr.counts.rnd.fda_p4 > 0 or sr.counts.rnd.orangebook > 0 %}
               <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0">
-                <span><span class="badge">FDA P4·오렌지북</span> <span style="color:var(--ink-3);font-size:12px">NO 552·562</span></span>
+                <span><span class="badge">FDA P4·오렌지북</span> <span style="color:var(--ink-3);font-size:12px"></span></span>
                 <strong style="color:var(--brand)">{{ sr.counts.rnd.fda_p4 + sr.counts.rnd.orangebook }}건</strong>
               </div>
               {% endif %}
@@ -235,37 +235,37 @@
             <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
               {% if sr.counts.quality.gmp > 0 %}
               <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-2)">
-                <span><span class="badge">GMP 적합판정</span> <span style="color:var(--ink-3);font-size:12px">NO 132</span></span>
+                <span><span class="badge">GMP 적합판정</span> <span style="color:var(--ink-3);font-size:12px"></span></span>
                 <strong style="color:var(--ok)">{{ sr.counts.quality.gmp }}건</strong>
               </div>
               {% endif %}
               {% if sr.counts.quality.shipment > 0 %}
               <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-2)">
-                <span><span class="badge">국가출하승인</span> <span style="color:var(--ink-3);font-size:12px">NO 142</span></span>
+                <span><span class="badge">국가출하승인</span> <span style="color:var(--ink-3);font-size:12px"></span></span>
                 <strong style="color:var(--ok)">{{ sr.counts.quality.shipment }}건</strong>
               </div>
               {% endif %}
               {% if sr.counts.quality.dmf > 0 %}
               <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-2)">
-                <span><span class="badge">원료의약품 DMF</span> <span style="color:var(--ink-3);font-size:12px">NO 483</span></span>
+                <span><span class="badge">원료의약품 DMF</span> <span style="color:var(--ink-3);font-size:12px"></span></span>
                 <strong style="color:var(--ok)">{{ sr.counts.quality.dmf }}건</strong>
               </div>
               {% endif %}
               {% if sr.counts.review.review > 0 %}
               <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-2)">
-                <span><span class="badge">재심사</span> <span style="color:var(--ink-3);font-size:12px">NO 554</span></span>
+                <span><span class="badge">재심사</span> <span style="color:var(--ink-3);font-size:12px"></span></span>
                 <strong style="color:var(--warn)">{{ sr.counts.review.review }}건</strong>
               </div>
               {% endif %}
               {% if sr.counts.review.reeval > 0 %}
               <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-2)">
-                <span><span class="badge">재평가</span> <span style="color:var(--ink-3);font-size:12px">NO 556</span></span>
+                <span><span class="badge">재평가</span> <span style="color:var(--ink-3);font-size:12px"></span></span>
                 <strong style="color:var(--warn)">{{ sr.counts.review.reeval }}건</strong>
               </div>
               {% endif %}
               {% if sr.counts.review.orphan > 0 %}
               <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0">
-                <span><span class="badge">희귀의약품</span> <span style="color:var(--ink-3);font-size:12px">NO 565</span></span>
+                <span><span class="badge">희귀의약품</span> <span style="color:var(--ink-3);font-size:12px"></span></span>
                 <strong style="color:var(--warn)">{{ sr.counts.review.orphan }}건</strong>
               </div>
               {% endif %}
@@ -278,18 +278,18 @@
           <div class="app-card">
             <div class="app-card__head">
               <div class="app-card__title">식품·건기식 인사이트</div>
-              <span class="app-card__caption">NO 535 + NO 51</span>
+              <span class="app-card__caption"> + </span>
             </div>
             <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
               {% if sr.counts.inspection > 0 %}
               <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-2)">
-                <span><span class="badge">식품 검사부적합</span> <span style="color:var(--ink-3);font-size:12px">NO 535</span></span>
+                <span><span class="badge">식품 검사부적합</span> <span style="color:var(--ink-3);font-size:12px"></span></span>
                 <strong style="color:var(--danger)">{{ sr.counts.inspection }}건</strong>
               </div>
               {% endif %}
               {% if sr.counts.hf_gmp > 0 %}
               <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0">
-                <span><span class="badge">건기식 GMP</span> <span style="color:var(--ink-3);font-size:12px">NO 51</span></span>
+                <span><span class="badge">건기식 GMP</span> <span style="color:var(--ink-3);font-size:12px"></span></span>
                 <strong style="color:var(--ok)">{{ sr.counts.hf_gmp }}건</strong>
               </div>
               {% endif %}
@@ -328,21 +328,21 @@
             </div>
             <div style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--ink-3)">
               <strong style="color:var(--ink-2);font-weight:600;font-size:12px;margin-top:2px">의약품 핵심 (11)</strong>
-              <div>NO 140 의약품 허가정보 · NO 248 e약은요</div>
-              <div>NO 539 회수·판매중지 · NO 564 행정처분</div>
-              <div>NO 547 안전성서한 · NO 531·533 DUR</div>
-              <div>NO 534·537 공급중단·부족 · NO 563 낱알식별</div>
+              <div> 의약품 허가정보 ·  e약은요</div>
+              <div> 회수·판매중지 ·  행정처분</div>
+              <div> 안전성서한 ·  DUR</div>
+              <div> 공급중단·부족 ·  낱알식별</div>
               <strong style="color:var(--ink-2);font-weight:600;font-size:12px;margin-top:6px">R&amp;D (7)</strong>
-              <div>NO 561 특허 · NO 557 국내소송</div>
-              <div>NO 552 FDA P4 · NO 562 오렌지북</div>
-              <div>NO 566 임상시험 · NO 484 대조약 · NO 485 생동성</div>
+              <div> 특허 ·  국내소송</div>
+              <div> FDA P4 ·  오렌지북</div>
+              <div> 임상시험 ·  대조약 ·  생동성</div>
               <strong style="color:var(--ink-2);font-weight:600;font-size:12px;margin-top:6px">품질·심사 (7)</strong>
-              <div>NO 132 GMP · NO 142 국가출하 · NO 483 DMF</div>
-              <div>NO 554 재심사 · NO 556 재평가 · NO 565 희귀</div>
-              <div>NO 269 묶음의약품(HIRA)</div>
+              <div> GMP ·  국가출하 ·  DMF</div>
+              <div> 재심사 ·  재평가 ·  희귀</div>
+              <div> 묶음의약품(HIRA)</div>
               <strong style="color:var(--ink-2);font-weight:600;font-size:12px;margin-top:6px">의약외품·식품·건기식 (3)</strong>
-              <div>NO 145 의약외품 · NO 1 식품영양</div>
-              <div>NO 153 수입식품 · NO 535 검사부적합 · NO 51 건기식 GMP</div>
+              <div> 의약외품 ·  식품영양</div>
+              <div> 수입식품 ·  검사부적합 ·  건기식 GMP</div>
               <div style="margin-top:8px;color:var(--ink-2);font-weight:500;font-size:12px">호출 시점 실시간 · 식약처 공공 API</div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 {% extends "_layout.html" %}
 
-{% block title %}이벤트 타임라인 — 광동 RegHub 360{% endblock %}
+{% block title %}이벤트 타임라인 — 광동 KD-IRIS{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='styles/app-extra.css') }}">
@@ -96,7 +96,7 @@
         {% for ev in events %}
           {% if ev.date != ns.prev_date %}
             {# 날짜 헤더 (시간순 정렬됨) #}
-            <div class="timeline__date-divider">{{ ev.date or '날짜 미상' }}<span class="timeline__date-count">{{ ev.api }}</span></div>
+            <div class="timeline__date-divider">{{ ev.date or '날짜 미상' }}</div>
             {% set ns.prev_date = ev.date %}
           {% endif %}
           <div class="event-card">
@@ -112,9 +112,6 @@
                 <div class="event-card__meta">{{ ev.entity }}{% if ev.summary %} · {{ ev.summary|truncate(80) }}{% endif %}</div>
               </div>
               <div class="event-card__side">
-                <span class="event-card__side-label">출처</span>
-                <div class="event-card__side-tags"><span class="badge">{{ ev.domain_kr }}</span></div>
-                <a href="{{ ev.url }}" target="_blank" class="event-card__side-api" style="color:var(--brand)">{{ ev.api }} →</a>
               </div>
             </div>
           </div>

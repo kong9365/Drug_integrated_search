@@ -84,6 +84,15 @@ def fetch_drug_safety_letter(title=None, page_no=1, num_of_rows=10):
                           page_no=page_no, num_of_rows=num_of_rows)
 
 
+def fetch_quasi_approval(item_name=None, entp_name=None, page_no=1, num_of_rows=10):
+    """NO 145 의약외품 제품 허가정보 — snake_case 파라미터 (item_name, entp_name)."""
+    return _fetch_generic(
+        "quasi_approval", "의약외품 허가",
+        {"item_name": item_name, "entp_name": entp_name},
+        page_no=page_no, num_of_rows=num_of_rows,
+    )
+
+
 def fetch_drug_review(entp_name=None, item_name=None, page_no=1, num_of_rows=10):
     """NO 554 의약품 재심사."""
     return _fetch_generic("drug_review", "재심사",

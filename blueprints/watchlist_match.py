@@ -80,72 +80,98 @@ _FIELDS = {
 
 
 def _normalize_event(kind: str, raw: Dict) -> Dict:
-    """API별 필드명 차이를 흡수해서 템플릿이 공통 키로 접근 가능하게."""
+    """
+    API별 필드명 차이를 흡수해 템플릿 공통 스키마로 반환.
+
+    공통 출력 키 (KD-IRIS v3 §3.3):
+      type / type_label / severity_level / severity_color
+      title / entity / summary / date / is_new / product_code / in_watchlist
+    """
+    from datetime import date as _date
+    from .severity import get_severity
+
+    # severity 라벨/색상은 단일 SEVERITY_MAP에서
+    # 내부 kind 키 매핑 (legacy 호환)
+    _kind_map = {
+        "recall":   "recall",
+        "safety":   "safety_letter",
+        "sanction": "disciplinary",
+        "supply":   "supply_stop",
+        "patent":   "patent_new",
+        "clinical": "clinical_new",
+        "review":   "review_due",
+        "reeval":   "reeval_done",
+    }
+    canonical = _kind_map.get(kind, kind)
+    sev = get_severity(canonical)
+
+    today = _date.today().isoformat()
+
+    # 필드별 raw 추출
     if kind == "recall":
-        return {
-            "kind": "recall", "kind_kr": "회수·판매중지", "severity": "HIGH",
-            "title": (raw.get("PRDUCT") or "(품목 미상)")[:60],
-            "meta": (raw.get("RTRVL_RESN") or "")[:80] + (" · " + raw.get("ENTRPS") if raw.get("ENTRPS") else ""),
-            "date": (raw.get("RECALL_COMMAND_DATE") or "")[:10],
-            "api": "NO 539",
-        }
-    if kind == "safety":
-        return {
-            "kind": "safety", "kind_kr": "안전성서한", "severity": "MED",
-            "title": (raw.get("TITLE") or "")[:60],
-            "meta": (raw.get("SUMRY_CONT") or "")[:80],
-            "date": (raw.get("PBANC_YMD") or "")[:10],
-            "api": "NO 547",
-        }
-    if kind == "sanction":
-        return {
-            "kind": "sanction", "kind_kr": "행정처분", "severity": "MED",
-            "title": (raw.get("ENTP_NAME") or "(업체 미상)")[:60],
-            "meta": (raw.get("VIOLATION_DETAIL") or raw.get("VIOLATION_LAW") or "")[:80],
-            "date": (raw.get("DSPS_DCSNDT") or "")[:10],
-            "api": "NO 564",
-        }
-    if kind == "supply":
-        return {
-            "kind": "supply", "kind_kr": "공급중단", "severity": "HIGH",
-            "title": (raw.get("ITEM_NAME") or "(품목 미상)")[:60],
-            "meta": (raw.get("ENTP_NAME") or "") + " · " + (raw.get("REPORT_PGS_CODE") or ""),
-            "date": "",
-            "api": "NO 534",
-        }
-    if kind == "patent":
-        return {
-            "kind": "patent", "kind_kr": "특허 등록", "severity": "LOW",
-            "title": (raw.get("ITEM_NAME") or raw.get("PAT_NO") or "(특허 미상)")[:60],
-            "meta": (raw.get("INGR_NAME") or "") + (" · " + raw.get("ENTP_NAME") if raw.get("ENTP_NAME") else ""),
-            "date": (raw.get("EXPIRE_DATE") or "")[:10],
-            "api": "NO 561",
-        }
-    if kind == "clinical":
-        return {
-            "kind": "clinical", "kind_kr": "임상시험", "severity": "LOW",
-            "title": (raw.get("GOODS_NAME") or "(임상 미상)")[:60],
-            "meta": (raw.get("CLINIC_EXAM_TITLE") or "")[:80],
-            "date": "",
-            "api": "NO 566",
-        }
-    if kind == "review":
-        return {
-            "kind": "review", "kind_kr": "재심사", "severity": "MED",
-            "title": (raw.get("ITEM_NAME") or "(품목 미상)")[:60],
-            "meta": (raw.get("ENTP_NAME") or ""),
-            "date": (raw.get("REJDGE_DT") or "")[:10],
-            "api": "NO 554",
-        }
-    if kind == "reeval":
-        return {
-            "kind": "reeval", "kind_kr": "재평가", "severity": "MED",
-            "title": (raw.get("ITEM_NAME") or "(품목 미상)")[:60],
-            "meta": (raw.get("ENTP_NAME") or ""),
-            "date": (raw.get("REVAL_DT") or "")[:10],
-            "api": "NO 556",
-        }
-    return {"kind": kind, "title": "(미상)", "meta": "", "date": "", "api": ""}
+        title  = (raw.get("PRDUCT") or "(품목 미상)")[:60]
+        entity = raw.get("ENTRPS") or ""
+        summary= (raw.get("RTRVL_RESN") or "")[:100]
+        date   = (raw.get("RECALL_COMMAND_DATE") or "")[:10]
+        code   = raw.get("ITEM_SEQ") or ""
+    elif kind == "safety":
+        title  = (raw.get("TITLE") or "")[:60]
+        entity = raw.get("PBANC_DIVS_NM") or ""
+        summary= (raw.get("SUMRY_CONT") or "")[:100]
+        date   = (raw.get("PBANC_YMD") or "")[:10]
+        code   = raw.get("ITEM_SEQ") or ""
+    elif kind == "sanction":
+        title  = (raw.get("ENTP_NAME") or raw.get("ENTRPS_NAME") or "(업체 미상)")[:60]
+        entity = raw.get("ENTP_NAME") or raw.get("ENTRPS_NAME") or ""
+        summary= (raw.get("VIOLATION_DETAIL") or raw.get("VIOLATION_LAW") or "")[:100]
+        date   = (raw.get("DSPS_DCSNDT") or "")[:10]
+        code   = ""
+    elif kind == "supply":
+        title  = (raw.get("ITEM_NAME") or "(품목 미상)")[:60]
+        entity = raw.get("ENTP_NAME") or ""
+        summary= (raw.get("REPORT_PGS_CODE") or "") + (" · " + raw.get("SUSPEND_REPORT_FLAG") if raw.get("SUSPEND_REPORT_FLAG") else "")
+        date   = ""
+        code   = raw.get("ITEM_SEQ") or ""
+    elif kind == "patent":
+        title  = (raw.get("ITEM_NAME") or raw.get("PAT_NO") or "(특허 미상)")[:60]
+        entity = raw.get("ENTP_NAME") or ""
+        summary= (raw.get("INGR_NAME") or "")[:100]
+        date   = (raw.get("EXPIRE_DATE") or "")[:10]
+        code   = ""
+    elif kind == "clinical":
+        title  = (raw.get("GOODS_NAME") or "(임상 미상)")[:60]
+        entity = raw.get("APPLY_ENTP_NAME") or ""
+        summary= (raw.get("CLINIC_EXAM_TITLE") or "")[:100]
+        date   = ""
+        code   = ""
+    elif kind == "review":
+        title  = (raw.get("ITEM_NAME") or "(품목 미상)")[:60]
+        entity = raw.get("ENTP_NAME") or ""
+        summary= "재심사 일정"
+        date   = (raw.get("REJDGE_DT") or "")[:10]
+        code   = raw.get("ITEM_SEQ") or ""
+    elif kind == "reeval":
+        title  = (raw.get("ITEM_NAME") or "(품목 미상)")[:60]
+        entity = raw.get("ENTP_NAME") or ""
+        summary= "재평가 결과"
+        date   = (raw.get("REVAL_DT") or "")[:10]
+        code   = raw.get("ITEM_SEQ") or ""
+    else:
+        title, entity, summary, date, code = "(미상)", "", "", "", ""
+
+    return {
+        "type":           canonical,
+        "type_label":     sev["label"],
+        "severity_level": sev["level"],
+        "severity_color": sev["color"],
+        "title":          title,
+        "entity":         entity,
+        "summary":        summary,
+        "date":           date,
+        "is_new":         bool(date) and date == today,
+        "product_code":   code,
+        "in_watchlist":   False,
+    }
 
 
 def match_for_entries(entries: List[Dict]) -> Dict[str, Dict]:

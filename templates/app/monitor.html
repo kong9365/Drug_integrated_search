@@ -1,0 +1,92 @@
+{% extends "_layout.html" %}
+{% from "_macros.html" import event_card %}
+
+{% block title %}이벤트 모니터 — 광동 KD-IRIS{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/app-extra.css') }}">
+{% endblock %}
+
+{% block breadcrumb %}
+  <span class="crumb-active">이벤트 모니터</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <div class="app-topbar__search">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <span style="flex:1">제품·업체·성분 빠른 검색</span><span class="kbd">⌘ K</span>
+  </div>
+  <a href="/app/export/monitor?format=xlsx" class="btn btn--ghost btn--sm" title="Phase R-3에서 활성화 예정">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+    Excel 내보내기
+  </a>
+{% endblock %}
+
+{% block content %}
+  <div class="app-content">
+
+    <!-- 현황 배너 -->
+    <div class="page-head">
+      <div>
+        <h1 class="page-head__title">이벤트 모니터</h1>
+        <p class="page-head__sub">회수·처분·안전성·공급·R&amp;D 이벤트 통합. 심각도 기반 정렬 + 워치리스트 매칭 표시.</p>
+      </div>
+      <div class="page-head__actions" style="display:flex;gap:10px">
+        <span class="badge badge--brand badge--dot">실시간 fetch</span>
+        <span class="badge">총 {{ total_count or 0 }}건</span>
+      </div>
+    </div>
+
+    <!-- KPI 4종 (전체·CRITICAL·HIGH·LOW) -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+      <div class="kpi-card" style="padding:16px 18px">
+        <div class="kpi-card__label">전체 이벤트</div>
+        <div class="kpi-card__num" style="font-size:30px"><span class="tnum">{{ total_count or 0 }}</span></div>
+      </div>
+      <div class="kpi-card" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="kpi-card__label">🔴 긴급</span><span class="badge badge--danger badge--dot" style="font-size:10px">CRITICAL</span></div>
+        <div class="kpi-card__num" style="font-size:30px;color:var(--danger)"><span class="tnum">{{ severity_counts.critical or 0 }}</span></div>
+      </div>
+      <div class="kpi-card" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="kpi-card__label">🟡 주의</span><span class="badge badge--warn badge--dot" style="font-size:10px">HIGH</span></div>
+        <div class="kpi-card__num" style="font-size:30px;color:var(--warn)"><span class="tnum">{{ severity_counts.high or 0 }}</span></div>
+      </div>
+      <div class="kpi-card" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="kpi-card__label">🟢 정보</span><span class="badge badge--info badge--dot" style="font-size:10px">LOW</span></div>
+        <div class="kpi-card__num" style="font-size:30px;color:var(--brand)"><span class="tnum">{{ severity_counts.low or 0 }}</span></div>
+      </div>
+    </div>
+
+    <!-- Subtabs by type (10종) -->
+    <div class="subtabs">
+      <button class="subtab is-active">전체 <span class="subtab__count">{{ total_count or 0 }}</span></button>
+      <button class="subtab">회수·판매중지 <span class="subtab__count">{{ type_counts.recall or 0 }}</span></button>
+      <button class="subtab">행정처분 <span class="subtab__count">{{ type_counts.disciplinary or 0 }}</span></button>
+      <button class="subtab">안전성서한 <span class="subtab__count">{{ type_counts.safety_letter or 0 }}</span></button>
+      <button class="subtab">공급중단 <span class="subtab__count">{{ type_counts.supply_stop or 0 }}</span></button>
+      <button class="subtab">검사부적합 <span class="subtab__count">{{ type_counts.inspection_fail or 0 }}</span></button>
+      <button class="subtab">신규허가 <span class="subtab__count">{{ type_counts.permit_new or 0 }}</span></button>
+      <button class="subtab">임상 신규 <span class="subtab__count">{{ type_counts.clinical_new or 0 }}</span></button>
+      <button class="subtab">특허 신규 <span class="subtab__count">{{ type_counts.patent_new or 0 }}</span></button>
+      <button class="subtab">재심사 예정 <span class="subtab__count">{{ type_counts.review_due or 0 }}</span></button>
+      <button class="subtab">재평가 완료 <span class="subtab__count">{{ type_counts.reeval_done or 0 }}</span></button>
+    </div>
+
+    <!-- 이벤트 카드 목록 (event_card 매크로) -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
+      {% if events %}
+        {% for ev in events %}
+          {{ event_card(ev) }}
+        {% endfor %}
+        <div style="text-align:center;padding:20px 0;color:var(--ink-3);font-size:13px">
+          상위 {{ events|length }}건 표시 · 전체 {{ total_count }}건
+        </div>
+      {% else %}
+        <div style="padding:60px;text-align:center;color:var(--ink-3)">
+          <h3 style="color:var(--ink-1)">최근 이벤트가 없습니다</h3>
+          <p style="font-size:14px">실시간 호출 결과 0건입니다. 잠시 후 다시 시도해 주세요.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

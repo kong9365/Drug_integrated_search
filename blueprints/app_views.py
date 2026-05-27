@@ -10,7 +10,7 @@ RegHub 360 — 앱 페이지 Blueprint (MVP 6개 화면)
     Phase 2로 미루어 라우트 제거 (사이드바에서는 비활성 표시).
 """
 import logging
-from flask import Blueprint, render_template, request, redirect
+from flask import Blueprint, render_template, request, redirect, url_for
 
 from ..api_client import fetch_approval, fetch_disciplinary, fetch_recall, fetch_identification
 from ..api_extras import (
@@ -223,20 +223,18 @@ def search():
         for r in recalls_filtered[:8]:
             watch_events.append({
                 "type": "회수",
-                "severity": "HIGH",
+                "severity_level": "HIGH", "severity_color": "warn",
                 "title": (r.get("PRDUCT") or "(제품 미상)")[:50],
-                "meta": (r.get("RTRVL_RESN") or "")[:60] + " · " + (r.get("ENTRPS") or ""),
+                "summary": (r.get("RTRVL_RESN") or "")[:60] + " · " + (r.get("ENTRPS") or ""),
                 "date": (r.get("RECALL_COMMAND_DATE") or "")[:10],
-                "api": "API 539",
             })
         for s in sanctions_filtered[:5]:
             watch_events.append({
                 "type": "행정처분",
-                "severity": "MED",
+                "severity_level": "HIGH", "severity_color": "warn",
                 "title": (s.get("ENTP_NAME") or "(업체 미상)")[:50],
-                "meta": (s.get("VIOLATION_DETAIL") or s.get("VIOLATION_LAW") or "")[:60],
+                "summary": (s.get("VIOLATION_DETAIL") or s.get("VIOLATION_LAW") or "")[:60],
                 "date": (s.get("DSPS_DCSNDT") or "")[:10],
-                "api": "API 564",
             })
         for sl in (results.get("safety", {}).get("items", []) or [])[:3]:
             # 안전성서한 필터링 — 검색어 포함만
@@ -244,11 +242,10 @@ def search():
             if q.lower() in title.lower() or q.lower() in (sl.get("SUMRY_CONT") or "").lower():
                 watch_events.append({
                     "type": "안전성서한",
-                    "severity": "MED",
+                    "severity_level": "HIGH", "severity_color": "warn",
                     "title": title[:50],
-                    "meta": (sl.get("SUMRY_CONT") or "")[:60],
+                    "summary": (sl.get("SUMRY_CONT") or "")[:60],
                     "date": (sl.get("PBANC_YMD") or "")[:10],
-                    "api": "API 547",
                 })
         watch_events.sort(key=lambda e: e["date"], reverse=True)
 
@@ -551,6 +548,65 @@ def product_drug(code):
     )
 
 
+@app_bp.route("/product-quasi/<code>")
+def product_quasi(code):
+    """의약외품 Product 360 — NO 145 + 564(처분) + 547(안전성서한) + 534(공급) 통합."""
+    from ..api_extras import (fetch_quasi_approval, fetch_drug_safety_letter,
+                              fetch_drug_supply_stop)
+    product = None
+    safety_letters = []
+    related_recalls = []
+    related_sanctions = []
+    supply_stops = []
+    try:
+        # NO 145 의약외품 허가 — 검색 키워드가 품목명 우선
+        resp = fetch_quasi_approval(item_name=code, num_of_rows=1)
+        if resp.get("items"):
+            product = resp["items"][0]
+            item_name = product.get("ITEM_NAME") or ""
+            entp_name = product.get("ENTP_NAME") or ""
+            # 안전성서한
+            try:
+                sl = fetch_drug_safety_letter(title=item_name.split('(')[0], num_of_rows=3)
+                safety_letters = sl.get("items", [])
+            except Exception:
+                pass
+            # 행정처분 (클라이언트 필터)
+            try:
+                dr = fetch_disciplinary(num_of_rows=200)
+                needle = (entp_name or item_name).lower()
+                related_sanctions = [
+                    it for it in dr.get("items", [])
+                    if needle and (needle in str(it.get("ENTP_NAME", "")).lower()
+                                   or needle in str(it.get("ITEM_NAME", "")).lower())
+                ][:5]
+            except Exception:
+                pass
+            # 공급중단 (클라이언트 필터)
+            try:
+                ss = fetch_drug_supply_stop(num_of_rows=200)
+                needle = (item_name.split('(')[0] or "").lower()
+                supply_stops = [
+                    it for it in ss.get("items", [])
+                    if needle and needle in str(it.get("ITEM_NAME", "")).lower()
+                ][:3]
+            except Exception:
+                pass
+    except Exception as e:
+        logger.warning(f"product_quasi 데이터 수집 실패 (code={code}): {e}")
+
+    return render_template(
+        "app/product_quasi.html",
+        active_page="search",
+        product_code=code,
+        product=product,
+        safety_letters=safety_letters,
+        related_sanctions=related_sanctions,
+        related_recalls=related_recalls,
+        supply_stops=supply_stops,
+    )
+
+
 @app_bp.route("/product-food/<code>")
 def product_food(code):
     """식품 Product 360 — 자리 표시자 (식품 API 5개 명세 대기)."""
@@ -584,7 +640,13 @@ def product_food(code):
 
 @app_bp.route("/timeline")
 def timeline():
-    """통합 이벤트 타임라인 — 회수+처분+안전성서한+공급중단 통합 평면화."""
+    """기존 /app/timeline → /app/monitor 301 redirect (KD-IRIS v3)."""
+    return redirect(url_for("app.monitor"), code=301)
+
+
+@app_bp.route("/monitor")
+def monitor():
+    """이벤트 모니터 — 회수·처분·안전성·공급중단·R&D 통합 평면화 (KD-IRIS v3)."""
     events = []
     try:
         # 회수 (NO 539)
@@ -592,16 +654,12 @@ def timeline():
         for r in rr.get("items", [])[:15]:
             events.append({
                 "type": "recall",
-                "type_kr": "회수·판매중지",
-                "severity": "HIGH",
-                "domain": "drug",
-                "domain_kr": "의약품",
+                "type_label": "회수·판매중지",
+                "severity_level": "CRITICAL", "severity_color": "danger",
                 "title": (r.get("PRDUCT") or "(제품 미상)")[:60],
                 "summary": (r.get("RTRVL_RESN") or "")[:100],
                 "entity": r.get("ENTRPS") or "",
                 "date": (r.get("RECALL_COMMAND_DATE") or r.get("ENFRC_YN") or "")[:10],
-                "api": "API 539",
-                "url": "https://www.data.go.kr/data/15059114/openapi.do",
             })
     except Exception as e:
         logger.warning(f"timeline recall 수집 실패: {e}")
@@ -611,16 +669,12 @@ def timeline():
         for d in dr.get("items", [])[:10]:
             events.append({
                 "type": "disciplinary",
-                "type_kr": "행정처분",
-                "severity": "MED",
-                "domain": "drug",
-                "domain_kr": "의약품",
+                "type_label": "행정처분",
+                "severity_level": "HIGH", "severity_color": "warn",
                 "title": (d.get("ENTP_NAME") or "(업체 미상)")[:60],
                 "summary": (d.get("VIOLATION_DETAIL") or d.get("VIOLATION_LAW") or "")[:100],
                 "entity": d.get("ENTP_NAME") or "",
                 "date": (d.get("DSPS_DCSNDT") or "")[:10],
-                "api": "API 564",
-                "url": "https://www.data.go.kr/data/15058457/openapi.do",
             })
     except Exception as e:
         logger.warning(f"timeline disc 수집 실패: {e}")
@@ -630,16 +684,12 @@ def timeline():
         for s in sl.get("items", [])[:8]:
             events.append({
                 "type": "safety_letter",
-                "type_kr": "안전성서한",
-                "severity": "MED",
-                "domain": "drug",
-                "domain_kr": "의약품",
+                "type_label": "안전성서한",
+                "severity_level": "HIGH", "severity_color": "warn",
                 "title": (s.get("TITLE") or "")[:60],
                 "summary": (s.get("SUMRY_CONT") or "")[:100],
                 "entity": s.get("PBANC_DIVS_NM") or "",
                 "date": (s.get("PBANC_YMD") or "")[:10],
-                "api": "API 547",
-                "url": "https://www.data.go.kr/data/15059182/openapi.do",
             })
     except Exception as e:
         logger.warning(f"timeline safety 수집 실패: {e}")
@@ -649,16 +699,12 @@ def timeline():
         for s in ss.get("items", [])[:5]:
             events.append({
                 "type": "supply_stop",
-                "type_kr": "공급중단",
-                "severity": "HIGH",
-                "domain": "drug",
-                "domain_kr": "의약품",
+                "type_label": "공급중단",
+                "severity_level": "CRITICAL", "severity_color": "danger",
                 "title": (s.get("ITEM_NAME") or "(품목 미상)")[:60],
                 "summary": (s.get("REPORT_PGS_CODE") or "") + " · " + (s.get("SUSPEND_REPORT_FLAG") or ""),
                 "entity": s.get("ENTP_NAME") or "",
                 "date": "",  # 응답에 날짜 필드명 불명확
-                "api": "API 534",
-                "url": "https://www.data.go.kr/data/15057899/openapi.do",
             })
     except Exception as e:
         logger.warning(f"timeline supply 수집 실패: {e}")
@@ -669,16 +715,12 @@ def timeline():
         for item in fi.get("items", [])[:8]:
             events.append({
                 "type": "inspection_fail",
-                "type_kr": "검사부적합",
-                "severity": "MED",
-                "domain": "food",
-                "domain_kr": "식품",
+                "type_label": "검사부적합",
+                "severity_level": "HIGH", "severity_color": "warn",
                 "title": (item.get("PRDUCT") or "(품목 미상)")[:60],
                 "summary": (item.get("IMPROPT_ITM") or "")[:100],
                 "entity": item.get("ENTRPS") or "",
                 "date": (item.get("REGIST_DT") or "")[:10],
-                "api": "API 535",
-                "url": "https://www.data.go.kr/data/15056516/openapi.do",
             })
     except Exception as e:
         logger.warning(f"timeline inspection 수집 실패: {e}")
@@ -688,16 +730,12 @@ def timeline():
         for item in ap.get("items", [])[:5]:
             events.append({
                 "type": "permit_new",
-                "type_kr": "신규 허가",
-                "severity": "LOW",
-                "domain": "drug",
-                "domain_kr": "의약품",
+                "type_label": "신규 허가",
+                "severity_level": "LOW", "severity_color": "info",
                 "title": (item.get("ITEM_NAME") or "(품목 미상)")[:60],
                 "summary": (item.get("SPCLTY_PBLC") or "") + " · " + (item.get("PRDUCT_TYPE") or ""),
                 "entity": item.get("ENTP_NAME") or "",
                 "date": (item.get("ITEM_PERMIT_DATE") or "")[:8],
-                "api": "API 140",
-                "url": "https://www.data.go.kr/data/15095677/openapi.do",
             })
     except Exception as e:
         logger.warning(f"timeline permit_new 수집 실패: {e}")
@@ -711,16 +749,12 @@ def timeline():
         for it in items:
             events.append({
                 "type": "clinical_new",
-                "type_kr": "임상시험 신규",
-                "severity": "LOW",
-                "domain": "drug",
-                "domain_kr": "의약품",
+                "type_label": "임상시험 신규",
+                "severity_level": "LOW", "severity_color": "info",
                 "title": (it.get("GOODS_NAME") or "(임상 미상)")[:60],
                 "summary": (it.get("CLINIC_EXAM_TITLE") or "")[:100],
                 "entity": it.get("APPLY_ENTP_NAME") or "",
                 "date": "",
-                "api": "API 566",
-                "url": "https://www.data.go.kr/data/15097283/openapi.do",
             })
     except Exception as e:
         logger.warning(f"timeline clinical_new 수집 실패: {e}")
@@ -731,16 +765,12 @@ def timeline():
         for it in items:
             events.append({
                 "type": "patent_new",
-                "type_kr": "특허 등록",
-                "severity": "LOW",
-                "domain": "drug",
-                "domain_kr": "의약품",
+                "type_label": "특허 등록",
+                "severity_level": "LOW", "severity_color": "info",
                 "title": (it.get("ITEM_NAME") or it.get("PAT_NO") or "(특허 미상)")[:60],
                 "summary": (it.get("INGR_NAME") or "")[:60] + (" · 만료 " + it.get("EXPIRE_DATE") if it.get("EXPIRE_DATE") else ""),
                 "entity": it.get("ENTP_NAME") or "",
                 "date": (it.get("EXPIRE_DATE") or "")[:10],
-                "api": "API 561",
-                "url": "https://www.data.go.kr/data/15113612/openapi.do",
             })
     except Exception as e:
         logger.warning(f"timeline patent_new 수집 실패: {e}")
@@ -751,16 +781,12 @@ def timeline():
         for it in items:
             events.append({
                 "type": "review_due",
-                "type_kr": "재심사 예정",
-                "severity": "MED",
-                "domain": "drug",
-                "domain_kr": "의약품",
+                "type_label": "재심사 예정",
+                "severity_level": "LOW", "severity_color": "info",
                 "title": (it.get("ITEM_NAME") or "(품목 미상)")[:60],
                 "summary": "재심사 일정",
                 "entity": it.get("ENTP_NAME") or "",
                 "date": (it.get("REJDGE_DT") or "")[:10],
-                "api": "API 554",
-                "url": "https://www.data.go.kr/data/15097294/openapi.do",
             })
     except Exception as e:
         logger.warning(f"timeline review_due 수집 실패: {e}")
@@ -771,36 +797,44 @@ def timeline():
         for it in items:
             events.append({
                 "type": "reeval_done",
-                "type_kr": "재평가 완료",
-                "severity": "MED",
-                "domain": "drug",
-                "domain_kr": "의약품",
+                "type_label": "재평가 완료",
+                "severity_level": "LOW", "severity_color": "info",
                 "title": (it.get("ITEM_NAME") or "(품목 미상)")[:60],
                 "summary": "재평가 결과 공시",
                 "entity": it.get("ENTP_NAME") or "",
                 "date": (it.get("REVAL_DT") or "")[:10],
-                "api": "API 556",
-                "url": "https://www.data.go.kr/data/15097297/openapi.do",
             })
     except Exception as e:
         logger.warning(f"timeline reeval_done 수집 실패: {e}")
 
-    # 시간순 정렬
-    events.sort(key=lambda e: e["date"], reverse=True)
+    # 심각도 + 시간순 정렬 (CRITICAL → HIGH → LOW, 같은 등급 안에서는 날짜 내림차순)
+    from .severity import SEVERITY_ORDER
+    from datetime import date as _date
+    today = _date.today().isoformat()
+    for e in events:
+        e["is_new"] = bool(e.get("date")) and e["date"] == today
+        if "type_label" not in e:
+            e["type_label"] = e.get("type", "기타")
+        if "in_watchlist" not in e:
+            e["in_watchlist"] = False
+    events.sort(key=lambda e: (
+        SEVERITY_ORDER.get(e.get("severity_level", "NONE"), 3),
+        -1 * int((e.get("date") or "0").replace("-", "") or 0),
+    ))
 
-    # severity 카운트
+    # severity 카운트 (KD-IRIS v3: CRITICAL/HIGH/LOW 3단계)
     severity_counts = {
-        "high": sum(1 for e in events if e["severity"] == "HIGH"),
-        "med": sum(1 for e in events if e["severity"] == "MED"),
-        "low": sum(1 for e in events if e["severity"] == "LOW"),
+        "critical": sum(1 for e in events if e.get("severity_level") == "CRITICAL"),
+        "high":     sum(1 for e in events if e.get("severity_level") == "HIGH"),
+        "low":      sum(1 for e in events if e.get("severity_level") == "LOW"),
     }
     type_counts = {}
     for e in events:
         type_counts[e["type"]] = type_counts.get(e["type"], 0) + 1
 
     return render_template(
-        "app/timeline.html",
-        active_page="timeline",
+        "app/monitor.html",
+        active_page="monitor",
         events=events[:30],
         total_count=len(events),
         severity_counts=severity_counts,
@@ -875,6 +909,7 @@ def _fetch_workspace_events(kinds):
             "inspection", "food_recall", "gmp", "clinical"]
     """
     from . import watchlist_match  # 캐시 _cached 재사용
+    from .severity import get_severity
 
     out = {}  # kind -> list of normalized events
 
@@ -900,11 +935,10 @@ def _fetch_workspace_events(kinds):
         try:
             items = (fetch_approval(num_of_rows=20).get("items") or [])[:8]
             out["new_permit"] = [{
-                "kind": "new_permit", "kind_kr": "신규 허가", "severity": "LOW",
+                "type": "new_permit", "type_label": "신규 허가", "severity_level": "LOW", "severity_color": "info",
                 "title": (it.get("ITEM_NAME") or "")[:60],
-                "meta": (it.get("ENTP_NAME") or "") + " · " + (it.get("SPCLTY_PBLC") or ""),
+                "summary": (it.get("ENTP_NAME") or "") + " · " + (it.get("SPCLTY_PBLC") or ""),
                 "date": (it.get("ITEM_PERMIT_DATE") or "")[:8],
-                "api": "NO 140",
             } for it in items]
         except Exception:
             out["new_permit"] = []
@@ -914,11 +948,10 @@ def _fetch_workspace_events(kinds):
             from ..api_extras import fetch_food_inspect
             items = (fetch_food_inspect(num_of_rows=20).get("items") or [])[:8]
             out["inspection"] = [{
-                "kind": "inspection", "kind_kr": "검사부적합", "severity": "MED",
+                "type": "inspection", "type_label": "검사부적합", "severity_level": "HIGH", "severity_color": "warn",
                 "title": (it.get("PRDUCT") or "")[:60],
-                "meta": (it.get("IMPROPT_ITM") or "")[:80] + " · " + (it.get("ENTRPS") or ""),
+                "summary": (it.get("IMPROPT_ITM") or "")[:80] + " · " + (it.get("ENTRPS") or ""),
                 "date": (it.get("REGIST_DT") or "")[:10],
-                "api": "NO 535",
             } for it in items]
         except Exception:
             out["inspection"] = []
@@ -928,11 +961,10 @@ def _fetch_workspace_events(kinds):
             from ..api_extras import fetch_food_recall_import
             items = (fetch_food_recall_import(num_of_rows=20).get("items") or [])[:8]
             out["food_recall"] = [{
-                "kind": "food_recall", "kind_kr": "수입식품 회수", "severity": "HIGH",
+                "type": "food_recall", "type_label": "수입식품 회수", "severity_level": "HIGH", "severity_color": "warn",
                 "title": (it.get("PRDT_NM") or "")[:60],
-                "meta": (it.get("RECL_RSN") or "") + " · " + (it.get("CLNT_BSSH_NM") or ""),
+                "summary": (it.get("RECL_RSN") or "") + " · " + (it.get("CLNT_BSSH_NM") or ""),
                 "date": (it.get("CIRC_PRD") or "")[:10],
-                "api": "NO 153",
             } for it in items]
         except Exception:
             out["food_recall"] = []
@@ -942,11 +974,10 @@ def _fetch_workspace_events(kinds):
             from ..api_extras import fetch_drug_gmp
             items = (fetch_drug_gmp(num_of_rows=20).get("items") or [])[:6]
             out["gmp"] = [{
-                "kind": "gmp", "kind_kr": "GMP 적합판정", "severity": "LOW",
+                "type": "gmp", "type_label": "GMP 적합판정", "severity_level": "LOW", "severity_color": "info",
                 "title": (it.get("ITEM_NAME") or it.get("ENTP_NAME") or "")[:60],
-                "meta": "GMP 적합판정 · " + (it.get("ENTP_NAME") or ""),
+                "summary": "GMP 적합판정 · " + (it.get("ENTP_NAME") or ""),
                 "date": (it.get("IUS_DT") or "")[:10],
-                "api": "NO 132",
             } for it in items]
         except Exception:
             out["gmp"] = []
@@ -956,11 +987,10 @@ def _fetch_workspace_events(kinds):
             from ..api_extras import fetch_drug_clinical
             items = watchlist_match._cached("clinical", fetch_drug_clinical, num_of_rows=50)[:6]
             out["clinical"] = [{
-                "kind": "clinical", "kind_kr": "임상시험", "severity": "LOW",
+                "type": "clinical", "type_label": "임상시험", "severity_level": "LOW", "severity_color": "info",
                 "title": (it.get("GOODS_NAME") or "")[:60],
-                "meta": (it.get("CLINIC_EXAM_TITLE") or "")[:80],
+                "summary": (it.get("CLINIC_EXAM_TITLE") or "")[:80],
                 "date": "",
-                "api": "NO 566",
             } for it in items]
         except Exception:
             out["clinical"] = []
@@ -970,11 +1000,10 @@ def _fetch_workspace_events(kinds):
             from ..api_extras import fetch_drug_review
             items = watchlist_match._cached("review", fetch_drug_review, num_of_rows=50)[:6]
             out["review"] = [{
-                "kind": "review", "kind_kr": "재심사", "severity": "MED",
+                "type": "review", "type_label": "재심사", "severity_level": "HIGH", "severity_color": "warn",
                 "title": (it.get("ITEM_NAME") or "")[:60],
-                "meta": (it.get("ENTP_NAME") or ""),
+                "summary": (it.get("ENTP_NAME") or ""),
                 "date": (it.get("REJDGE_DT") or it.get("REVAL_DT") or "")[:10],
-                "api": "NO 554",
             } for it in items]
         except Exception:
             out["review"] = []
@@ -984,11 +1013,10 @@ def _fetch_workspace_events(kinds):
             from ..api_extras import fetch_drug_reeval
             items = watchlist_match._cached("reeval", fetch_drug_reeval, num_of_rows=50)[:6]
             out["reeval"] = [{
-                "kind": "reeval", "kind_kr": "재평가", "severity": "MED",
+                "type": "reeval", "type_label": "재평가", "severity_level": "HIGH", "severity_color": "warn",
                 "title": (it.get("ITEM_NAME") or "")[:60],
-                "meta": (it.get("ENTP_NAME") or ""),
+                "summary": (it.get("ENTP_NAME") or ""),
                 "date": (it.get("REVAL_DT") or "")[:10],
-                "api": "NO 556",
             } for it in items]
         except Exception:
             out["reeval"] = []
@@ -998,11 +1026,10 @@ def _fetch_workspace_events(kinds):
             from ..api_extras import fetch_drug_patent
             items = watchlist_match._cached("patent", fetch_drug_patent, num_of_rows=50)[:6]
             out["patent"] = [{
-                "kind": "patent", "kind_kr": "특허 등록", "severity": "LOW",
+                "type": "patent", "type_label": "특허 등록", "severity_level": "LOW", "severity_color": "info",
                 "title": (it.get("ITEM_NAME") or it.get("PAT_NO") or "")[:60],
-                "meta": (it.get("INGR_NAME") or "") + " · " + (it.get("ENTP_NAME") or ""),
+                "summary": (it.get("INGR_NAME") or "") + " · " + (it.get("ENTP_NAME") or ""),
                 "date": (it.get("EXPIRE_DATE") or "")[:10],
-                "api": "NO 561",
             } for it in items]
         except Exception:
             out["patent"] = []
@@ -1012,11 +1039,10 @@ def _fetch_workspace_events(kinds):
             from ..api_extras import fetch_drug_bioeq
             items = watchlist_match._cached("bioeq", fetch_drug_bioeq, num_of_rows=50)[:6]
             out["bioeq"] = [{
-                "kind": "bioeq", "kind_kr": "생동성인정", "severity": "LOW",
+                "type": "bioeq", "type_label": "생동성인정", "severity_level": "LOW", "severity_color": "info",
                 "title": (it.get("ITEM_NAME") or "")[:60],
-                "meta": (it.get("INGR_KOR_NAME") or "") + " · " + (it.get("ENTP_NAME") or ""),
+                "summary": (it.get("INGR_KOR_NAME") or "") + " · " + (it.get("ENTP_NAME") or ""),
                 "date": "",
-                "api": "NO 485",
             } for it in items]
         except Exception:
             out["bioeq"] = []
@@ -1026,11 +1052,10 @@ def _fetch_workspace_events(kinds):
             from ..api_extras import fetch_drug_supply_lack
             items = watchlist_match._cached("supply_lack", fetch_drug_supply_lack, num_of_rows=50)[:6]
             out["supply_lack"] = [{
-                "kind": "supply_lack", "kind_kr": "공급부족", "severity": "MED",
+                "type": "supply_lack", "type_label": "공급부족", "severity_level": "HIGH", "severity_color": "warn",
                 "title": (it.get("ITEM_NAME") or "")[:60],
-                "meta": (it.get("ENTP_NAME") or ""),
+                "summary": (it.get("ENTP_NAME") or ""),
                 "date": "",
-                "api": "NO 537",
             } for it in items]
         except Exception:
             out["supply_lack"] = []
@@ -1040,16 +1065,21 @@ def _fetch_workspace_events(kinds):
             from ..api_extras import fetch_haccp_smart
             items = watchlist_match._cached("haccp_smart", fetch_haccp_smart, num_of_rows=50)[:6]
             out["haccp_smart"] = [{
-                "kind": "haccp_smart", "kind_kr": "스마트HACCP", "severity": "LOW",
+                "type": "haccp_smart", "type_label": "스마트HACCP", "severity_level": "LOW", "severity_color": "info",
                 "title": (it.get("BSSH_NM") or "")[:60],
-                "meta": (it.get("ADDR") or "") + " · " + (it.get("PRMS_NO") or ""),
+                "summary": (it.get("ADDR") or "") + " · " + (it.get("PRMS_NO") or ""),
                 "date": (it.get("PRMS_DT") or "")[:10],
-                "api": "NO 12",
             } for it in items]
         except Exception:
             out["haccp_smart"] = []
 
     return out
+
+
+@app_bp.route("/workspace")
+def workspace_index():
+    """워크스페이스 단일 진입 — 부서 미지정 시 RA 로 redirect."""
+    return redirect(url_for("app.workspace", dept_id="ra"), code=302)
 
 
 @app_bp.route("/workspace/<dept_id>")
@@ -1116,7 +1146,7 @@ _REPORT_CATALOG = [
         "id": "monthly-recall",
         "title": "월간 회수·판매중지 동향",
         "summary": "지난 30일간 식약처 NO 539 회수 데이터를 도메인·사유별로 집계. 자사 영향 가능성 라벨 포함.",
-        "kind": "회수",
+        "type": "회수",
         "kind_class": "danger",
         "cadence": "월간",
         "last_updated": "2026-05-25",
@@ -1127,7 +1157,7 @@ _REPORT_CATALOG = [
         "id": "quarterly-rnd",
         "title": "분기 R&D 인사이트",
         "summary": "특허·임상시험·대조약·생동성 7개 API 매칭 결과를 성분군별로 정리. 경쟁사 파이프라인 변동 포함.",
-        "kind": "R&D",
+        "type": "R&D",
         "kind_class": "brand",
         "cadence": "분기",
         "last_updated": "2026-04-30",
@@ -1138,7 +1168,7 @@ _REPORT_CATALOG = [
         "id": "company-safety",
         "title": "자사 안전성 이벤트 요약",
         "summary": "광동제약 자사 품목에 대한 안전성서한·DUR·회수·공급중단 통합 타임라인. RA·QA 공유용.",
-        "kind": "안전성",
+        "type": "안전성",
         "kind_class": "warn",
         "cadence": "주간",
         "last_updated": "2026-05-26",
@@ -1149,7 +1179,7 @@ _REPORT_CATALOG = [
         "id": "gmp-status",
         "title": "GMP · 심사 상태 리포트",
         "summary": "자사 제조소 GMP 적합판정·재심사·재평가·DMF 일정과 만료 위험 품목. 매월 1일 갱신.",
-        "kind": "품질",
+        "type": "품질",
         "kind_class": "ok",
         "cadence": "월간",
         "last_updated": "2026-05-01",
@@ -1160,7 +1190,7 @@ _REPORT_CATALOG = [
         "id": "competitor-sanction",
         "title": "경쟁사 행정처분 동향",
         "summary": "한미·동아·유한·제일 등 주요 경쟁사 행정처분(NO 564) 90일 추적. 영업 인사이트 카드 포함.",
-        "kind": "행정처분",
+        "type": "행정처분",
         "kind_class": "warn",
         "cadence": "분기",
         "last_updated": "2026-05-20",

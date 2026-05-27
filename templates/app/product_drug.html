@@ -1,6 +1,6 @@
 {% extends "_layout.html" %}
 
-{% block title %}{{ (product_live.ITEM_NAME.split('(')[0] if product_live else product_code) }} — 광동 RegHub 360{% endblock %}
+{% block title %}{{ (product_live.ITEM_NAME.split('(')[0] if product_live else product_code) }} — 광동 KD-IRIS{% endblock %}
 
 {% block breadcrumb %}
   <a href="/" style="color:var(--ink-3);text-decoration:none">통합 검색</a>
@@ -53,7 +53,7 @@
   <div class="app-content app-content--flush">
 
     {% if product_live %}
-    <!-- 실 API 라이브 배너 - 8개 API 통합 (NO 140·248·563·539·547·269·531·534) -->
+    <!-- 실 API 라이브 배너 -->
     <div style="padding:14px 32px;background:var(--brand-soft);border-bottom:1px solid var(--line-1);font-size:13px">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <span class="badge badge--brand badge--dot">실 API 라이브</span>
@@ -132,7 +132,7 @@
         {% else %}
           <span class="badge badge--danger badge--dot">High · 검토 필요</span>
         {% endif %}
-        <span class="t-caption" style="margin-top:4px">실 API 8종 집계</span>
+        <span class="t-caption" style="margin-top:4px">실 데이터 집계</span>
       </div>
     </section>
 
@@ -158,7 +158,7 @@
           <div class="app-card">
             <div class="app-card__head">
               <div class="app-card__title">허가·변경 이력</div>
-              <span class="app-card__caption">출처 API 140 · 실 데이터</span>
+              <span class="app-card__caption">허가 정보</span>
             </div>
             {% if product_live %}
             <div style="display:flex;flex-direction:column;gap:10px">
@@ -182,7 +182,7 @@
                 </div>
                 <span class="badge">{{ product_live.PERMIT_KIND_CODE or '허가' }}</span>
               </div>
-              <div style="font-size:11px;color:var(--ink-3);text-align:right">※ 변경 이력 시계열 — Phase 2에서 API 554/556(재심사·재평가) 통합 예정</div>
+              <div style="font-size:11px;color:var(--ink-3);text-align:right">※ 변경 이력 시계열 — Phase 2에서 재심사·재평가 통합 예정</div>
             </div>
             {% else %}
             <div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px">허가 데이터를 불러올 수 없습니다.</div>
@@ -192,7 +192,7 @@
           <div class="app-card">
             <div class="app-card__head">
               <div class="app-card__title">품질·규제 이벤트 — 실 API</div>
-              <span class="app-card__caption">API 539 · 547</span>
+              <span class="app-card__caption">회수·안전성</span>
             </div>
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
               <div style="padding:14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px;text-align:center">
@@ -241,7 +241,7 @@
           <div class="app-card">
             <div class="app-card__head">
               <div class="app-card__title">e약은요 · 사용자 안내</div>
-              <span class="app-card__caption">API 248 · {% if drug_easy %}등록됨{% else %}미등록{% endif %}</span>
+              <span class="app-card__caption">{% if drug_easy %}등록됨{% else %}미등록{% endif %}</span>
             </div>
             {% if drug_easy %}
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
@@ -268,7 +268,7 @@
             </div>
             {% else %}
             <div style="padding:20px;text-align:center;background:var(--bg-subtle);border-radius:10px;color:var(--ink-3);font-size:13px">
-              <strong style="color:var(--ink-2)">e약은요(NO 248)에 미등록된 제품입니다.</strong><br>
+              <strong style="color:var(--ink-2)">e약은요에 미등록된 제품입니다.</strong><br>
               일반의약품 중 소비자 안내 정보 등록 대상이 아닐 수 있습니다. 효능·용법·주의사항은 [허가 상세] 탭의 첨부문서 참조.
             </div>
             {% endif %}
@@ -280,7 +280,7 @@
           <div class="app-card">
             <div class="app-card__head">
               <div class="app-card__title">DUR 점검</div>
-              <span class="app-card__caption">API 531 · 533</span>
+              <span class="app-card__caption">DUR 안전성</span>
             </div>
             <div style="display:flex;flex-direction:column;gap:8px">
               <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-2)">
@@ -297,7 +297,7 @@
           <div class="app-card">
             <div class="app-card__head">
               <div class="app-card__title">공급망</div>
-              <span class="app-card__caption">API 534 · 537</span>
+              <span class="app-card__caption">공급망</span>
             </div>
             {% if supply_stops %}
             <div style="padding:14px;background:var(--danger-soft);border-radius:10px;color:var(--danger);font-size:13px;font-weight:600">
@@ -326,7 +326,7 @@
           <div class="app-card">
             <div class="app-card__head">
               <div class="app-card__title">Risk Score 분해</div>
-              <span class="app-card__caption">실 API 8종 집계</span>
+              <span class="app-card__caption">실 데이터 집계</span>
             </div>
             {% set recall_w = related_recalls|length * 40 %}
             {% set dur_w = dur_items|length * 10 %}
@@ -366,7 +366,7 @@
       <div data-p360-panel="history" style="display:none">
         {% if product_live %}
         <div class="app-card">
-          <div class="app-card__head"><div class="app-card__title">허가 상세 — 전체 메타데이터</div><span class="app-card__caption">API 140 상세조회</span></div>
+          <div class="app-card__head"><div class="app-card__title">허가 상세 — 전체 메타데이터</div><span class="app-card__caption">허가 상세</span></div>
           <table style="width:100%;border-collapse:collapse;font-size:13px">
             <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3);width:30%">제품명(국문)</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-weight:600">{{ product_live.ITEM_NAME }}</td></tr>
             <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">제품명(영문)</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ product_live.ITEM_ENG_NAME or '?' }}</td></tr>
@@ -392,7 +392,7 @@
       {# ────────── 안전성 정보 탭 ────────── #}
       <div data-p360-panel="safety" style="display:none">
         <div class="app-card">
-          <div class="app-card__head"><div class="app-card__title">안전성서한 — {{ safety_letters|length }}건</div><span class="app-card__caption">API 547</span></div>
+          <div class="app-card__head"><div class="app-card__title">안전성서한 — {{ safety_letters|length }}건</div><span class="app-card__caption">안전성서한</span></div>
           {% if safety_letters %}
           <div style="display:flex;flex-direction:column;gap:10px">
             {% for s in safety_letters %}
@@ -408,7 +408,7 @@
           {% endif %}
         </div>
         <div class="app-card" style="margin-top:16px">
-          <div class="app-card__head"><div class="app-card__title">DUR 병용금기 — {{ dur_items|length }}건</div><span class="app-card__caption">API 531</span></div>
+          <div class="app-card__head"><div class="app-card__title">DUR 병용금기 — {{ dur_items|length }}건</div><span class="app-card__caption">DUR</span></div>
           {% if dur_items %}
           <table style="width:100%;border-collapse:collapse;font-size:13px">
             <thead><tr style="background:var(--bg-subtle)"><th style="padding:8px;text-align:left">구분</th><th style="padding:8px;text-align:left">대상 성분</th><th style="padding:8px;text-align:left">금기 내용</th></tr></thead>
@@ -427,7 +427,7 @@
       {# ────────── 품질·규제 이벤트 탭 ────────── #}
       <div data-p360-panel="quality" style="display:none">
         <div class="app-card">
-          <div class="app-card__head"><div class="app-card__title">관련 회수·판매중지 — {{ related_recalls|length }}건</div><span class="app-card__caption">API 539</span></div>
+          <div class="app-card__head"><div class="app-card__title">관련 회수·판매중지 — {{ related_recalls|length }}건</div><span class="app-card__caption">회수</span></div>
           {% if related_recalls %}
           <div style="display:flex;flex-direction:column;gap:10px">
             {% for r in related_recalls %}
@@ -450,7 +450,7 @@
       {# ────────── 공급망 탭 ────────── #}
       <div data-p360-panel="supply" style="display:none">
         <div class="app-card">
-          <div class="app-card__head"><div class="app-card__title">공급중단·공급부족 — {{ supply_stops|length }}건</div><span class="app-card__caption">API 534·537</span></div>
+          <div class="app-card__head"><div class="app-card__title">공급중단·공급부족 — {{ supply_stops|length }}건</div><span class="app-card__caption">공급망</span></div>
           {% if supply_stops %}
           <table style="width:100%;border-collapse:collapse;font-size:13px">
             <thead><tr style="background:var(--bg-subtle)"><th style="padding:8px;text-align:left">유형</th><th style="padding:8px;text-align:left">업체</th><th style="padding:8px;text-align:left">품목</th><th style="padding:8px;text-align:left">상태</th></tr></thead>
@@ -469,9 +469,9 @@
       {# ────────── 개발·BD 탭 — 7개 API 통합 ────────── #}
       <div data-p360-panel="rnd" style="display:none">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-          {# 특허 — NO 561 #}
+          {# 특허 #}
           <div class="app-card">
-            <div class="app-card__head"><div class="app-card__title">의약품 특허 (NO 561)</div><span class="app-card__caption">{{ p_patents|length }}건</span></div>
+            <div class="app-card__head"><div class="app-card__title">의약품 특허</div><span class="app-card__caption">{{ p_patents|length }}건</span></div>
             {% if p_patents %}
             <div style="display:flex;flex-direction:column;gap:6px">
               {% for p in p_patents %}
@@ -485,9 +485,9 @@
             {% else %}<div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px">매칭 특허 없음</div>{% endif %}
           </div>
 
-          {# 임상시험 — NO 566 #}
+          {# 임상시험 #}
           <div class="app-card">
-            <div class="app-card__head"><div class="app-card__title">임상시험 (NO 566)</div><span class="app-card__caption">{{ p_clinical|length }}건</span></div>
+            <div class="app-card__head"><div class="app-card__title">임상시험</div><span class="app-card__caption">{{ p_clinical|length }}건</span></div>
             {% if p_clinical %}
             <div style="display:flex;flex-direction:column;gap:6px">
               {% for c in p_clinical %}
@@ -501,9 +501,9 @@
             {% else %}<div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px">매칭 임상시험 없음</div>{% endif %}
           </div>
 
-          {# 대조약 — NO 484 #}
+          {# 대조약 #}
           <div class="app-card">
-            <div class="app-card__head"><div class="app-card__title">대조약 (NO 484)</div><span class="app-card__caption">{{ p_reference|length }}건</span></div>
+            <div class="app-card__head"><div class="app-card__title">대조약</div><span class="app-card__caption">{{ p_reference|length }}건</span></div>
             {% if p_reference %}
             <div style="display:flex;flex-direction:column;gap:6px">
               {% for r in p_reference %}
@@ -516,9 +516,9 @@
             {% else %}<div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px">매칭 대조약 없음</div>{% endif %}
           </div>
 
-          {# 생동성 — NO 485 #}
+          {# 생동성 #}
           <div class="app-card">
-            <div class="app-card__head"><div class="app-card__title">생동성인정품목 (NO 485)</div><span class="app-card__caption">{{ p_bioeq|length }}건</span></div>
+            <div class="app-card__head"><div class="app-card__title">생동성인정품목</div><span class="app-card__caption">{{ p_bioeq|length }}건</span></div>
             {% if p_bioeq %}
             <div style="display:flex;flex-direction:column;gap:6px">
               {% for b in p_bioeq %}
@@ -531,9 +531,9 @@
             {% else %}<div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px">매칭 생동성 인정품목 없음</div>{% endif %}
           </div>
 
-          {# 국내소송 — NO 557 #}
+          {# 국내소송 #}
           <div class="app-card">
-            <div class="app-card__head"><div class="app-card__title">국내소송 (NO 557)</div><span class="app-card__caption">{{ p_lawsuits|length }}건</span></div>
+            <div class="app-card__head"><div class="app-card__title">국내소송</div><span class="app-card__caption">{{ p_lawsuits|length }}건</span></div>
             {% if p_lawsuits %}
             <div style="display:flex;flex-direction:column;gap:6px">
               {% for l in p_lawsuits %}
@@ -546,9 +546,9 @@
             {% else %}<div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px">매칭 소송 정보 없음</div>{% endif %}
           </div>
 
-          {# FDA P4 + 오렌지북 — NO 552·562 #}
+          {# FDA P4 + 오렌지북 #}
           <div class="app-card">
-            <div class="app-card__head"><div class="app-card__title">FDA 특허 정보 (NO 552·562)</div><span class="app-card__caption">P4 {{ p_fda_p4|length }} + 오렌지북 {{ p_orangebook|length }}</span></div>
+            <div class="app-card__head"><div class="app-card__title">FDA 특허 정보</div><span class="app-card__caption">P4 {{ p_fda_p4|length }} + 오렌지북 {{ p_orangebook|length }}</span></div>
             {% if p_fda_p4 or p_orangebook %}
             <div style="display:flex;flex-direction:column;gap:6px">
               {% for f in p_fda_p4 %}
@@ -581,7 +581,7 @@
       {# ────────── 낱알식별 탭 ────────── #}
       <div data-p360-panel="pill" style="display:none">
         <div class="app-card">
-          <div class="app-card__head"><div class="app-card__title">낱알식별 정보</div><span class="app-card__caption">API 563 · {% if identification %}등록됨{% else %}미등록{% endif %}</span></div>
+          <div class="app-card__head"><div class="app-card__title">낱알식별 정보</div><span class="app-card__caption">{% if identification %}등록됨{% else %}미등록{% endif %}</span></div>
           {% if identification %}
           <div style="display:grid;grid-template-columns:280px 1fr;gap:20px">
             {% if identification.ITEM_IMAGE %}

@@ -1,6 +1,6 @@
-# RegHub 360 실행 가이드
+# KD-IRIS 실행 가이드
 
-> **광동 RegHub 360** — 의약품·의약외품·식품 통합 규제정보 허브
+> **광동 KD-IRIS** — 의약품·의약외품·식품 통합 규제정보 허브
 > v1.0-mvp (2026-05-27 D1~D5 완료)
 
 ## 빠른 시작
@@ -23,7 +23,7 @@ python run.py
 
 | URL | 화면 |
 |-----|------|
-| http://localhost:5005/ | **랜딩 페이지** (광동 RegHub 360) |
+| http://localhost:5005/ | **랜딩 페이지** (광동 KD-IRIS) |
 | http://localhost:5005/app | 앱 진입 (9개 화면 미리보기) |
 | http://localhost:5005/app/search | 통합 검색 |
 | http://localhost:5005/app/product/200305423 | Product 360 — 의약품 (베니톨정 데모) |
@@ -66,4 +66,4 @@ python smoke_test_apis.py
 - [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) — 전체 구현 계획
 - [API_STATUS.md](API_STATUS.md) — API 작동 현황 (45/46 작동 중)
 - [API_APPLICATION_LIST.md](API_APPLICATION_LIST.md) — 공공 API 신청 가이드
-- [docs/HANDOFF.md](docs/HANDOFF.md) — 디자인 핸드오프 (광동제약 RegHub 360 디자인 팀)
+- [docs/HANDOFF.md](docs/HANDOFF.md) — 디자인 핸드오프 (광동제약 KD-IRIS 디자인 팀)

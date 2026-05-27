@@ -1,0 +1,56 @@
+{# KD-IRIS — 공통 Jinja2 매크로 #}
+{# templates 어디서나 {% from "_macros.html" import event_card %} 로 사용 #}
+
+{% macro event_card(event, show_product_link=True) %}
+<div class="event-card event-card--{{ event.severity_color }}"
+     data-severity="{{ event.severity_level }}"
+     style="background:var(--bg-elevated);border:1px solid {% if event.severity_color == 'danger' %}var(--danger){% elif event.severity_color == 'warn' %}var(--warn){% else %}var(--line-1){% endif %};border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;border-left-width:4px;border-left-color:{% if event.severity_color == 'danger' %}var(--danger){% elif event.severity_color == 'warn' %}var(--warn){% elif event.severity_color == 'success' %}var(--ok){% elif event.severity_color == 'info' %}var(--brand){% else %}var(--ink-4){% endif %}">
+
+  {# 헤더 — 심각도 라벨 + NEW + 워치리스트 + 날짜 #}
+  <div class="event-card__header" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px">
+    <span class="badge badge--{{ event.severity_color }} badge--dot" style="font-weight:600">
+      {{ event.type_label }}
+    </span>
+    {% if event.is_new %}<span class="badge badge--brand">NEW</span>{% endif %}
+    {% if event.in_watchlist %}<span class="badge" style="background:var(--brand-soft);color:var(--brand)">📌 워치리스트</span>{% endif %}
+    <time class="event-card__date" style="margin-left:auto;color:var(--ink-3);font-family:'JetBrains Mono',monospace;font-size:11px">
+      {{ event.date if event.date else "날짜 미확인" }}
+    </time>
+  </div>
+
+  {# 본문 — 제목 + 업체 #}
+  <div>
+    <div class="event-card__title" style="font-size:14px;font-weight:600;color:var(--ink-1);line-height:1.4">{{ event.title }}</div>
+    {% if event.entity %}
+    <div class="event-card__entity" style="font-size:12px;color:var(--ink-3);margin-top:2px">{{ event.entity }}</div>
+    {% endif %}
+  </div>
+
+  {# 요약 — 있을 때만 #}
+  {% if event.summary %}
+  <p class="event-card__summary" style="font-size:12px;color:var(--ink-2);line-height:1.5;margin:0">{{ event.summary }}</p>
+  {% endif %}
+
+  {# 액션 — 제품 상세 링크 #}
+  {% if show_product_link and event.product_code %}
+  <div class="event-card__actions" style="display:flex;gap:6px;margin-top:4px">
+    <a href="/app/product/{{ event.product_code }}" class="btn btn--ghost btn--sm">제품 상세 →</a>
+  </div>
+  {% endif %}
+
+</div>
+{% endmacro %}
+
+
+{# 위험도 신호등 — 검색 결과 / 제품 상세 헤더 / 워치리스트 카드 공통 #}
+{% macro risk_signal_badge(signal) %}
+{% if signal %}
+<div class="risk-signal" style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:var(--{{ signal.color }}-soft);color:var(--{{ signal.color }});font-weight:600;font-size:13px">
+  <span style="width:8px;height:8px;border-radius:50%;background:var(--{{ signal.color }})"></span>
+  {{ signal.label }}
+  {% if signal.reasons %}
+  <span style="color:var(--ink-3);font-weight:400;font-size:12px">— {{ signal.reasons|join(' · ') }}</span>
+  {% endif %}
+</div>
+{% endif %}
+{% endmacro %}

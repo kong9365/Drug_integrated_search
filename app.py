@@ -1,5 +1,5 @@
 """
-RegHub 360 — Flask 메인 애플리케이션
+KD-IRIS — Flask 메인 애플리케이션 (KwangDong Integrated Regulatory Intelligence System)
 의약품·의약외품·식품 통합 규제정보 허브
 
 Blueprint 구조:
@@ -108,7 +108,7 @@ def internal_error(error):
 # ────────────────────────────────────────────────────────────────────────────
 @app.route("/healthz")
 def health():
-    return jsonify({"ok": True, "service": "RegHub 360", "version": "1.0.0-mvp"})
+    return jsonify({"ok": True, "service": "KD-IRIS", "version": "1.0.0-mvp"})
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -121,7 +121,7 @@ if __name__ == "__main__":
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
     print("=" * 60)
-    print("RegHub 360 - 광동 의약품/식품 통합 규제정보 허브")
+    print("KD-IRIS - 광동 의약품/식품 통합 규제정보 허브")
     print("=" * 60)
     print("서버 시작...")
     print("브라우저에서 http://localhost:5005 을 열어주세요.")

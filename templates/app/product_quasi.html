@@ -1,0 +1,183 @@
+{% extends "_layout.html" %}
+
+{% block title %}{{ product.ITEM_NAME if product else product_code }} — 광동 KD-IRIS{% endblock %}
+
+{% block breadcrumb %}
+  <a href="/" style="color:var(--ink-3);text-decoration:none">제품·업체 조회</a>
+  <span class="crumb-divider">/</span>
+  {% if product %}
+  <a href="/?q={{ product.ENTP_NAME }}" style="color:var(--ink-3);text-decoration:none">{{ product.ENTP_NAME }}</a>
+  <span class="crumb-divider">/</span>
+  <span class="crumb-active">{{ product.ITEM_NAME }}</span>
+  {% else %}
+  <span class="crumb-active">{{ product_code }}</span>
+  {% endif %}
+{% endblock %}
+
+{% block topbar_actions %}
+  {% if product %}
+  <form action="/app/watchlist/add" method="post" style="margin:0">
+    <input type="hidden" name="query" value="{{ product.ITEM_NAME }}">
+    <input type="hidden" name="label" value="{{ product.ITEM_NAME }} / {{ product.ENTP_NAME }}">
+    <input type="hidden" name="kind" value="product">
+    <input type="hidden" name="next" value="/app/product-quasi/{{ product_code }}">
+    <button type="submit" class="btn btn--ghost btn--sm" title="이 제품을 워치리스트에 추가">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      워치리스트 추가
+    </button>
+  </form>
+  {% endif %}
+{% endblock %}
+
+{% block extra_body %}
+<style>
+  [data-p360-panel] { display: none; }
+  [data-p360-panel].is-active { display: grid; }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="app-content app-content--flush">
+
+    <!-- Hero -->
+    <section class="p360-hero">
+      <div class="p360-hero__img" style="background:linear-gradient(135deg,#FFE082 0%,#FB8C00 100%);color:#fff;border:0;font-size:14px;font-weight:700;text-align:center;line-height:1.2">의약<br>외품</div>
+      <div class="p360-hero__body">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <span class="badge" style="background:var(--domain-quasi-soft, var(--bg-muted));color:var(--domain-quasi, var(--ink-2))">의약외품</span>
+          {% if product %}
+            {% if related_sanctions %}
+              <span class="badge badge--warn badge--dot">행정처분 {{ related_sanctions|length }}건</span>
+            {% else %}
+              <span class="badge badge--ok badge--dot">처분 이력 없음</span>
+            {% endif %}
+          {% endif %}
+        </div>
+        <h1 class="p360-hero__name">
+          {{ (product.ITEM_NAME if product else product_code) }}
+          {% if product %}<small>{{ product.ENTP_NAME }}</small>{% endif %}
+        </h1>
+        <div class="p360-hero__meta">
+          <span>검색어 <strong>{{ product_code }}</strong></span>
+          {% if product %}
+            {% if product.ITEM_PERMIT_DATE %}<span>허가일자 <strong>{{ product.ITEM_PERMIT_DATE }}</strong></span>{% endif %}
+            {% if product.PRDUCT_PRMISN_NO %}<span>허가번호 <strong>{{ product.PRDUCT_PRMISN_NO }}</strong></span>{% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabs (5탭) -->
+    <nav class="p360-tabs">
+      <button class="p360-tab is-active" data-p360-tab="info">핵심 정보</button>
+      <button class="p360-tab" data-p360-tab="regulatory">규제 이력</button>
+      <button class="p360-tab" data-p360-tab="safety">안전성</button>
+      <button class="p360-tab" data-p360-tab="quality">품질 이벤트</button>
+      <button class="p360-tab" data-p360-tab="supply">공급망</button>
+    </nav>
+
+    <div style="padding:28px 32px 40px">
+
+      <!-- 핵심 정보 -->
+      <div data-p360-panel="info" class="is-active" style="display:grid;grid-template-columns:1.5fr 1fr;gap:20px">
+        <div class="app-card">
+          <div class="app-card__head">
+            <div class="app-card__title">허가 정보</div>
+            <span class="app-card__caption">의약외품 허가정보</span>
+          </div>
+          {% if product %}
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3);width:35%">품목명</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-weight:600">{{ product.ITEM_NAME }}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">업체명</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ product.ENTP_NAME }}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">허가일자</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ product.ITEM_PERMIT_DATE or '정보 없음' }}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">허가번호</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-family:'JetBrains Mono',monospace">{{ product.PRDUCT_PRMISN_NO or '정보 없음' }}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">제품 유형</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ product.PRDUCT_TYPE or '정보 없음' }}</td></tr>
+            <tr><td style="padding:8px;color:var(--ink-3)">분류</td><td style="padding:8px"><span class="badge">{{ product.INDUTY or '의약외품' }}</span></td></tr>
+          </table>
+          {% else %}
+          <div style="padding:30px;text-align:center;color:var(--ink-3)">허가 정보를 불러올 수 없습니다.</div>
+          {% endif %}
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="app-card">
+            <div class="app-card__head"><div class="app-card__title">규제 이벤트 요약</div></div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+              <div style="display:flex;justify-content:space-between"><span>행정처분</span><strong style="color:{% if related_sanctions %}var(--warn){% else %}var(--ok){% endif %}">{{ related_sanctions|length }}건</strong></div>
+              <div style="display:flex;justify-content:space-between"><span>안전성서한</span><strong style="color:{% if safety_letters %}var(--warn){% else %}var(--ok){% endif %}">{{ safety_letters|length }}건</strong></div>
+              <div style="display:flex;justify-content:space-between"><span>공급중단</span><strong style="color:{% if supply_stops %}var(--danger){% else %}var(--ok){% endif %}">{{ supply_stops|length }}건</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 규제 이력 -->
+      <div data-p360-panel="regulatory">
+        <div class="app-card">
+          <div class="app-card__head"><div class="app-card__title">행정처분 — {{ related_sanctions|length }}건</div></div>
+          {% if related_sanctions %}
+          <div style="display:flex;flex-direction:column;gap:8px">
+            {% for s in related_sanctions %}
+            <div class="alert-row"><div class="alert-row__bar" style="background:var(--warn)"></div>
+              <span class="alert-row__time">{{ (s.DSPS_DCSNDT or '')[:10] }}</span>
+              <div class="flex-1"><div class="alert-row__title">{{ s.ENTP_NAME }}</div><div class="alert-row__meta">{{ (s.VIOLATION_DETAIL or s.VIOLATION_LAW or '')|truncate(80) }}</div></div>
+              <span class="badge badge--warn">행정처분</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div style="padding:30px;text-align:center;background:var(--ok-soft);color:var(--ok);border-radius:10px">행정처분 이력 없음</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 안전성 -->
+      <div data-p360-panel="safety">
+        <div class="app-card">
+          <div class="app-card__head"><div class="app-card__title">안전성서한 — {{ safety_letters|length }}건</div></div>
+          {% if safety_letters %}
+          <div style="display:flex;flex-direction:column;gap:10px">
+            {% for s in safety_letters %}
+            <div class="alert-row"><div class="alert-row__bar" style="background:var(--warn)"></div>
+              <span class="alert-row__time">{{ (s.PBANC_YMD or '')[:10] or '날짜 미확인' }}</span>
+              <div class="flex-1"><div class="alert-row__title">{{ s.TITLE }}</div><div class="alert-row__meta">{{ (s.SUMRY_CONT or '')|truncate(120) }}</div></div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div style="padding:30px;text-align:center;background:var(--ok-soft);color:var(--ok);border-radius:10px">관련 안전성서한 없음</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 품질 이벤트 -->
+      <div data-p360-panel="quality">
+        <div class="app-card" style="text-align:center;padding:60px">
+          <span class="t-caption">품질 이벤트</span>
+          <h3 style="margin:8px 0 0;font-size:22px">의약외품 회수·품질 이벤트는 별도 API 명세 확인 대기</h3>
+          <p style="margin:8px 0 0;color:var(--ink-3)">의약품 회수(NO 539) 의약품외 회수 부분 통합 예정</p>
+        </div>
+      </div>
+
+      <!-- 공급망 -->
+      <div data-p360-panel="supply">
+        <div class="app-card">
+          <div class="app-card__head"><div class="app-card__title">공급중단 — {{ supply_stops|length }}건</div></div>
+          {% if supply_stops %}
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr style="background:var(--bg-subtle)"><th style="padding:8px;text-align:left">유형</th><th style="padding:8px;text-align:left">업체</th><th style="padding:8px;text-align:left">품목</th></tr></thead>
+            <tbody>
+            {% for s in supply_stops %}
+            <tr><td style="padding:8px;border-top:1px solid var(--line-2)">{{ s.SUSPEND_REPORT_FLAG or '공급중단' }}</td><td style="padding:8px;border-top:1px solid var(--line-2)">{{ s.ENTP_NAME or '미상' }}</td><td style="padding:8px;border-top:1px solid var(--line-2)">{{ s.ITEM_NAME or '미상' }}</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div style="padding:30px;text-align:center;background:var(--ok-soft);color:var(--ok);border-radius:10px">공급중단 보고 없음</div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+{% endblock %}

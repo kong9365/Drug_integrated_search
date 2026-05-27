@@ -1,6 +1,6 @@
 {% extends "_layout.html" %}
 
-{% block title %}워치리스트 — 광동 RegHub 360{% endblock %}
+{% block title %}워치리스트 — 광동 KD-IRIS{% endblock %}
 
 {% block breadcrumb %}
   <span class="crumb-active">워치리스트</span>
@@ -115,13 +115,13 @@
           <div style="padding:10px 16px 14px;display:flex;flex-direction:column;gap:6px">
             {% for ev in m.events %}
             <div class="alert-row" style="padding:10px 12px">
-              <div class="alert-row__bar" style="background:{% if ev.severity == 'HIGH' %}var(--danger){% elif ev.severity == 'MED' %}var(--warn){% else %}var(--brand){% endif %}"></div>
+              <div class="alert-row__bar" style="background:var(--{{ ev.severity_color or 'brand' }})"></div>
               <span class="alert-row__time">{{ ev.date or '-' }}</span>
               <div class="flex-1">
-                <div class="alert-row__title">「{{ ev.title }}」 {{ ev.kind_kr }}</div>
-                <div class="alert-row__meta">{{ ev.api }} · {{ ev.meta|truncate(70) }}</div>
+                <div class="alert-row__title">「{{ ev.title }}」 {{ ev.type_label }}</div>
+                <div class="alert-row__meta">{{ ev.summary|truncate(70) }}</div>
               </div>
-              <span class="badge badge--{% if ev.severity == 'HIGH' %}danger{% elif ev.severity == 'MED' %}warn{% else %}info{% endif %}">{{ ev.severity }}</span>
+              <span class="badge badge--{{ ev.severity_color or 'info' }}">{{ ev.severity_level }}</span>
             </div>
             {% endfor %}
           </div>
