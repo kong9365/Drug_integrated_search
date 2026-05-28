@@ -491,18 +491,33 @@ def fetch_approval_detail(
             params[k] = v
 
     logger.info(f"허가 상세정보 조회: {params}")
-    try:
-        response = _make_request(endpoint, params)
-        parsed = _parse_xml_response(response.text)
-        items = [_item_to_dict(item) for item in parsed["items"]]
-        return {
-            "success": True,
-            "totalCount": parsed.get("totalCount", len(items)),
-            "items": items,
-        }
-    except Exception as e:
-        logger.warning(f"허가 상세정보 조회 실패: {e}")
-        return {"success": False, "error": str(e), "items": [], "totalCount": 0}
+    # 재시도 로직 — SSL 핸드셰이크 / timeout 일시 실패 대응
+    import time
+    last_err = None
+    for attempt in range(1, 4):  # 최대 3회 시도
+        try:
+            response = _make_request(endpoint, params)
+            parsed = _parse_xml_response(response.text)
+            items = [_item_to_dict(item) for item in parsed["items"]]
+            if attempt > 1:
+                logger.info(f"허가 상세정보 조회 성공 (재시도 {attempt}회): {len(items)}건")
+            return {
+                "success": True,
+                "totalCount": parsed.get("totalCount", len(items)),
+                "items": items,
+            }
+        except Exception as e:
+            last_err = e
+            logger.warning(f"허가 상세정보 조회 시도 {attempt}/3 실패: {e}")
+            if attempt < 3:
+                time.sleep(0.5 * attempt)  # 0.5s, 1.0s backoff
+    # 3회 모두 실패 — 폴백 응답 (예외 전파하지 않음)
+    return {
+        "success": False,
+        "error": f"3회 재시도 모두 실패: {last_err}",
+        "items": [],
+        "totalCount": 0,
+    }
 
 
 def fetch_disciplinary(

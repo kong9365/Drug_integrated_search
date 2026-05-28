@@ -500,9 +500,22 @@
             <tr><td style="padding:8px;color:var(--ink-3)">기타 첨부</td><td style="padding:8px;color:var(--ink-2);font-size:12px">{% if detail.INSERT_FILE %}{{ detail.INSERT_FILE|truncate(150) }}{% else %}—{% endif %}</td></tr>
           </table>
           {% else %}
-          <div style="padding:24px;text-align:center;background:var(--bg-subtle);color:var(--ink-3);border-radius:10px;font-size:13px">
-            ⚠ NO 140 상세 API(getDrugPrdtPrmsnDtlInq06) 응답이 없습니다.<br>
-            <span style="font-size:11px">item_seq={{ product_live.ITEM_SEQ or '?' }} / edi_code={{ product_live.EDI_CODE or product_code or '?' }} 기준 호출 실패 — 서버 로그 확인 또는 페이지 새로고침 시도</span>
+          {# detail 호출 실패 — 폴백: 목록(product_live) + e약은요(drug_easy)에서 추출 가능한 필드만 표시 #}
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <tr><td colspan="2" style="padding:6px 8px;background:var(--warn-soft);color:var(--warn);font-size:11px;font-weight:600">⚠ NO 140 상세 API 응답 없음 — 폴백 데이터 (목록 + e약은요)</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3);width:28%">주성분 상세</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ ingredient_kr or product_live.ITEM_INGR_NAME or '—' }}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">총량/포장</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ product_live.ITEM_INGR_CNT or '—' }}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">효능·효과 (e약은요)</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-size:12px;line-height:1.5">{% if drug_easy and drug_easy.efcyQesitm %}{{ drug_easy.efcyQesitm|truncate(180) }}{% else %}—{% endif %}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">용법·용량 (e약은요)</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-size:12px;line-height:1.5">{% if drug_easy and drug_easy.useMethodQesitm %}{{ drug_easy.useMethodQesitm|truncate(180) }}{% else %}—{% endif %}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">주의사항 (e약은요)</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-size:12px;line-height:1.5">{% if drug_easy and drug_easy.atpnQesitm %}{{ drug_easy.atpnQesitm|truncate(180) }}{% else %}—{% endif %}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">보관법 (e약은요)</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-size:12px">{% if drug_easy and drug_easy.depositMethodQesitm %}{{ drug_easy.depositMethodQesitm|truncate(120) }}{% else %}—{% endif %}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">사업자등록번호</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-family:'JetBrains Mono',monospace">{{ product_live.BIZRNO or '—' }}</td></tr>
+            <tr><td style="padding:8px;color:var(--ink-3)">식약처 원본 페이지</td><td style="padding:8px;font-size:12px"><a href="https://nedrug.mfds.go.kr/pbp/CCBBB01/getItemDetail?itemSeq={{ product_live.ITEM_SEQ }}" target="_blank" rel="noopener" style="color:var(--brand)">🔗 nedrug.mfds.go.kr 직접 조회 (item_seq={{ product_live.ITEM_SEQ }})</a></td></tr>
+          </table>
+          <div style="margin-top:12px;padding:10px 14px;background:var(--bg-subtle);border-radius:8px;font-size:11px;color:var(--ink-3);line-height:1.5">
+            <strong>원인 추정</strong>: getDrugPrdtPrmsnDtlInq06 호출이 SSL 핸드셰이크 또는 timeout으로 일시 실패.
+            서버 로그에서 <code>NO 140 상세 조회 실패</code> 메시지의 시도 내역을 확인하세요.
+            페이지 새로고침 시 정상 회복되는 경우가 많습니다.
           </div>
           {% endif %}
         </div>

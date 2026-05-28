@@ -401,20 +401,33 @@ def product_drug(code):
             except Exception:
                 pass
 
-            # 2-1. NO 140 상세정보 (getDrugPrdtPrmsnDtlInq06) — 효능효과·용법용량·재심사일·ATC 등
-            try:
-                item_seq = (product or {}).get("ITEM_SEQ") or ""
-                # item_seq 우선, 없으면 edi_code, 없으면 item_name
-                dr = fetch_approval_detail(
-                    item_seq=item_seq or None,
-                    edi_code=(code if not item_seq else None),
-                    item_name=(item_name if not item_seq and not code else None),
-                    num_of_rows=1,
+            # 2-1. NO 140 상세정보 (getDrugPrdtPrmsnDtlInq06)
+            # — 효능효과·용법용량·재심사일·ATC·CHART·VALID_TERM·BAR_CODE 등 42 필드
+            # 다중 검색 전략으로 일시 실패 대응: item_seq → edi_code → item_name → entp_name
+            detail_attempts = []
+            item_seq = (product or {}).get("ITEM_SEQ") or ""
+            detail_queries = [
+                ("item_seq", {"item_seq": item_seq}) if item_seq else None,
+                ("edi_code", {"edi_code": code}) if code else None,
+                ("item_name", {"item_name": item_name}) if item_name else None,
+                ("item_name(prefix)", {"item_name": item_name.split('(')[0]}) if item_name and '(' in item_name else None,
+            ]
+            for label, q in [x for x in detail_queries if x]:
+                try:
+                    dr = fetch_approval_detail(**q, num_of_rows=1)
+                    detail_attempts.append(
+                        f"{label}={list(q.values())[0]!r} → success={dr.get('success')}, items={len(dr.get('items', []))}"
+                    )
+                    if dr.get("items"):
+                        detail = dr["items"][0]
+                        logger.info(f"NO 140 상세 성공 [{label}]: {len(detail)} fields")
+                        break
+                except Exception as e:
+                    detail_attempts.append(f"{label} → EXCEPTION: {e}")
+            if not detail:
+                logger.warning(
+                    "NO 140 상세 조회 실패 — 시도: " + " | ".join(detail_attempts)
                 )
-                if dr.get("items"):
-                    detail = dr["items"][0]
-            except Exception as e:
-                logger.warning(f"NO 140 상세 조회 실패: {e}")
 
             # 3. NO 563 낱알식별 — item_name (검증된 파라미터)
             try:
