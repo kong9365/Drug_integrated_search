@@ -423,10 +423,11 @@
 
       <!-- Placeholder panels for other tabs (interactive switch) -->
       {# ────────── 허가·변경 이력 탭 ────────── #}
-      <div data-p360-panel="history">
+      <div data-p360-panel="history" style="grid-template-columns:1fr;gap:16px">
         {% if product_live %}
+        {# 1) 기본 메타데이터 — NO 140 목록 #}
         <div class="app-card">
-          <div class="app-card__head"><div class="app-card__title">허가 상세 — 전체 메타데이터</div><span class="app-card__caption">허가 상세</span></div>
+          <div class="app-card__head"><div class="app-card__title">허가 상세 — 전체 메타데이터</div><span class="app-card__caption">NO 140 목록</span></div>
           <table style="width:100%;border-collapse:collapse;font-size:13px">
             <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3);width:30%">제품명(국문)</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-weight:600">{{ product_live.ITEM_NAME }}</td></tr>
             <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">제품명(영문)</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ product_live.ITEM_ENG_NAME or '?' }}</td></tr>
@@ -444,6 +445,86 @@
             <tr><td style="padding:8px;color:var(--ink-3)">허가 상태</td><td style="padding:8px"><span class="badge badge--ok">{{ product_live.CANCEL_NAME or '정상' }}</span></td></tr>
           </table>
         </div>
+
+        {# 2) 허가 상세 정보 — NO 140 상세 (getDrugPrdtPrmsnDtlInq06) #}
+        {% if detail %}
+        <div class="app-card">
+          <div class="app-card__head"><div class="app-card__title">허가 상세 정보</div><span class="app-card__caption">NO 140 상세</span></div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            {% if detail.MATERIAL_NAME %}<tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3);width:30%">주성분 상세</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.MATERIAL_NAME|truncate(200) }}</td></tr>{% endif %}
+            {% if detail.MAIN_INGR_ENG %}<tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">주성분(영문)</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.MAIN_INGR_ENG }}</td></tr>{% endif %}
+            {% if detail.TOTAL_CONTENT %}<tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">총량</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.TOTAL_CONTENT }}</td></tr>{% endif %}
+            {% if detail.CHART %}<tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">성상</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.CHART|truncate(200) }}</td></tr>{% endif %}
+            {% if detail.PACK_UNIT %}<tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">포장단위</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.PACK_UNIT }}</td></tr>{% endif %}
+            {% if detail.STORAGE_METHOD %}<tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">저장방법</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.STORAGE_METHOD|truncate(120) }}</td></tr>{% endif %}
+            {% if detail.VALID_TERM %}<tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">유효기간</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-weight:600">{{ detail.VALID_TERM }}</td></tr>{% endif %}
+            {% if detail.REEXAM_TARGET %}<tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">재심사 대상</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.REEXAM_TARGET }}</td></tr>{% endif %}
+            {% if detail.REEXAM_DATE %}<tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">재심사 기한일</td><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--warn);font-weight:600">{{ detail.REEXAM_DATE }}</td></tr>{% endif %}
+            {% if detail.ATC_CODE %}<tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">ATC 코드</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-family:'JetBrains Mono',monospace">{{ detail.ATC_CODE }}</td></tr>{% endif %}
+            {% if detail.BAR_CODE %}<tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">바코드</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-family:'JetBrains Mono',monospace;font-size:12px">{{ detail.BAR_CODE }}</td></tr>{% endif %}
+            {% if detail.RARE_DRUG_YN %}<tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">희귀의약품</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{% if detail.RARE_DRUG_YN == 'Y' %}<span class="badge badge--warn">희귀의약품</span>{% else %}일반{% endif %}</td></tr>{% endif %}
+            {% if detail.NARCOTIC_KIND_CODE %}<tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">마약류 구분</td><td style="padding:8px;border-bottom:1px solid var(--line-2)"><span class="badge badge--danger">{{ detail.NARCOTIC_KIND_CODE }}</span></td></tr>{% endif %}
+            {% if detail.NEWDRUG_CLASS_NAME %}<tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">신약 구분</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.NEWDRUG_CLASS_NAME }}</td></tr>{% endif %}
+            {% if detail.CNSGN_MANUF %}<tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">위탁제조사</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.CNSGN_MANUF }}</td></tr>{% endif %}
+            {% if detail.CHANGE_DATE %}<tr><td style="padding:8px;color:var(--ink-3)">최근 변경일</td><td style="padding:8px;color:var(--ink-2)">{{ detail.CHANGE_DATE }}</td></tr>{% endif %}
+          </table>
+        </div>
+        {% endif %}
+
+        {# 3) 변경 이력 시계열 — 허가일·재심사·재평가 통합 #}
+        <div class="app-card">
+          <div class="app-card__head"><div class="app-card__title">변경 이력 시계열</div><span class="app-card__caption">허가·재심사·재평가 통합</span></div>
+          {% set history_events = [] %}
+          {# 최초 허가 #}
+          {% if product_live.ITEM_PERMIT_DATE %}
+            {% set _ = history_events.append({'date': product_live.ITEM_PERMIT_DATE, 'kind': '최초 허가', 'color': 'success', 'detail': (product_live.SPCLTY_PBLC or '?') ~ ' · ' ~ (product_live.PRDUCT_TYPE or '?')}) %}
+          {% endif %}
+          {# detail 의 변경일 #}
+          {% if detail and detail.CHANGE_DATE %}
+            {% set _ = history_events.append({'date': detail.CHANGE_DATE, 'kind': '허가 변경', 'color': 'info', 'detail': '허가 상세 정보 변경'}) %}
+          {% endif %}
+          {# detail REEXAM_DATE #}
+          {% if detail and detail.REEXAM_DATE %}
+            {% set _ = history_events.append({'date': detail.REEXAM_DATE, 'kind': '재심사 기한', 'color': 'warn', 'detail': '의약품 재심사 마감 예정'}) %}
+          {% endif %}
+          {# p_review (재심사) #}
+          {% for r in (p_review or []) %}
+            {% if r.REEXAM_START_DATE %}
+              {% set _ = history_events.append({'date': r.REEXAM_START_DATE, 'kind': '재심사 시작', 'color': 'info', 'detail': (r.REPORT_FLAG_NM or '') ~ ' · ' ~ (r.CLASS_NO_NM or '')}) %}
+            {% endif %}
+            {% if r.RESULT_DATE %}
+              {% set _ = history_events.append({'date': r.RESULT_DATE, 'kind': '재심사 결과', 'color': 'success', 'detail': (r.REEXAM_CODE_NM or '결과 통지')}) %}
+            {% endif %}
+          {% endfor %}
+          {# p_reeval (재평가) #}
+          {% for r in (p_reeval or []) %}
+            {% if r.ITEM_PERMIT_DATE %}
+              {% set _ = history_events.append({'date': r.ITEM_PERMIT_DATE, 'kind': '재평가', 'color': 'info', 'detail': (r.SUBMIT_DOC_CODE_NM or '재평가 진행') ~ ' · ' ~ (r.CLASS_NO_NM or '')}) %}
+            {% endif %}
+          {% endfor %}
+
+          {% if history_events %}
+          <div style="display:flex;flex-direction:column;gap:8px">
+            {% for ev in history_events|sort(attribute='date', reverse=true) %}
+            <div class="alert-row">
+              <div class="alert-row__bar" style="background:var(--{{ ev.color }})"></div>
+              <span class="alert-row__time" style="font-family:'JetBrains Mono',monospace">
+                {%- if ev.date and ev.date|length >= 8 -%}
+                  {{ ev.date[:4] }}-{{ ev.date[4:6] }}-{{ ev.date[6:8] }}
+                {%- else -%}{{ ev.date }}{%- endif -%}
+              </span>
+              <div class="flex-1">
+                <div class="alert-row__title">{{ ev.kind }}</div>
+                <div class="alert-row__meta">{{ ev.detail }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div style="padding:30px;text-align:center;color:var(--ink-3);background:var(--bg-subtle);border-radius:10px">변경 이력 데이터 없음 — 허가일자만 확인 가능</div>
+          {% endif %}
+        </div>
+
         {% else %}
         <div class="app-card" style="text-align:center;padding:60px"><h3>허가 데이터를 불러올 수 없습니다.</h3></div>
         {% endif %}
