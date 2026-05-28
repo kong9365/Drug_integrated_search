@@ -446,6 +446,65 @@ def fetch_approval(
     }
 
 
+def fetch_approval_detail(
+    item_name: Optional[str] = None,
+    entp_name: Optional[str] = None,
+    item_seq: Optional[str] = None,
+    edi_code: Optional[str] = None,
+    bar_code: Optional[str] = None,
+    item_permit_date: Optional[str] = None,
+    entp_no: Optional[str] = None,
+    bizrno: Optional[str] = None,
+    atc_code: Optional[str] = None,
+    rare_drug_yn: Optional[str] = None,
+    page_no: int = 1,
+    num_of_rows: int = 5,
+    response_type: str = "xml",
+) -> Dict[str, Any]:
+    """
+    NO 140 의약품 제품 허가 상세정보 (getDrugPrdtPrmsnDtlInq06).
+
+    목록 API(fetch_approval) 와 별개로 상세 필드를 받음:
+      MATERIAL_NAME(주성분), VALID_TERM(유효기간), REEXAM_DATE(재심사일),
+      ATC_CODE(ATC), BAR_CODE(표준코드), CHART(성상), PACK_UNIT(포장단위),
+      STORAGE_METHOD(저장법), RARE_DRUG_YN(희귀의약품), NARCOTIC_KIND_CODE,
+      EE_DOC_DATA(효능효과), UD_DOC_DATA(용법용량), NB_DOC_DATA(주의사항)
+    """
+    endpoint = API_ENDPOINTS.get("approval_detail")
+    if not endpoint:
+        return {"success": False, "error": "approval_detail endpoint 미정의",
+                "items": [], "totalCount": 0}
+
+    params = {
+        "pageNo": str(page_no),
+        "numOfRows": str(num_of_rows),
+        "type": response_type,
+    }
+    # 검색 파라미터 (모두 snake_case)
+    for k, v in {
+        "item_name": item_name, "entp_name": entp_name, "item_seq": item_seq,
+        "edi_code": edi_code, "bar_code": bar_code,
+        "item_permit_date": item_permit_date, "entp_no": entp_no,
+        "bizrno": bizrno, "atc_code": atc_code, "rare_drug_yn": rare_drug_yn,
+    }.items():
+        if v:
+            params[k] = v
+
+    logger.info(f"허가 상세정보 조회: {params}")
+    try:
+        response = _make_request(endpoint, params)
+        parsed = _parse_xml_response(response.text)
+        items = [_item_to_dict(item) for item in parsed["items"]]
+        return {
+            "success": True,
+            "totalCount": parsed.get("totalCount", len(items)),
+            "items": items,
+        }
+    except Exception as e:
+        logger.warning(f"허가 상세정보 조회 실패: {e}")
+        return {"success": False, "error": str(e), "items": [], "totalCount": 0}
+
+
 def fetch_disciplinary(
     entp_name: Optional[str] = None,
     item_name: Optional[str] = None,

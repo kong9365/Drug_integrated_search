@@ -12,7 +12,10 @@ RegHub 360 — 앱 페이지 Blueprint (MVP 6개 화면)
 import logging
 from flask import Blueprint, render_template, request, redirect, url_for
 
-from ..api_client import fetch_approval, fetch_disciplinary, fetch_recall, fetch_identification
+from ..api_client import (
+    fetch_approval, fetch_approval_detail,
+    fetch_disciplinary, fetch_recall, fetch_identification,
+)
 from ..api_extras import (
     # 핵심 11
     fetch_drug_easy, fetch_drug_bundle, fetch_drug_safety_letter,
@@ -361,6 +364,7 @@ def product_drug(code):
     dur_items = []
     supply_stops = []
     ingredient_kr = None  # 한글 주성분명
+    detail = None  # NO 140 상세 응답 (효능효과·용법용량·재심사일·ATC 등)
     # 확장 R&D / 품질 / 재심사 데이터
     p_patents = []
     p_lawsuits = []
@@ -396,6 +400,21 @@ def product_drug(code):
                     drug_easy = ed["items"][0]
             except Exception:
                 pass
+
+            # 2-1. NO 140 상세정보 (getDrugPrdtPrmsnDtlInq06) — 효능효과·용법용량·재심사일·ATC 등
+            try:
+                item_seq = (product or {}).get("ITEM_SEQ") or ""
+                # item_seq 우선, 없으면 edi_code, 없으면 item_name
+                dr = fetch_approval_detail(
+                    item_seq=item_seq or None,
+                    edi_code=(code if not item_seq else None),
+                    item_name=(item_name if not item_seq and not code else None),
+                    num_of_rows=1,
+                )
+                if dr.get("items"):
+                    detail = dr["items"][0]
+            except Exception as e:
+                logger.warning(f"NO 140 상세 조회 실패: {e}")
 
             # 3. NO 563 낱알식별 — item_name (검증된 파라미터)
             try:
@@ -546,6 +565,7 @@ def product_drug(code):
         product_live=product,
         drug_easy=drug_easy,
         identification=identification,
+        detail=detail,
         related_recalls=related_recalls,
         same_entity_recalls=same_entity_recalls,
         safety_letters=safety_letters,

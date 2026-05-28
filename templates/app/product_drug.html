@@ -189,6 +189,66 @@
             {% endif %}
           </div>
 
+          {# NO 140 상세정보 (getDrugPrdtPrmsnDtlInq06) — VALID_TERM·REEXAM_DATE·ATC 등 #}
+          {% if detail %}
+          <div class="app-card">
+            <div class="app-card__head">
+              <div class="app-card__title">허가 상세 정보</div>
+              <span class="app-card__caption">상세 항목</span>
+            </div>
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+              {% if detail.MATERIAL_NAME %}
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3);width:30%">주성분(한글)</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.MATERIAL_NAME }}</td></tr>
+              {% endif %}
+              {% if detail.MAIN_INGR_ENG %}
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">주성분(영문)</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.MAIN_INGR_ENG }}</td></tr>
+              {% endif %}
+              {% if detail.TOTAL_CONTENT %}
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">총량</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.TOTAL_CONTENT }}</td></tr>
+              {% endif %}
+              {% if detail.CHART %}
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">성상</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.CHART|truncate(120) }}</td></tr>
+              {% endif %}
+              {% if detail.PACK_UNIT %}
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">포장단위</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.PACK_UNIT }}</td></tr>
+              {% endif %}
+              {% if detail.STORAGE_METHOD %}
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">저장방법</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.STORAGE_METHOD|truncate(80) }}</td></tr>
+              {% endif %}
+              {% if detail.VALID_TERM %}
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">유효기간</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-weight:600">{{ detail.VALID_TERM }}</td></tr>
+              {% endif %}
+              {% if detail.REEXAM_TARGET %}
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">재심사 대상</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.REEXAM_TARGET }}</td></tr>
+              {% endif %}
+              {% if detail.REEXAM_DATE %}
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">재심사 기한일</td><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--warn);font-weight:600">{{ detail.REEXAM_DATE }}</td></tr>
+              {% endif %}
+              {% if detail.ATC_CODE %}
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">ATC 코드</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-family:'JetBrains Mono',monospace">{{ detail.ATC_CODE }}</td></tr>
+              {% endif %}
+              {% if detail.BAR_CODE %}
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">표준코드(바코드)</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-family:'JetBrains Mono',monospace">{{ detail.BAR_CODE }}</td></tr>
+              {% endif %}
+              {% if detail.RARE_DRUG_YN %}
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">희귀의약품</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{% if detail.RARE_DRUG_YN == 'Y' %}<span class="badge badge--warn">희귀의약품</span>{% else %}일반{% endif %}</td></tr>
+              {% endif %}
+              {% if detail.NARCOTIC_KIND_CODE %}
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">마약류 구분</td><td style="padding:8px;border-bottom:1px solid var(--line-2)"><span class="badge badge--danger">{{ detail.NARCOTIC_KIND_CODE }}</span></td></tr>
+              {% endif %}
+              {% if detail.NEWDRUG_CLASS_NAME %}
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">신약 구분</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.NEWDRUG_CLASS_NAME }}</td></tr>
+              {% endif %}
+              {% if detail.CNSGN_MANUF %}
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">수탁 제조소</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.CNSGN_MANUF }}</td></tr>
+              {% endif %}
+              {% if detail.CHANGE_DATE %}
+              <tr><td style="padding:8px;color:var(--ink-3)">최종 변경일</td><td style="padding:8px;font-family:'JetBrains Mono',monospace">{{ detail.CHANGE_DATE }}</td></tr>
+              {% endif %}
+            </table>
+          </div>
+          {% endif %}
+
           <div class="app-card">
             <div class="app-card__head">
               <div class="app-card__title">품질·규제 이벤트 — 실 API</div>
@@ -391,6 +451,34 @@
 
       {# ────────── 안전성 정보 탭 ────────── #}
       <div data-p360-panel="safety">
+
+        {# 효능·효과 / 용법·용량 / 주의사항 — NO 140 상세 또는 e약은요 #}
+        {% if detail and (detail.EE_DOC_DATA or detail.UD_DOC_DATA or detail.NB_DOC_DATA) %}
+        <div class="app-card" style="margin-bottom:16px">
+          <div class="app-card__head"><div class="app-card__title">효능·효과 / 용법·용량 / 주의사항</div><span class="app-card__caption">의약품 첨부문서</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            {% if detail.EE_DOC_DATA %}
+            <div style="padding:14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px">
+              <div class="t-caption" style="margin-bottom:6px">효능·효과</div>
+              <div style="font-size:13px;color:var(--ink-2);line-height:1.55;max-height:200px;overflow-y:auto">{{ detail.EE_DOC_DATA|truncate(500) }}</div>
+            </div>
+            {% endif %}
+            {% if detail.UD_DOC_DATA %}
+            <div style="padding:14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px">
+              <div class="t-caption" style="margin-bottom:6px">용법·용량</div>
+              <div style="font-size:13px;color:var(--ink-2);line-height:1.55;max-height:200px;overflow-y:auto">{{ detail.UD_DOC_DATA|truncate(500) }}</div>
+            </div>
+            {% endif %}
+            {% if detail.NB_DOC_DATA %}
+            <div style="padding:14px;background:var(--warn-soft);border:1px solid var(--warn);border-radius:10px;grid-column:span 2">
+              <div class="t-caption" style="margin-bottom:6px;color:var(--warn)">사용상의 주의사항</div>
+              <div style="font-size:13px;color:var(--ink-2);line-height:1.55;max-height:240px;overflow-y:auto">{{ detail.NB_DOC_DATA|truncate(800) }}</div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
         <div class="app-card">
           <div class="app-card__head"><div class="app-card__title">안전성서한 — {{ safety_letters|length }}건</div><span class="app-card__caption">안전성서한</span></div>
           {% if safety_letters %}
