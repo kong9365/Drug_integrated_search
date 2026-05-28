@@ -30,8 +30,11 @@
 | 환경변수 | `FOODSAFETY_KEY_ID` |
 | 현재 상태 | 미발급 (빈 문자열) |
 | 발급처 | https://openapi.foodsafetykorea.go.kr |
-| URL 패턴 | `http://openapi.foodsafetykorea.go.kr/api/{KEY_ID}/{SERVICE_ID}/{TYPE}/{START}/{END}` |
-| 대기 API | NO 339(식품 회수·판매중지, serviceId `I0490`) 등 |
+| 신청 페이지 | https://www.foodsafetykorea.go.kr/api/openApiInfo.do (회원가입 후 OpenAPI 이용신청) |
+| URL 패턴 | `http://openapi.foodsafetykorea.go.kr/api/{KEY_ID}/{SERVICE_ID}/{TYPE}/{START}/{END}[/{변수}={값}&{변수}={값}]` |
+| 지원 데이터 포맷 | xml, json |
+| 가용 API | **97개 OPEN-API 전수 명세 수집 완료** (식약처 ORGN01 카테고리) — 본 문서 하단 "🍜 식품안전나라 OPEN-API" 섹션 |
+| 핵심 API | `I0490`(회수·판매중지)·`I0470`/`I0480`/`I0481`/`I0482`/`I2630`(행정처분 5종)·`I0580`(HACCP)·`I2620`(검사부적합)·`I2810`(해외위해)·`I2791`(영양DB)·`I-0050`(건기식 개별인정형) 등 |
 
 ### B553748 카테고리 (한국식품안전관리인증원 — 동일 SERVICE_KEY 적용 확인)
 | 항목 | 값 |
@@ -601,3 +604,644 @@ python -m drug_integrated_search._verify_all_apis
 | 대상 부서 | RA·QA·QC·SCM·R&D·식품QA·영업 (Workspaces 7개) |
 | 운영 모드 | Phase 1 개발계정 (10,000회/일) → Phase 2 운영계정 전환 검토 (활용사례 등록 후) |
 
+
+---
+
+## 🍜 식품안전나라 OPEN-API (foodsafetykorea.go.kr — 97개 전수)
+
+> data.go.kr 인증키와 **별도 KeyID** 필요. 환경변수: `FOODSAFETY_KEY_ID` (`config.py:44`)
+> 공통 URL 패턴: `http://openapi.foodsafetykorea.go.kr/api/{KEY_ID}/{서비스ID}/{xml|json}/{startIdx}/{endIdx}[/{변수명}={값}&{변수명}={값}]`
+> 모든 API 공통 요청인자 5개: `keyId`·`serviceId`·`dataType`(xml/json)·`startIdx`·`endIdx` (이하 카드는 추가 파라미터만 명시)
+> 출처: https://www.foodsafetykorea.go.kr/api/datasetList.do?menu_grp=MENU_GRP31&menu_no=849&provd_instt=ORGN01
+
+### 📁 카테고리: HACCP지정현황 (2개)
+
+### `I0580` — HACCP 적용업소 지정 현황
+- **카테고리**: HACCP지정현황
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0580/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `LCNS_NO`(인허가번호) · `HACCP_APPN_NO`(HACCP 지정번호) · `CHNG_DT`(변경일자)
+- **응답 필드**: `LCNS_NO`(인허가번호) / `INDUTY_CD_NM`(업종) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `SITE_ADDR`(주소) / `HACCP_APPN_DT`(HACCP 지정일자) / `HACCP_APPN_NO`(HACCP 지정번호) / `PRDLST_NM`(품목명) / `CLSBIZ_DVS_CD_NM`(영업상태) / `CLSBIZ_DT`(폐업일자) / `ASGN_CANCL_DT`(지정취소일자) / `CRTFC_ENDDT`(인증종료일자) … 외 1개
+
+### `I0600` — HACCP 교육훈련기관 지정 현황
+- **카테고리**: HACCP지정현황
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0600/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `EDC_INSTT_APPN_NO`(지정번호) / `BSSH_NM`(교육훈련기관명) / `BSSH_ADDR`(주소) / `PRSDNT_NM`(대표자) / `PRMS_DT`(허가일자) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수)) / `dataType`(STRING(필수)) / `startIdx`(STRING(필수))
+
+
+### 📁 카테고리: 건강기능식품 (10개)
+
+### `C003` — 건강기능식품 품목제조신고(원재료)
+- **카테고리**: 건강기능식품
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/C003/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자(YYYYMMDD)) · `PRDLST_REPORT_NO`(품목제조번호) · `PRMS_DT`(보고일자(YYYYMMDD)) · `PRDLST_NM`(품목명) · `BSSH_NM`(업소명) · `LCNS_NO`(인허가번호)
+- **응답 필드**: `LCNS_NO`(인허가번호) / `BSSH_NM`(업소명) / `PRDLST_REPORT_NO`(품목제조번호) / `PRDLST_NM`(품목명) / `PRMS_DT`(보고일자) / `POG_DAYCNT`(소비기한) / `DISPOS`(성상) / `NTK_MTHD`(섭취방법) / `PRIMARY_FNCLTY`(주된기능성) / `IFTKN_ATNT_MATR_CN`(섭취시주의사항) / `CSTDY_MTHD`(보관방법) / `SHAP`(형태) … 외 5개
+
+### `I-0020` — 건강기능식품 전문.벤처제조업인허가 현황
+- **카테고리**: 건강기능식품
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I-0020/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `LCNS_NO`(인허가번호)
+- **응답 필드**: `LCNS_NO`(인허가 번호) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자) / `INDUTY_NM`(업종) / `PRMS_DT`(허가일자) / `TELNO`(전화번호) / `LOCP_ADDR`(주소) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수))
+
+### `I-0040` — 건강기능식품 기능성 원료인정현황
+- **카테고리**: 건강기능식품
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I-0040/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `PRMS_DT`(인정일자) · `APLC_RAWMTRL_NM`(신청원료명) · `HF_FNCLTY_MTRAL_RCOGN_NO`(인정번호)
+- **응답 필드**: `HF_FNCLTY_MTRAL_RCOGN_NO`(인정번호) / `PRMS_DT`(인정일자) / `BSSH_NM`(업체명) / `INDUTY_NM`(업종) / `ADDR`(주소) / `APLC_RAWMTRL_NM`(신청원료명) / `FNCLTY_CN`(기능성 내용) / `DAY_INTK_CN`(1일 섭취량) / `IFTKN_ATNT_MATR_CN`(섭취시 주의사항)
+
+### `I-0050` — 건강기능식품 개별인정형 정보
+- **카테고리**: 건강기능식품
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I-0050/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `HF_FNCLTY_MTRAL_RCOGN_NO`(원료인정번호) / `DAY_INTK_HIGHLIMIT`(1일 섭취량 상한선) / `DAY_INTK_LOWLIMIT`(1일 섭취량 하한선) / `WT_UNIT`(중량 단위) / `RAWMTRL_NM`(원재료 명) / `IFTKN_ATNT_MATR_CN`(섭취시 주의 사항 내용) / `PRIMARY_FNCLTY`(주된 기능성) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수))
+
+### `I0030` — 건강기능식품 품목제조 신고사항 현황
+- **카테고리**: 건강기능식품
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0030/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자(YYYYMMDD)) · `BSSH_NM`(업소명) · `PRDLST_NM`(품목명) · `PRDLST_REPORT_NO`(품목제조번호)
+- **응답 필드**: `LCNS_NO`(인허가번호) / `BSSH_NM`(업소_명) / `PRDLST_REPORT_NO`(품목제조번호) / `PRDLST_NM`(품목_명) / `PRMS_DT`(허가_일자) / `POG_DAYCNT`(소비기한_일수) / `DISPOS`(제품형태) / `NTK_MTHD`(섭취방법) / `PRIMARY_FNCLTY`(주된기능성) / `IFTKN_ATNT_MATR_CN`(섭취시주의사항) / `CSTDY_MTHD`(보관방법) / `PRDLST_CDNM`(유형) … 외 14개
+
+### `I0310` — 건강기능식품 생산실적 보고 품목 현황
+- **카테고리**: 건강기능식품
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0310/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `EVL_YR`(생산실적보고년도(YYYY)(필수)) · `LCNS_NO`(인허가번호) · `PRDLST_CD_NM`(품목유형명)
+- **응답 필드**: `BSSH_NM`(업소명) / `PRDLST_NM`(품목명) / `GUBUN`(품목구분) / `H_ITEM_NM`(품목유형) / `LCNS_NO`(인허가번호) / `EVL_YR`(보고년도) / `PRDLST_REPORT_NO`(품목제조보고번호) / `FYER_PRDCTN_ABRT_QY`(연간생산능력(KG)) / `PRDCTN_QY`(생산량(KG))
+
+### `I0630` — 건강기능식품GMP 지정 현황
+- **카테고리**: 건강기능식품
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0630/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `GMP_APPN_NO`(GMP지정번호) / `APPN_DT`(지정일자) / `BSSH_NM`(업소명) / `LCNS_NO`(업고고유번호) / `APPN_CANCL_DT`(GMP취소일자) / `INDUTY_CD_NM`(업종명) / `PRSDNT_NM`(대표자명) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수))
+
+### `I1290` — 건강기능식품판매업
+- **카테고리**: 건강기능식품
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1290/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `LCNS_NO`(인허가번호)
+- **응답 필드**: `LCNS_NO`(인허가 번호) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `INDUTY_NM`(업종) / `PRMS_DT`(허가일자) / `TELNO`(전화번호) / `LOCP_ADDR`(주소) / `INSTT_NM`(기관명) / `keyId`(STRING(필수))
+
+### `I2710` — 건강기능식품 품목분류정보
+- **카테고리**: 건강기능식품
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2710/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `PRDCT_NM`(품목명) / `IFTKN_ATNT_MATR_CN`(섭취시주의사항) / `PRIMARY_FNCLTY`(주된기능성) / `DAY_INTK_LOWLIMIT`(일일섭취량 하한) / `DAY_INTK_HIGHLIMIT`(일일섭취량 상한) / `INTK_UNIT`(단위) / `INTK_MEMO`(REMARK) / `SKLL_IX_IRDNT_RAWMTRL`(성분명) / `CRET_DTM`(최초등록일) / `LAST_UPDT_DTM`(최종수정일)
+
+### `I2860` — 건강기능식품업소 인허가 변경 정보
+- **카테고리**: 건강기능식품
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2860/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `LCNS_NO`(인허가번호) · `BSSH_NM`(업소명)
+- **응답 필드**: `BSSH_NM`(업소명) / `INDUTY_CD_NM`(업종명) / `LCNS_NO`(인허가번호) / `TELNO`(전화번호) / `SITE_ADDR`(주소) / `CHNG_DT`(변경일자) / `CHNG_BF_CN`(변경전내용) / `CHNG_AF_CN`(변경후내용) / `CHNG_PRVNS`(변경사유)
+
+
+### 📁 카테고리: 수입식품 등 (6개)
+
+### `C001` — 수입식품등영업신고대장
+- **카테고리**: 수입식품 등
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/C001/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `LCNS_NO`(인허가번호)
+- **응답 필드**: `LCNS_NO`(인허가번호) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `INDUTY_NM`(업종) / `PRMS_DT`(허가일자) / `LOCP_ADDR`(주소) / `INSTT_NM`(기관명) / `TELNO`(전화번호) / `keyId`(STRING(필수))
+
+### `I0130` — LMO 수입 승인 현황
+- **카테고리**: 수입식품 등
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0130/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `LMO_CONFM_NO`(유전자 변형 생물체 승인번호) / `CONFM_DT`(승인일자) / `BSSH_NM`(업소명) / `ADDR`(주소) / `COMMON_NM`(보통명) / `SYSTM_NM`(계통명) / `BNE_NM`(학명) / `PRPOS`(용도) / `NATN_CD_NM`(수입국) / `keyId`(STRING(필수))
+
+### `I0250` — 우수수입업소 등록 현황
+- **카테고리**: 수입식품 등
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0250/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `EXCLNC_INCM_BSSH_REGNO`(우수수입업소등록번호) / `PRMS_DT`(허가일자) / `BSSH_NM`(업소명) / `ADDR`(소재지) / `EXCOURY_NATN_CD_NM`(수출국가) / `INCM_PRDT_XPORT_MC_NM`(수입제품제조회사명) / `PRDLST_CNT`(품목수) / `PRDLST_NM`(품목명) / `LCNS_NO`(인허가번호) / `keyId`(STRING(필수))
+
+### `I1260` — 식품등수입판매업정보
+- **카테고리**: 수입식품 등
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1260/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `LCNS_NO`(인허가번호) · `BSSH_NM`(업소명)
+- **응답 필드**: `LCNS_NO`(인허가 번호) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `INDUTY_NM`(업종) / `PRMS_DT`(허가일자) / `TELNO`(전화번호) / `LOCP_ADDR`(주소) / `INSTT_NM`(기관명) / `keyId`(STRING(필수))
+
+### `I2780` — 수입쇠고기 냉동전환 정보
+- **카테고리**: 수입식품 등
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2780/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `MEATWATCH_NO`(이력번호) · `HIST_NO`(수입신고확인증번호) · `ACCEPT_NO`(축산물수입신고필증번호)
+- **응답 필드**: `MEATWATCH_NO`(이력번호) / `HIST_NO`(수입신고확인증번호) / `ORGNP_NM`(원산지) / `BSSH_NM`(수입업체명) / `APLC_DTM`(신고일) / `PRDLST_NM`(품명(한글)) / `FREEZING_CNVRS_QTY`(전환수량(BOX)) / `FREEZING_CNVRS_WT`(전환중량(KG)) / `FRESH_DISTB_TMLMT_BGN_DT`(냉장유통/소비기한 시작일자) / `FRESH_DISTB_TMLMT_DT`(냉장유통/소비기한 만료일자) / `FREEZING_CNVRS_OPRTN_DT`(냉동전환 실시일) / `FREEZING_CNVRS_PREARNGE_DT`(냉동전환 완료일) … 외 2개
+
+### `I2781` — 수입축산물 냉동전환 정보
+- **카테고리**: 수입식품 등
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2781/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `MEATWATCH_NO`(이력번호) · `ACCEPT_NO`(축산물수입신고필증번호) · `HIST_NO`(수입신고확인증번호)
+- **응답 필드**: `MEATWATCH_NO`(이력번호) / `ACCEPT_NO`(축산물수입신고필증번호) / `HIST_NO`(수입신고확인증번호) / `ORGNP_NM`(원산지) / `BSSH_NM`(수입업체명) / `APLC_DTM`(신고일) / `PRDLST_NM`(품명(한글)) / `FREEZING_CNVRS_QTY`(전환수량(BOX)) / `FREEZING_CNVRS_WT`(전환중량(KG)) / `FRESH_DISTB_TMLMT_BGN_DT`(냉장유통/소비기한 시작일자) / `FRESH_DISTB_TMLMT_DT`(냉장유통/소비기한 만료일자) / `FREEZING_CNVRS_OPRTN_DT`(냉동전환 실시일) … 외 2개
+
+
+### 📁 카테고리: 식품위해관리 (14개)
+
+### `I0470` — 행정처분결과
+- **카테고리**: 식품위해관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0470/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자(YYYYMMDD)) · `DSPS_DCSNDT`(확정일자(YYYYMMDD)) · `LCNS_NO`(인허가번호)
+- **응답 필드**: `PRCSCITYPOINT_BSSHNM`(업소명) / `INDUTY_CD_NM`(업종) / `LCNS_NO`(인허가번호) / `DSPS_DCSNDT`(처분확정일자) / `DSPS_BGNDT`(처분시작일(영업정지의경우)) / `DSPS_ENDDT`(처분종료일(영업정지의경우)) / `DSPS_TYPECD_NM`(처분유형) / `VILTCN`(위반일자및위반내용) / `ADDR`(주소) / `TELNO`(전화번호) / `PRSDNT_NM`(대표자명) / `DSPSCN`(처분내용) … 외 5개
+
+### `I0480` — 행정처분결과(식품제조가공업)
+- **카테고리**: 식품위해관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0480/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자(YYYYMMDD)) · `DSPS_DCSNDT`(확정일자(YYYYMMDD)) · `LCNS_NO`(인허가번호)
+- **응답 필드**: `PRCSCITYPOINT_BSSHNM`(업소명) / `INDUTY_CD_NM`(업종) / `LCNS_NO`(인허가번호) / `DSPS_DCSNDT`(처분확정일자) / `DSPS_BGNDT`(처분시작일(영업정지의경우)) / `DSPS_ENDDT`(처분종료일(영업정지의경우)) / `DSPS_TYPECD_NM`(처분유형) / `VILTCN`(위반일자및위반내용) / `ADDR`(주소) / `TELNO`(전화번호) / `PRSDNT_NM`(대표자명) / `LAWORD_CD_NM`(위반법령) … 외 5개
+
+### `I0481` — 행정처분결과(식품판매업)
+- **카테고리**: 식품위해관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0481/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자(YYYYMMDD)) · `DSPS_DCSNDT`(확정일자(YYYYMMDD)) · `LCNS_NO`(인허가번호)
+- **응답 필드**: `PRCSCITYPOINT_BSSHNM`(업소명) / `INDUTY_CD_NM`(업종) / `LCNS_NO`(인허가번호) / `DSPS_DCSNDT`(처분확정일자) / `DSPS_BGNDT`(처분시작일(영업정지의경우)) / `DSPS_ENDDT`(처분종료일(영업정지의경우)) / `DSPS_TYPECD_NM`(처분유형) / `VILTCN`(위반일자 및 위반내용) / `ADDR`(주소) / `TELNO`(전화번호) / `PRSDNT_NM`(대표자명) / `LAWORD_CD_NM`(위반법령) … 외 5개
+
+### `I0482` — 행정처분결과(수입식품업)
+- **카테고리**: 식품위해관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0482/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자(YYYYMMDD)) · `DSPS_DCSNDT`(확정일자(YYYYMMDD)) · `LCNS_NO`(인허가번호)
+- **응답 필드**: `PRCSCITYPOINT_BSSHNM`(업소명) / `INDUTY_CD_NM`(업종) / `LCNS_NO`(인허가번호) / `DSPS_DCSNDT`(처분확정일자) / `DSPS_BGNDT`(처분시작일(영업정지의경우)) / `DSPS_ENDDT`(처분종료일(영업정지의경우)) / `DSPS_TYPECD_NM`(처분유형) / `VILTCN`(위반일자 및 위반내용) / `ADDR`(주소) / `TELNO`(전화번호) / `PRSDNT_NM`(대표자명) / `LAWORD_CD_NM`(위반법령) … 외 5개
+
+### `I0490` — 회수.판매중지 정보
+- **카테고리**: 식품위해관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0490/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CRET_DTM`(등록일자(YYYYMMDD)) · `PRDLST_REPORT_NO`(품목제조보고번호)
+- **응답 필드**: `PRDTNM`(제품명) / `RTRVLPRVNS`(회수사유) / `BSSHNM`(제조업체명) / `ADDR`(업체주소) / `TELNO`(전화번호) / `BRCDNO`(바코드번호) / `FRMLCUNIT`(포장단위) / `MNFDT`(제조일자) / `RTRVLPLANDOC_RTRVLMTHD`(회수방법) / `DISTBTMLMT`(유통/소비기한) / `PRDLST_TYPE`(식품분류) / `IMG_FILE_PATH`(제품사진 URL) … 외 7개
+
+### `I2620` — 검사부적합(국내)
+- **카테고리**: 식품위해관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2620/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `PRDTNM`(제품명) · `PRDLST_REPORT_NO`(품목제조보고번호)
+- **응답 필드**: `PRDTNM`(제품명) / `BSSHNM`(업소명) / `MNFDT`(제조일자) / `DISTBTMLMT`(유통/소비기한) / `ADDR`(영업자주소) / `INSTT_NM`(검사기관) / `REGSTR_TELNO`(전화번호) / `BRCDNO`(바코드번호) / `FRMLCUNIT`(포장단위) / `TEST_ITMNM`(부적합항목) / `STDR_STND`(기준규격) / `TESTANALS_RSLT`(검사결과) … 외 6개
+
+### `I2630` — 행정처분결과(식품접객업)
+- **카테고리**: 식품위해관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2630/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자(YYYYMMDD)) · `DSPS_DCSNDT`(확정일자(YYYYMMDD)) · `LCNS_NO`(인허가번호)
+- **응답 필드**: `PRCSCITYPOINT_BSSHNM`(업소명) / `INDUTY_CD_NM`(업종) / `LCNS_NO`(인허가번호) / `DSPS_DCSNDT`(처분확정일자) / `DSPS_BGNDT`(처분시작일(영업정지의경우)) / `DSPS_ENDDT`(처분종료일(영업정지의경우)) / `DSPS_TYPECD_NM`(처분유형) / `VILTCN`(위반일자및위반내용) / `ADDR`(주소) / `TEL_NO`(전화번호) / `PRSDNT_NM`(대표자명) / `DSPSCN`(처분내용) … 외 5개
+
+### `I2640` — 검사부적합 현황(농산물)
+- **카테고리**: 식품위해관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2640/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `PRDTNM`(제품명)
+- **응답 필드**: `PRDTNM`(제품명) / `BSSHNM`(업소명) / `MNFDT`(제조일자) / `DISTBTMLMT`(유통/소비기한) / `ADDR`(영업자주소) / `INSTT_NM`(검사기관) / `REGSTR_TELNO`(전화번호) / `BRCDNO`(바코드번호) / `FRMLCUNIT`(포장단위) / `TEST_ITMNM`(부적합항목) / `STDR_STND`(기준규격) / `TESTANALS_RSLT`(검사결과) … 외 4개
+
+### `I2715` — 해외직구 위해식품 차단정보
+- **카테고리**: 식품위해관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2715/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CRET_DTM`(등록일자(YYYYMMDD)) · `LAST_UPDT_DTM`(최종수정일자(YYYYMMDD)) · `PRDT_NM`(제품명) · `MUFC_NM`(제조사명) · `MUFC_CNTRY_NM`(제조국가명) · `INGR_NM_LST`(위해성분명)
+- **응답 필드**: `PRDT_NM`(제품명) / `MUFC_NM`(제조사명) / `MUFC_CNTRY_NM`(제조국가명) / `INGR_NM_LST`(위해성분명) / `STT_YMD`(적용시작일) / `END_YMD`(적용종료일) / `CRET_DTM`(등록일) / `LAST_UPDT_DTM`(최종수정일) / `IMAGE_URL`(이미지URL) / `SELF_IMPORT_SEQ`(일련번호(고유키값)) / `BARCD_CTN`(바코드번호)
+
+### `I2810` — 해외 위해식품 회수정보
+- **카테고리**: 식품위해관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2810/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `ST_CRET_DTM`(생성일자시작범위(YYYYMMDD)) · `END_CRET_DTM`(생성일자종료범위(YYYYMMDD))
+- **응답 필드**: `TITL`(제품명) / `DETECT_TITL`(유해물질) / `CRET_DTM`(생성일자) / `BDT`(본문내용) / `DOWNLOAD_URL`(이미지 다운로드 URL) / `NTCTXT_NO`(게시글번호) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수)) / `dataType`(STRING(필수))
+
+### `I2848` — 식중독 지역별 현황
+- **카테고리**: 식품위해관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2848/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `OCCRNC_YEAR`(발생년(YYYY)) · `OCCRNC_MM`(발생월(MM)) · `OCCRNC_AREA`(발생지역)
+- **응답 필드**: `OCCRNC_YEAR`(발생년) / `OCCRNC_MM`(발생월) / `OCCRNC_AREA`(발생지역) / `OCCRNC_CNT`(발생건수) / `PATNT_CNT`(환자수) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수)) / `dataType`(STRING(필수))
+
+### `I2849` — 식중독 원인시설별 현황
+- **카테고리**: 식품위해관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2849/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `OCCRNC_YEAR`(발생년(YYYY)) · `OCCRNC_MM`(발생월(MM)) · `OCCRNC_PLC`(발생장소)
+- **응답 필드**: `OCCRNC_YEAR`(발생년) / `OCCRNC_MM`(발생월) / `OCCRNC_PLC`(발생장소) / `OCCRNC_CNT`(발생건수) / `PATNT_CNT`(환자수) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수)) / `dataType`(STRING(필수))
+
+### `I2850` — 식중독 원인물질별 현황
+- **카테고리**: 식품위해관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2850/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `OCCRNC_YEAR`(발생년(YYYY)) · `OCCRNC_MM`(발생월(MM)) · `OCCRNC_VIRS`(발생물질)
+- **응답 필드**: `OCCRNC_YEAR`(발생년) / `OCCRNC_MM`(발생월) / `OCCRNC_VIRS`(발생물질) / `OCCRNC_CNT`(발생건수) / `PATNT_CNT`(환자수) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수)) / `dataType`(STRING(필수))
+
+### `I2854` — 식품별 유해오염물질 검출량
+- **카테고리**: 식품위해관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2854/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `PRDLST_CD`(식품유형) · `PRDLST_NM`(식품명) · `ANALS_YEAR`(분석연도)
+- **응답 필드**: `SNT_GBN`(구분) / `PRDLST_CD`(식품유형) / `PRDLST_NM`(식품명) / `ANALS_YEAR`(분석연도) / `COL_A_RESULT`(다이옥신) / `COL_B_RESULT`(PCBs) / `COL_C_RESULT`(벤조피렌) / `COL_D_RESULT`(3-MCPD) / `COL_E_RESULT`(총 아플라톡신) / `COL_F_RESULT`(아플라톡신B1) / `COL_G_RESULT`(오크라톡신) / `COL_H_RESULT`(푸모니신) … 외 12개
+
+
+### 📁 카테고리: 기준규격정보 (25개)
+
+### `I0930` — 식품공전
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0930/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `LAST_UPDT_DTM`(최종수정일(YYYYMMDD)) · `PRDLST_NM`(품목명)
+- **응답 필드**: `PRDLST_NM`(품목명) / `T_KOR_NM`(시험항목) / `FNPRT_ITM_NM`(세부항목) / `PIAM_KOR_NM`(품목항목속성) / `SPEC_VAL`(기준규격값) / `VALD_BEGN_DT`(유효개시일자) / `VALD_END_DT`(유효종료일자) / `SPEC_VAL_SUMUP`(규격값요약) / `JDGMNT_FNPRT_CD_NM`(판정형식) / `MXMM_VAL`(최대값) / `MXMM_VAL_FNPRT_CD_NM`(이하/미만) / `MIMM_VAL`(최소값) … 외 5개
+
+### `I0940` — 식품용 기구 및 용기.포장 공전
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0940/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `PRDLST_CD`(품목코드) / `PC_KOR_NM`(품목한글명) / `TESTITM_CD`(시험항목코드) / `T_KOR_NM`(시험항목 한글명) / `FNPRT_ITM_NM`(세부항목명) / `SPEC_VAL`(기준규격값) / `SPEC_VAL_SUMUP`(기준규격값 요약) / `VALD_BEGN_DT`(유효개시일자) / `VALD_END_DT`(유효종료일자) / `SORC`(출처) / `MXMM_VAL`(최대값) / `MIMM_VAL`(최소값) … 외 2개
+
+### `I0950` — 식품첨가물공전
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0950/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `PRDLST_CD`(품목유형코드) · `LAST_UPDT_DTM`(최종수정일(YYYYMMDD)) · `TESTITM_CD`(시험항목코드)
+- **응답 필드**: `PRDLST_CD`(품목코드) / `PC_KOR_NM`(품목한글명) / `TESTITM_CD`(시험항목코드) / `T_KOR_NM`(시험항목 한글명) / `FNPRT_ITM_NM`(세부항목명) / `SPEC_VAL`(기준규격값) / `SPEC_VAL_SUMUP`(기준규격값 요약) / `VALD_BEGN_DT`(유효개시일자) / `VALD_END_DT`(유효종료일자) / `SORC`(출처) / `MXMM_VAL`(최대값) / `MIMM_VAL`(최소값) … 외 2개
+
+### `I0960` — 건강기능식품공전
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0960/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `LAST_UPDT_DTM`(최종수정일(YYYYMMDD)) · `PRDLST_CD`(품목유형코드)
+- **응답 필드**: `PRDLST_CD`(품목코드) / `PC_KOR_NM`(품목한글명) / `TESTITM_CD`(시험항목코드) / `T_KOR_NM`(시험항목 한글명) / `FNPRT_ITM_NM`(세부항목명) / `SPEC_VAL`(기준규격값) / `SPEC_VAL_SUMUP`(기준규격값 요약) / `VALD_BEGN_DT`(유효개시일자) / `VALD_END_DT`(유효종료일자) / `SORC`(출처) / `MXMM_VAL`(최대값) / `MIMM_VAL`(최소값) … 외 2개
+
+### `I0980` — 식품원료의 한시적 기준 및 규격 인정 현황
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0980/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `LIMIT_STDR_STND_RCOGN_NO`(한시적 기준 규격 인정 번호) / `BSSH_NM`(업소명) / `BSSH_ADDR`(주소) / `PRSDNT_NM`(대표자) / `RCOGN_DT`(인정일자) / `PRDT_NM`(제품명) / `RAWMTRL_NM`(원재료명) / `PRPOS`(용도) / `USED`(사용량) / `USING_UNIT`(사용량단위)
+
+### `I0990` — 기구 및 용기.포장의 한시적 기준 및 규격 인정 현황
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0990/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `LIMIT_STDR_STND_RCOGN_NO`(인정번호) / `RCOGN_DT`(인정일자) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `TELNO`(전화번호) / `MC_NM`(제조회사) / `PRDT_NM`(제품명) / `MC_NATN_CD_NM`(제조회사 국가) / `keyId`(STRING(필수))
+
+### `I1000` — 식품첨가물의 한시적 기준 및 규격 인정 현황
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1000/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `LIMIT_STDR_STND_RCOGN_NO`(인정번호) / `RCOGN_DT`(인정일자) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `TELNO`(전화번호) / `MC_NM`(제조회사) / `PRDT_NM`(제품명) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수))
+
+### `I1010` — 기구등의 살균소독제 한시적 기준 및 규격 인정 현황
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1010/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `LIMIT_STDR_STND_RCOGN_NO`(인정번호) / `RCOGN_DT`(인정일자) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `TELNO`(전화번호) / `MC_NM`(제조회사) / `PRDT_NM`(제품명) / `MC_NATN_CD_NM`(제조회사 국가) / `keyId`(STRING(필수))
+
+### `I1020` — 식품원재료(식물,동물,미생물,수산물) 정보
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1020/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `LCLAS_NM`(대분류) / `MLSFC_NM`(중분류) / `RPRSNT_RAWMTRL_NM`(원재료명) / `RAWMTRL_NCKNM`(이명) / `ENG_NM`(영문명) / `SCNM`(학명) / `REGN_CD_NM`(부위명) / `RAWMTRL_STATS_CD_NM`(상태명) / `USE_CND_NM`(사용조건) / `USE_CND_STDR_CN`(사용조건기준내용)
+
+### `I1030` — 방사선조사식품 품목 인정 현황
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1030/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `SPEC_NM`(기준규격명) / `PC_KOR_NM`(품목한글명) / `T_KOR_NM`(시험항목 한글명) / `PIAM_KOR_NM`(품목항목속성 한글명) / `SPEC_VAL`(기준규격값) / `SPEC_VAL_SUMUP`(기준규격값 요약) / `VALD_BEGN_DT`(유효개시일자) / `VALD_END_DT`(유효종료일자) / `SORC`(출처) / `MXMM_VAL`(최대값) / `MIMM_VAL`(최소값) / `UNIT_NM`(단위명)
+
+### `I1040` — 농약잔류허용기준
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1040/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `시행시점(YYYYMMDD)`(LAUNCH_POINT)
+- **응답 필드**: `AGCHM_KOR_NM`(농약명) / `FOOD_KOR_NM`(식품명) / `OPERTN_CITYPOINT`(시행 시점) / `STEP`(단계) / `MRL_VAL`(MRL 값) / `DSUSE_YN`(폐기 여부) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수)) / `dataType`(STRING(필수))
+
+### `I1050` — 식품별 농약잔류허용기준
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1050/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `FOOD_KOR_NM`(식품한글명) / `FOOD_ENG_NM`(식품영문명) / `AGCHM_KOR_NM`(농약명) / `DEDE_NTK_QTY`(일일섭취량) / `TMPR_STDR_APPLC_YN`(잠정기준적용여부) / `LCLAS_NM`(대분류) / `MLSFC_NM`(중분류) / `SCLAS_NM`(소분류) / `OPERTN_CITYPOINT`(시행시점) / `STEP`(단계) / `MRL_VAL`(MRL 값) / `ETC_YN`(기타여부) … 외 1개
+
+### `I1060` — 시약정보
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1060/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `VALD_TERM`(유효기간(YYYYMM))
+- **응답 필드**: `CITYMEDI_NM_CD`(시약 명) / `CMPNY_NO`(회사 명) / `CTPRVNACCTO_INTD_NO`(시도별 지방청) / `STATS_NO`(상태) / `PUREDO`(순도) / `VALD_TERM`(유효기간) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수)) / `dataType`(STRING(필수))
+
+### `I1070` — 동물용의약품 현황
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1070/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `ANIMAL_ONLY_MDCIN_NM_KOR`(의약품 한글명) / `ANIMAL_ONLY_MDCIN_NM_ENG`(의약품 영문명) / `APPLC_OBJ_ANIMAL`(적용 대상 동물) / `MCFRL`(분자식) / `MCWGH`(분자량) / `SYSTM_NM`(계통명) / `IUPAC_NM`(IUPAC 명) / `CAS_NM`(CAS 명) / `SHAP_NM`(형태) / `POIOF`(녹는점) / `BOILPNT`(끓는점) / `STEPR`(증기압) … 외 5개
+
+### `I1080` — 동물의약품별 잔류허용 기준
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1080/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `CDX_KOREA_DVS_CD`(구분) / `ANIMAL_ONLY_MDCIN_NM_KOR`(동물 전용 의약품 한글명) / `OPERTN_CITYPOINT`(시행 시점) / `STEP`(단계) / `MRL`(MRL) / `FOOD_KOR_NM`(식품 한글명) / `FOOD_ENG_NM`(식품 영문명) / `ETC_YN`(기타 여부) / `TMPR_STDR_APPLC_YN`(임시기준적용여부) / `DSUSE_YN`(폐기 여부)
+
+### `I1090` — 잔류동물의약품 식품별 잔류허용 기준
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1090/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `FOOD_KOR_NM`(식품한글명) / `FOOD_ENG_NM`(식품영문명) / `DEDE_NTK_QTY`(일일섭취량) / `TMPR_STDR_APPLC_YN`(잠정기준적용여부) / `LCLAS_NM`(대분류) / `MLSFC_NM`(중분류) / `SCLAS_NM`(소분류) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수))
+
+### `I1100` — 기구등의 살균소독제 기준규격
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1100/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `LAST_UPDT_DTM`(최종수정일(YYYYMMDD)) · `PRDLST_CD`(품목유형코드)
+- **응답 필드**: `PC_KOR_NM`(품목한글명) / `T_KOR_NM`(시험항목 한글명) / `FNPRT_ITM_NM`(세부항목명) / `PIAM_KOR_NM`(품목항목속성 한글명) / `SPEC_VAL`(기준규격값) / `SPEC_VAL_SUMUP`(기준규격값 요약) / `VALD_BEGN_DT`(유효개시일자) / `VALD_END_DT`(유효종료일자) / `SORC`(출처) / `MXMM_VAL`(최대값) / `MIMM_VAL`(최소값) / `INJRY_YN`(위해여부) … 외 3개
+
+### `I1101` — 식품첨가물의 기준 및 규격 현황
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1101/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `LAST_UPDT_DTM`(최종수정일(YYYYMMDD)) · `PRDLST_CD`(품목유형코드)
+- **응답 필드**: `PC_KOR_NM`(품목한글명) / `PRDLST_CD`(품목분류코드) / `T_KOR_NM`(시험항목 한글명) / `FNPRT_ITM_NM`(세부항목명) / `PIAM_KOR_NM`(품목항목속성 한글명) / `SPEC_VAL`(기준규격값) / `SPEC_VAL_SUMUP`(기준규격값 요약) / `VALD_BEGN_DT`(유효개시일자) / `VALD_END_DT`(유효종료일자) / `SORC`(출처) / `MXMM_VAL`(최대값) / `MIMM_VAL`(최소값) … 외 4개
+
+### `I1650` — 신고대상분류기준
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1650/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `CMMN_CD_NM`(분류) / `FNPRT_CD_NM`(신고분류) / `USER_DFN_CLMN_1`(분류1) / `USER_DFN_CLMN_2`(분류2) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수)) / `dataType`(STRING(필수)) / `startIdx`(STRING(필수))
+
+### `I1660` — 과징금부과기준
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1660/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `VALD_BGN_DT`(유효시작일자(YYYYMMDD))
+- **응답 필드**: `DSPS_STDR_CD_NM`(처분기준명) / `LAWORD_CD_NM`(식품법령) / `BASIS_LAWORD`(근거법령) / `VILT_TYPE_NM`(위반유형) / `LV_NO`(레벨) / `VALD_BGN_DT`(유효시작일자) / `VALD_END_DT`(유효종료일자) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수))
+
+### `I1670` — 과태료부과기준
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1670/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `VALD_BGN_DT`(유효시작일자)
+- **응답 필드**: `DSPS_STDR_CD`(처분기준코드) / `DSPS_STDR_CD_NM`(처분기준명) / `LV_NO`(레벨) / `BASIS_LAWORD`(근거법령) / `VILT_TYPE_NM`(위반유형) / `VALD_BGN_DT`(유효시작일자) / `VALD_END_DT`(유효종료일자) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수))
+
+### `I2580` — 개별기준규격
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2580/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `LAST_UPDT_DTM`(최종수정일(YYYYMMDD)) · `PRDLST_CD`(품목유형코드)
+- **응답 필드**: `INDV_SPEC_SEQ`(개별기준규격일련번호) / `PRDLST_CD`(품목분류코드) / `PRDLST_CD_NM`(품목명) / `TESTITM_CD`(시험항목코드) / `TESTITM_NM`(시험항목명) / `FNPRT_ITM_NM`(세부항목명) / `ATTRB_SEQ`(단서조항일련번호) / `PIAM_KOR_NM`(단서조항명) / `SPEC_VAL`(기준규격) / `SPEC_VAL_SUMUP`(기준규격요약) / `VALD_BEGN_DT`(유효개시일) / `VALD_END_DT`(유효종료일) … 외 28개
+
+### `I2590` — 공통기준종류
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2590/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `LAST_UPDT_DTM`(최종수정일(YYYYMMDD))
+- **응답 필드**: `CMMN_SPEC_CD`(공통기준규격코드) / `SPEC_NM`(기준규격명) / `HRNK_CMMN_SPEC_CD`(상위공통기준규격코드) / `LV`(레벨) / `DFN`(정의) / `USE_YN`(사용여부) / `LAST_UPDT_DTM`(최종수정일시) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수))
+
+### `I2600` — 공통기준규격
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2600/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `LAST_UPDT_DTM`(최종수정일(YYYYMMDD)) · `PRDLST_CD`(품목유형코드)
+- **응답 필드**: `CMMN_SPEC_SEQ`(공통기준종류코드일련번호) / `CMMN_SPEC_CD`(공통기준종류코드) / `SPEC_NM`(공통기준종류명) / `PRDLST_CD`(품목분류코드) / `PRDLST_CD_NM`(품목명) / `TESTITM_CD`(시험항목코드) / `TESTITM_NM`(시험항목명) / `FNPRT_ITM_NM`(세부항목명) / `ATTRB_SEQ`(단서조항일련번호) / `PIAM_KOR_NM`(단서조항명) / `SPEC_VAL`(기준규격) / `SPEC_VAL_SUMUP`(기준규격요약) … 외 30개
+
+### `I2610` — 공통기준제외
+- **카테고리**: 기준규격정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2610/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `LAST_UPDT_DTM`(최종수정일(YYYYMMDD))
+- **응답 필드**: `CMMN_SPEC_CD`(공통기준규격코드) / `SPEC_NM`(기준규격명) / `PRDLST_CD`(품목코드) / `KOR_NM`(한글명) / `TESTITM_CD`(시험항목코드) / `LAST_UPDT_DTM`(최종수정일시) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수)) / `dataType`(STRING(필수))
+
+
+### 📁 카테고리: 식품안전관리 (4개)
+
+### `I0140` — 유전자변형식품등의 안전성 평가 심사 결과 현황
+- **카테고리**: 식품안전관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0140/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `PRDLST_NM`(품목 명) / `GOODS_NM`(상품 명) / `INJECTION_GENE_CN`(삽입된 유전자 내용) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `PRMS_DT`(허가 일자) / `ENDOW_CHARTR_CN`(부여된 특성 내용) / `GMO_SAFTY_NO`(통보 번호) / `GMO_PRDT_KND_CL_NM`(제품종류) / `keyId`(STRING(필수))
+
+### `I0150` — 후대교배종의 안전성 평가 신청 및 검토 정보
+- **카테고리**: 식품안전관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0150/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `PRMS_DT`(허가일자) / `PRDLST_NM`(품목명) / `LMOCHILD_BTHTR_CRSS_YN`(이종간교배여부) / `LMOCHILD_DFFPNT_YN`(차이점여부) / `LMOCHILD_CHARTR_CHNGE_YN`(특성변화여부) / `GMO_PRDT_KND`(제품종류) / `GOODS_NM`(제품명) / `keyId`(STRING(필수))
+
+### `I0460` — 수거검사 계획 및 실적 관련 현황
+- **카테고리**: 식품안전관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0460/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `SEARCHSTDT`(수거시작일자(YYYYMMDD)) · `SEARCHENDDT`(수거종료일자(YYYYMMDD)) · `TKAWYSPCI_TYPECD`(검체구분(0수산물1가공식품2식품첨가물3건강기능식품4농산물5축산물6기구용기7위생용품8식품접객업9기타)) · `LAST_UPDT_DTM`(최종수정일자(YYYYMMDD)) · `BSSH_NM`(업소명)
+- **응답 필드**: `PRCSCITYPOINT_INDUTYCD_NM`(업종) / `BSSH_NM`(업소명) / `SITE_ADDR`(소재지) / `PRDTNM`(제품명) / `TKAWYDTM`(수거일자) / `JDGMNT_CD_NM`(판정결과) / `EXC_INSTT_NM`(수행기관명) / `TKAWYSPCI_TYPECD_NM`(검체구분) / `PRDLST_REPORT_NO`(품목제조보고번호) / `LAST_UPDT_DTM`(최종수정일시) / `TKAWYPRNO`(수거증번호) / `PLAN_TITL`(수거계획명)
+
+### `I2839` — 건강기능식품제조업, 건강기능식품판매업 지도단속계획 및 실적현황
+- **카테고리**: 식품안전관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2839/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `SEARCHSTDT`(지도점검일자시작범위(YYYYMMDD)) · `SEARCHENDDT`(지도점검일자종료범위(YYYYMMDD))
+- **응답 필드**: `PLAN_CLCD`(계획분류) / `CHCK_BGNDT`(계획시작일자) / `CHCK_ENDDT`(계획종료일자) / `EXC_INSTTCD`(점검기관) / `BSSH_NM`(업소명) / `GIDCHCK_DT`(지도점검일자) / `BLDINSCTR_NAME`(피점검자성명) / `GIDCHCK_RSLTCD`(점검결과) / `PLAN_TITL`(계획명)
+
+
+### 📁 카테고리: 식품영양정보 (2개)
+
+### `COOKRCP01` — 조리식품의 레시피 DB
+- **카테고리**: 식품영양정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/COOKRCP01/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `RCP_NM`(메뉴명) · `RCP_PARTS_DTLS`(재료정보1) · `CHNG_DT`(변경일자(YYYYMMDD)) · `RCP_PAT2`(요리종류(ex) 반찬, 국, 후식 등))
+- **응답 필드**: `RCP_SEQ`(일련번호) / `RCP_NM`(메뉴명) / `RCP_WAY2`(조리방법) / `RCP_PAT2`(요리종류) / `INFO_WGT`(중량(1인분)) / `INFO_ENG`(열량) / `INFO_CAR`(탄수화물) / `INFO_PRO`(단백질) / `INFO_FAT`(지방) / `INFO_NA`(나트륨) / `HASH_TAG`(해쉬태그) / `ATT_FILE_NO_MAIN`(이미지경로(소)) … 외 37개
+
+### `I0760` — 건강기능식품 영양DB
+- **카테고리**: 식품영양정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0760/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `HELT_ITM_GRP_NM`(명칭)
+- **응답 필드**: `HELT_ITM_GRP_CD`(건강 항목 그룹 코드) / `HELT_ITM_GRP_NM`(건강 항목 그룹 명) / `LCLAS_CD`(대분류 코드) / `LCLAS_NM`(대분류 명) / `MLSFC_CD`(중분류 코드) / `MLSFC_NM`(중분류 명) / `SCLAS_CD`(소분류 코드) / `SCLAS_NM`(소분류 명) / `keyId`(STRING(필수))
+
+
+### 📁 카테고리: 이력추적관리 (1개)
+
+### `I0320` — 식품이력추적관리 등록 현황
+- **카테고리**: 이력추적관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0320/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `MOD_DT`(최종수정일(YYYYMMDD)) · `BRNCH_NM`(업체명) · `BTYPE`(업종) · `PDT_NM`(제품명) · `PDT_TYPE`(식품유형) · `FOOD_TYPE`(식품구분)
+- **응답 필드**: `REG_NUM`(등록번호) / `PDT_NM`(제품명) / `PDT_BARCD`(바코드) / `PDT_TYPE`(식품유형) / `MAKE_TYPE`(제조구분) / `ADDR`(주소) / `BRNCH_NM`(업체명) / `BTYPE`(업종) / `FOOD_TYPE`(식품구분) / `PRDLST_REPORT_NO`(품목보고번호) / `MNFT_DAY`(제조일자) / `FOOD_HISTRACE_NUM`(식품이력추적관리번호) … 외 2개
+
+
+### 📁 카테고리: 검사기관정보 (4개)
+
+### `I0890` — 식품위생검사기관 지정 현황
+- **카테고리**: 검사기관정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0890/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `PRSEC_INSTT_RCOGN_NO`(지정번호) / `BSSH_NM`(기관명) / `PRSDNT_NM`(대표자) / `APPN_BGN_DT`(지정일자) / `APPN_END_DT`(지정종료일자) / `WORK_SCOPE`(업무범위) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수)) / `dataType`(STRING(필수))
+
+### `I0900` — 축산물위생검사기관 지정 현황
+- **카테고리**: 검사기관정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0900/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `BSSH_NM`(검사기관명) / `PRSDNT_NM`(대표자) / `ADDR`(주소) / `APPN_BGN_DT`(지정시작일자) / `APPN_END_DT`(지정종료일자) / `WORK_SCOPE`(업무범위) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수)) / `dataType`(STRING(필수))
+
+### `I0910` — 국외검사기관 인정 현황
+- **카테고리**: 검사기관정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0910/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `PRSEC_INSTT_RCOGN_NO`(인정번호) / `BSSH_NM`(기관명) / `PRSDNT_NM`(대표자) / `APPN_BGN_DT`(지정일자) / `PRSEC_ITM_CD_NM`(검사항목) / `TELNO`(전화번호) / `BSSH_ADDR`(주소) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수))
+
+### `I0920` — 식품검사기관별 시험항목정보조회
+- **카테고리**: 검사기관정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0920/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CMPTNC_INSTT_NM`(관할기관) · `INSTT_NM`(검사기관) · `TESTITM_NM`(시험항목명) · `CHNG_DT`(변경일자(YYYYMMDD))
+- **응답 필드**: `REALM_NM`(분야) / `CMPTNC_INSTT_NM`(관할기관) / `INSTT_NM`(검사기관) / `ADDR`(소재지) / `MSK_TELNO`(전화번호) / `TESTITM_LCLAS_NM`(대분류) / `TESTITM_MLSFC_NM`(중분류) / `TESTITM_NM`(시험항목명) / `RM`(비고) / `CHNG_DT`(변경일자(YYYYMMDD))
+
+
+### 📁 카테고리: 어린이식품안전관리 (4개)
+
+### `I0080` — 어린이 기호식품 품질인증 현황 및 재심사 현황
+- **카테고리**: 어린이식품안전관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0080/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `CHILD_FFQ_CRTFC_NO`(인증번호) / `BSSH_NM`(업소명) / `LCNS_NO`(인허가번호) / `PRDLST_CD_NM`(식품유형) / `PRDLST_NM`(제품명) / `CN_WT`(제품용량) / `APPN_BGN_DT`(인증일자) / `APPN_END_DT`(만료일자) / `CHILD_FAVOR_FOOD_TYPE_NM`(제품형태) / `PRDLST_REPORT_NO`(품목보고번호)
+
+### `I0340` — 어린이 식품안전보호구역 관리 현황
+- **카테고리**: 어린이식품안전관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0340/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `APPN_DT`(지정일자) · `SCHL_NM`(학교명)
+- **응답 필드**: `HOLD_INSTT_NM`(관할기관) / `SCHL_NM`(학교명) / `FOOD_SAFE_PRTC_ZONE_NM`(식품안전보호구역지정명) / `ADDR`(위치) / `APPN_DT`(지정일자) / `BSSH_NO`(업소고유번호(미사용)) / `UPSO_NM`(업소명(미사용)) / `UPJONG`(업종(미사용)) / `keyId`(STRING(필수))
+
+### `I2840` — 어린이 우수판매업소 지정현황
+- **카테고리**: 어린이식품안전관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2840/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `APPN_DT`(지정일자(YYYYMMDD)) · `UPSO_NM`(업소명) · `GNT_NO`(인허가번호)
+- **응답 필드**: `GNT_NO`(인허가번호) / `UPSO_NM`(업소명) / `UPJONG`(업종) / `ADDR`(주소) / `APLC_DT`(지정_일자) / `HOLD_INSTT_CD`(관할기관) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수)) / `dataType`(STRING(필수))
+
+### `I2846` — 어린이 급식센터 지원현황
+- **카테고리**: 어린이식품안전관리
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2846/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `REPORT_YR`(년도(YYYY)) · `CNTER_NM`(센터명)
+- **응답 필드**: `INSTT_NM`(관할기관) / `CNTER_NM`(센터명) / `REPORT_YR`(년도) / `REPORT_QU`(분기) / `KNDRGR_REG_CO`(유치원 수) / `KNDRGR_NMPR_CO`(유치원 인원수) / `DCCNTR_REG_CO`(어린이집 수) / `DCCNTR_NMPR_CO`(어린이집 인원수) / `ETC_REG_CO`(기타 수) / `ETC_NMPR_CO`(기타 인원수)
+
+
+### 📁 카테고리: 위생용품 (2개)
+
+### `I2714` — 위생용품수입업영업신고대장
+- **카테고리**: 위생용품
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2714/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `LCNS_NO`(인허가번호) · `BSSH_NM`(업소명)
+- **응답 필드**: `LCNS_NO`(인허가번호) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `INDUTY_NM`(업종) / `PRMS_DT`(허가일자) / `LOCP_ADDR`(주소) / `INSTT_NM`(기관명) / `TELNO`(전화번호) / `keyId`(STRING(필수))
+
+### `I2851` — 위생용품영업 생산실적보고
+- **카테고리**: 위생용품
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2851/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `EVL_YR`(생산실적보고년도(YYYY)(필수)) · `LCNS_NO`(인허가번호) · `H_ITEM_NM`(품목유형)
+- **응답 필드**: `BSSH_NM`(업소명) / `PRDLST_NM`(품목명) / `GUBUN`(품목구분) / `H_ITEM_NM`(품목유형) / `LCNS_NO`(인허가번호) / `EVL_YR`(보고년도) / `PRDLST_REPORT_NO`(품목제조보고번호) / `PRDCTN_QY`(생산량(KG/위생물수건:매)) / `keyId`(STRING(필수))
+
+
+### 📁 카테고리: 축산물 (1개)
+
+### `I1420` — 축산물 생산실적정보
+- **카테고리**: 축산물
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1420/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `EVL_YR`(생산실적보고년도(YYYY)(필수)) · `LCNS_NO`(인허가번호) · `PRDLST_CD_NM`(품목유형) · `BSSH_NM`(업소명)
+- **응답 필드**: `BSSH_NM`(업소명) / `PRDLST_NM`(품목명) / `GUBUN`(품목구분) / `H_ITEM_NM`(품목유형) / `LCNS_NO`(인허가번호) / `EVL_YR`(보고년도) / `PRDLST_REPORT_NO`(품목제조보고번호) / `FYER_PRDCTN_ABRT_QY`(연간생산능력(KG)) / `PRDCTN_QY`(생산량(KG))
+
+
+### 📁 카테고리: 용어사전 (1개)
+
+### `I2837` — 용어사전(기구용기포장∙식의약품용어집)
+- **카테고리**: 용어사전
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2837/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `WORD`(단어) · `CHNG_DT`(변경일자)
+- **응답 필드**: `WORD`(단어) / `FRNTNFISH`(외국어) / `DTL_DESC`(설명) / `KEYWORD`(연관어) / `SAUS`(출처) / `LAST_UPDT_DTM`(최종수정일) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수)) / `dataType`(STRING(필수))
+
+
+### 📁 카테고리: 코드정보 (8개)
+
+### `C005` — 바코드연계제품정보
+- **카테고리**: 코드정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/C005/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `PRDLST_REPORT_NO`(품목제조보고번호) · `BAR_CD`(바코드번호)
+- **응답 필드**: `PRDLST_REPORT_NO`(품목보고(신고)번호) / `PRMS_DT`(보고(신고일)) / `END_DT`(생산중단일) / `PRDLST_NM`(제품명) / `POG_DAYCNT`(소비기한) / `PRDLST_DCNM`(식품 유형) / `BSSH_NM`(제조사명) / `INDUTY_NM`(업종) / `SITE_ADDR`(주소) / `CLSBIZ_DT`(폐업일자) / `BAR_CD`(유통바코드)
+
+### `I2510` — 품목유형코드
+- **카테고리**: 코드정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2510/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `LAST_UPDT_DTM`(최종수정일(YYYYMMDD))
+- **응답 필드**: `LV`(레벨) / `PRDLST_CD`(품목코드) / `KOR_NM`(한글명) / `ENG_NM`(영문명) / `DFN`(정의) / `VALD_BEGN_DT`(유효개시일자) / `VALD_END_DT`(유효종료일자) / `HRNK_PRDLST_CD`(상위품목코드) / `HTRK_PRDLST_CD`(최상위품목코드) / `MXTR_PRDLST_YN`(조합품목여부) / `ATTRB_SEQ`(속성일련번호) / `PIAM_KOR_NM`(속성한글명) … 외 7개
+
+### `I2520` — 식품원재료코드
+- **카테고리**: 코드정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2520/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `RPRSNT_RAWMTRL_NM`(원재료명)
+- **응답 필드**: `RAWMTRL_CD`(원재료코드) / `RAWMTRL_LCLAS_NM`(대분류) / `RAWMTRL_MLSFC_NM`(중분류) / `RPRSNT_RAWMTRL_NM`(원재료명) / `RAWMTRL_NCKNM`(원재료이명) / `ENG_NM`(영문명) / `SCNM`(학명) / `REGN_CD`(부위코드) / `REGN_CD_NM`(부위코드명) / `PRCSS_PROCS_CD`(가공공정코드) / `PRCSS_PROCS_CD_NM`(가공공정코드명) / `RAWMTRL_STATS_CD`(원재료코드) … 외 5개
+
+### `I2530` — 시험항목코드
+- **카테고리**: 코드정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2530/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `LAST_UPDT_DTM`(최종수정일(YYYYMMDD))
+- **응답 필드**: `TESTITM_CD`(시험항목코드) / `KOR_NM`(한글명) / `ENG_NM`(영문명) / `ABRV`(약어) / `NCKNM`(이명) / `TESTITM_NM`(시험항목명) / `TESTITM_LCLAS_CD`(시험항목대분류시퀀스) / `L_ATTRB_CD`(시험항목대분류코드) / `L_KOR_NM`(대분류한글명) / `TESTITM_MLSFC_CD`(시험항목중분류시퀀스) / `M_ATTRB_CD`(시험항목중분류코드) / `M_KOR_NM`(중분류한글명) … 외 3개
+
+### `I2540` — 법령코드
+- **카테고리**: 코드정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2540/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `VALD_BGN_DT`(유효시작일자(YYYYMMDD)) · `VALD_END_DT`(유효종료일자(YYYYMMDD))
+- **응답 필드**: `FOOD_LAWORD_CD`(법령코드) / `HRNK_LAWORD_CD`(상위법령코드) / `WORK_REALM_CD_NM`(업무분야) / `LAWORD_CD_NM`(법령명) / `ALL_LAWORD_CD_NM`(전체법령명) / `LV_NO`(레벨) / `USE_YN`(사용여부) / `VALD_BGN_DT`(유효시작일자) / `VALD_END_DT`(유효종료일자) / `LAST_UPDT_DTM`(최종수정일시)
+
+### `I2550` — 처분기준코드
+- **카테고리**: 코드정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2550/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `VALD_BGN_DT`(유효시작일자(YYYYMMDD)) · `VALD_END_DT`(유효종료일자(YYYYMMDD))
+- **응답 필드**: `DSPS_STDR_CD`(처분기준코드) / `HRNK_DSPS_STDR_CD`(상위처분기준코드) / `LV_NO`(레벨) / `DSPS_STDR_CD_NM`(처분기준코드명) / `BASIS_LAWORD`(근거법령) / `VILT_TYPE_CD`(위반유형코드) / `VILT_TYPE_CD_NM`(위반유형명) / `USE_YN`(사용여부) / `VALD_BGN_DT`(유효시작일자) / `VALD_END_DT`(유효종료일자) / `LAST_UPDT_DTM`(최종수정일시)
+
+### `I2560` — 영업소재지 GIS 코드
+- **카테고리**: 코드정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2560/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(최종수정일) · `LCNS_NO`(인허가번호)
+- **응답 필드**: `LCNS_NO`(인허가번호) / `BSSH_NM`(업소명) / `LOCPLC`(소재지) / `SAN`(산) / `LNBR`(번지) / `ISSNO`(호) / `TONG`(통) / `BAN`(반) / `SPCLADDR`(특수주소) / `SPCPPDONG`(특수지동) / `SPCPPISSNO`(특수지호) / `ROADNMSIGNGUCD`(도로명시군구코드) … 외 9개
+
+### `I2570` — 유통바코드
+- **카테고리**: 코드정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2570/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `PRDLST_REPORT_NO`(품목제조보고번호) · `PRDT_NM`(제품명) · `BRCD_NO`(바코드번호)
+- **응답 필드**: `BRCD_NO`(바코드번호) / `PRDLST_REPORT_NO`(품목보고번호) / `CMPNY_NM`(회사명) / `PRDT_NM`(제품명) / `LAST_UPDT_DTM`(최종수정일시) / `PRDLST_NM`(품목분류_소분류) / `HRNK_PRDLST_NM`(품목분류_중분류) / `HTRK_PRDLST_NM`(품목분류_대분류) / `keyId`(STRING(필수))
+
+
+### 📁 카테고리: 식품 등 (5개)
+
+### `C004` — 식품접객업소 위생등급 지정현황
+- **카테고리**: 식품 등
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/C004/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `LCNS_NO`(인허가번호) · `ASGN_FROM`(지정시작일(YYYYMMDD)) · `UPSO_NM`(업소명) · `ADDR`(주소) · `WRKR_REG_NO`(사업자등록번호)
+- **응답 필드**: `HG_ASGN_NM`(지정기관) / `HG_ASGN_LV`(지정등급) / `HG_ASGN_NO`(지정번호) / `HG_ASGN_YMD`(지정일자) / `INDUTY_NM`(업종) / `LCNS_NO`(인허가번호) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자) / `ADDR`(주소) / `ASGN_FROM`(지정시작일자) / `ASGN_TO`(지정종료일자) / `TELNO`(업소전화번호) … 외 6개
+
+### `I0060` — 주류제조.면허자 식품제조.가공영업 등록 현황
+- **카테고리**: 식품 등
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0060/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `LCNS_NO`(인허가번호)
+- **응답 필드**: `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `ADDR`(주소) / `LCNS_NO`(인허가번호) / `INDUTY_NM`(업종명) / `PRMS_DT`(허가일자) / `INSTT_NM`(기관명) / `TELNO`(전화번호) / `keyId`(STRING(필수))
+
+### `I0300` — 식품.식품첨가물 생산실적 보고 현황
+- **카테고리**: 식품 등
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0300/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `EVL_YR`(생산실적보고년도(YYYY)(필수)) · `LCNS_NO`(인허가번호) · `BSSH_NM`(업소명) · `PRDLST_NM`(제품명) · `PRDLST_CD_NM`(품목유형)
+- **응답 필드**: `LCNS_NO`(인허가번호) / `BSSH_NM`(업소명) / `SITE_ADDR`(주소) / `EVL_YR`(보고년도) / `PRDLST_REPORT_NO`(품목제조보고번호) / `H_ITEM_NM`(품목유형) / `PRDLST_NM`(품목명) / `FYER_PRDCTN_ABRT_QY`(연간생산능력(KG/옹기류:개)) / `PRDCTN_QY`(생산량(KG/옹기류:개))
+
+### `I0680` — 위생관리등급별 업소 현황
+- **카테고리**: 식품 등
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I0680/{xml|json}/{startIdx}/{endIdx}`
+- **응답 필드**: `LCNS_NO`(인허가번호) / `BSSH_NM`(업소명) / `EVL_TYPE_DVS_NM`(평가유형) / `EVL_GRD_NM`(평가등급) / `EVL_DT`(평가일자) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수)) / `dataType`(STRING(필수)) / `startIdx`(STRING(필수))
+
+### `I1560` — 식품위생교육내역
+- **카테고리**: 식품 등
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I1560/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `LCNS_NO`(인허가번호((NULL값 존재)) · `COMPL_ST_DTM`(수료일자_범위_시작(YYYYMMDD)) · `COMPL_END_DTM`(수료일자_범위_종료(YYYYMMDD)) · `INSTT_CD_NM`(교육기관명) · `INDUTY_NM`(업종명)
+- **응답 필드**: `EDC_TYPE_NM`(교육유형) / `EDC_DVS_NM`(교육구분) / `LCNS_NO`(인허가번호) / `BSSH_NM`(업소명) / `INDUTY_NM`(업종) / `EDC_OBJ_NM`(교육대상) / `CMPLTR_NAME`(성명) / `CTFHV_NO`(수료증번호) / `COMPL_DTM`(수료일자) / `EDC_MEDIA`(매체) / `EDC_COMPL_NMPR`(교육수료인원) / `INSTT_CD_NM`(교육기관명) … 외 3개
+
+
+### 📁 카테고리: 업체인허가현황 (4개)
+
+### `I-0010` — 식품조사처리업 인허가 현황
+- **카테고리**: 업체인허가현황
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I-0010/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `LCNS_NO`(인허가번호)
+- **응답 필드**: `LCNS_NO`(인허가 번호) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `INDUTY_NM`(업종) / `FOOD_HF_LS_CL_CD_NM`(식품건기축산분류) / `PRMS_DT`(허가일자) / `TELNO`(전화번호) / `LOCP_ADDR`(주소) / `keyId`(STRING(필수))
+
+### `I2500` — 인허가 업소 정보
+- **카테고리**: 업체인허가현황
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2500/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `LCNS_NO`(영업고유구분번호(인허가번호)) · `INDUTY_CD_NM`(업종) · `BSSH_NM`(업소명) · `CHNG_DT`(최종수정일자(YYYYMMDD))
+- **응답 필드**: `LCNS_NO`(영업고유구분번호(인허가번호)) / `INDUTY_CD_NM`(업종) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `TELNO`(전화번호) / `PRMS_DT`(허가일자) / `ADDR`(주소) / `keyId`(STRING(필수)) / `serviceId`(STRING(필수))
+
+### `I2852` — 생산중단제품정보
+- **카테고리**: 업체인허가현황
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2852/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `PRDLST_REPORT_NO`(품목제조보고번호) · `PRDLST_NM`(제품명) · `END_DT`(생산중단일자) · `FOOD_HF_LS_CL_CD`(구분(001:식품(식품첨가물),002:건강기능식품,003:축산물,011:위생용품)) · `PRMS_DT`(품목보고일자) · `LCNS_NO`(인허가번호)
+- **응답 필드**: `PRDLST_REPORT_NO`(품목제조보고번호) / `PRMS_DT`(품목보고일자) / `PRDLST_NM`(제품명) / `END_DT`(생산중단일자) / `PRDLST_DCNM`(품목유형명) / `LCNS_NO`(인허가번호) / `BSSH_NM`(업소명) / `FOOD_HF_LS_CL_CD_NM`(구분) / `ARTCL_END_WHY`(생산중단사유)
+
+### `I2856` — 푸드트럭지정현황조회
+- **카테고리**: 업체인허가현황
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2856/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `LCNS_NO`(인허가번호) · `BSSH_NM`(업소명) · `CHNG_DT`(변경일자(YYYYMMDD))
+- **응답 필드**: `LCNS_NO`(인허가번호) / `PRMS_DT`(인허가일자) / `INSTT_CDNM`(인허가기관명) / `INDUTY_CDNM`(업종명) / `BSSH_NM`(업소명) / `LOCP_ADDR`(업소주소) / `PRSDNT_NM`(업소대표자명) / `TELNO`(업소전화번호) / `CHNG_DT`(변경일자(YYYYMMDD))
+
+
+### 📁 카테고리: 폐업정보 (4개)
+
+### `I2817` — 식품보존업 폐업정보
+- **카테고리**: 폐업정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2817/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `LCNS_NO`(인허가번호) · `CLSBIZ_DT`(폐업일자)
+- **응답 필드**: `LCNS_NO`(인허가번호) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `INDUTY_NM`(업종) / `PRMS_DT`(허가일자) / `CLSBIZ_DT`(폐업일자) / `CLSBIZ_DVS_CD_NM`(페업상태) / `LOCP_ADDR`(주소) / `INSTT_NM`(기관명)
+
+### `I2821` — 수입식품업 폐업정보
+- **카테고리**: 폐업정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2821/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `LCNS_NO`(인허가번호)
+- **응답 필드**: `LCNS_NO`(인허가번호) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `INDUTY_NM`(업종) / `PRMS_DT`(허가일자) / `CLSBIZ_DT`(폐업일자) / `CLSBIZ_DVS_CD_NM`(페업상태) / `LOCP_ADDR`(주소) / `INSTT_NM`(기관명)
+
+### `I2822` — 건강기능식품 폐업정보
+- **카테고리**: 폐업정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2822/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `LCNS_NO`(인허가번호) · `CLSBIZ_DT`(폐업일자)
+- **응답 필드**: `LCNS_NO`(인허가번호) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `INDUTY_NM`(업종) / `PRMS_DT`(허가일자) / `CLSBIZ_DT`(폐업일자) / `CLSBIZ_DVS_CD_NM`(페업상태) / `LOCP_ADDR`(주소) / `INSTT_NM`(기관명)
+
+### `I2823` — 위생용품 폐업정보
+- **카테고리**: 폐업정보
+- **URL 패턴**: `http://openapi.foodsafetykorea.go.kr/api/{keyId}/I2823/{xml|json}/{startIdx}/{endIdx}`
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `LCNS_NO`(인허가번호) · `CLSBIZ_DT`(폐업일자)
+- **응답 필드**: `LCNS_NO`(인허가번호) / `BSSH_NM`(업소명) / `PRSDNT_NM`(대표자명) / `INDUTY_NM`(업종) / `PRMS_DT`(허가일자) / `CLSBIZ_DT`(폐업일자) / `CLSBIZ_DVS_CD_NM`(페업상태) / `LOCP_ADDR`(주소) / `INSTT_NM`(기관명)
+
+
+
+### 📊 카테고리별 통계
+
+| 카테고리 | API 수 |
+|---|---|
+| HACCP지정현황 | 2 |
+| 건강기능식품 | 10 |
+| 수입식품 등 | 6 |
+| 식품위해관리 | 14 |
+| 기준규격정보 | 25 |
+| 식품안전관리 | 4 |
+| 식품영양정보 | 2 |
+| 이력추적관리 | 1 |
+| 검사기관정보 | 4 |
+| 어린이식품안전관리 | 4 |
+| 위생용품 | 2 |
+| 축산물 | 1 |
+| 용어사전 | 1 |
+| 코드정보 | 8 |
+| 식품 등 | 5 |
+| 업체인허가현황 | 4 |
+| 폐업정보 | 4 |
+| **합계** | **97** |
