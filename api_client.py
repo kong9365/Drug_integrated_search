@@ -570,50 +570,106 @@ def fetch_recall(
     response_type: str = "xml"
 ) -> Dict[str, Any]:
     """
-    의약품 회수·판매중지정보 조회
-    
-    Args:
-        item_name: 품목명
-        entp_name: 업체명
-        page_no: 페이지 번호
-        num_of_rows: 페이지당 수량
-        response_type: 응답 형식
-    
-    Returns:
-        API 응답 데이터
+    NO 539 의약품 회수·판매중지 (목록 — getMdcinRtrvlSleStpgelList03)
+    응답 8필드: PRDUCT, ENTRPS, RTRVL_RESN, ENFRC_YN, RECALL_COMMAND_DATE,
+              ITEM_SEQ, BIZRNO, STD_CD (다중 표준코드, 쉼표 구분)
     """
     params = {
         "pageNo": str(page_no),
         "numOfRows": str(num_of_rows),
         "type": response_type
     }
-    
     if item_name:
         params["item_name"] = item_name
     if entp_name:
         params["entp_name"] = entp_name
-    
+
     logger.info(f"회수·판매중지정보 조회 요청: {params}")
-    
     try:
         response = _make_request(API_ENDPOINTS["recall"], params)
         parsed = _parse_xml_response(response.text)
-        
         items = [_item_to_dict(item) for item in parsed["items"]]
-        
-        return {
-            "success": True,
-            "totalCount": parsed["totalCount"],
-            "items": items
-        }
+        return {"success": True, "totalCount": parsed["totalCount"], "items": items}
     except Exception as e:
         logger.error(f"회수·판매중지정보 조회 실패: {str(e)}")
-        return {
-            "success": False,
-            "error": str(e),
-            "totalCount": 0,
-            "items": []
-        }
+        return {"success": False, "error": str(e), "totalCount": 0, "items": []}
+
+
+def fetch_recall_detail(
+    std_cd: Optional[str] = None,
+    item_seq: Optional[str] = None,
+    page_no: int = 1,
+    num_of_rows: int = 1,
+    response_type: str = "xml"
+) -> Dict[str, Any]:
+    """
+    NO 539 의약품 회수 (상세 — getMdcinRtrvlSleStpgeItem03)
+    상세 13필드: 목록 + ENTRPS_ADRES, ENTRPS_TELNO, MNFCTUR_NO, USGPD,
+                PACKNG_UNIT, OPEN_END_DATE
+    """
+    params = {"pageNo": str(page_no), "numOfRows": str(num_of_rows), "type": response_type}
+    if std_cd:
+        params["std_cd"] = std_cd
+    if item_seq:
+        params["item_seq"] = item_seq
+    logger.info(f"회수 상세조회 요청: {params}")
+    try:
+        response = _make_request(API_ENDPOINTS["recall_detail"], params)
+        parsed = _parse_xml_response(response.text)
+        items = [_item_to_dict(item) for item in parsed["items"]]
+        return {"success": True, "totalCount": parsed["totalCount"], "items": items}
+    except Exception as e:
+        logger.warning(f"회수 상세조회 실패: {str(e)}")
+        return {"success": False, "error": str(e), "totalCount": 0, "items": []}
+
+
+def fetch_recall_etc(
+    item_name: Optional[str] = None,
+    entp_name: Optional[str] = None,
+    page_no: int = 1,
+    num_of_rows: int = 10,
+    response_type: str = "xml"
+) -> Dict[str, Any]:
+    """
+    NO 539 의약품외 회수·판매중지 (목록 — getMdcinRtrvlSleStpgelEtcList02)
+    의약외품·화장품·의료기기 등 회수 정보. 필드명이 의약품 목록과 다름:
+    RTRVL_CMMND_DT (의약품: RECALL_COMMAND_DATE)
+    """
+    params = {"pageNo": str(page_no), "numOfRows": str(num_of_rows), "type": response_type}
+    if item_name:
+        params["item_name"] = item_name
+    if entp_name:
+        params["entp_name"] = entp_name
+    logger.info(f"의약품외 회수 조회 요청: {params}")
+    try:
+        response = _make_request(API_ENDPOINTS["recall_etc"], params)
+        parsed = _parse_xml_response(response.text)
+        items = [_item_to_dict(item) for item in parsed["items"]]
+        return {"success": True, "totalCount": parsed["totalCount"], "items": items}
+    except Exception as e:
+        logger.warning(f"의약품외 회수 조회 실패: {str(e)}")
+        return {"success": False, "error": str(e), "totalCount": 0, "items": []}
+
+
+def fetch_recall_etc_detail(
+    item_seq: Optional[str] = None,
+    page_no: int = 1,
+    num_of_rows: int = 1,
+    response_type: str = "xml"
+) -> Dict[str, Any]:
+    """NO 539 의약품외 회수 (상세 — getMdcinRtrvlSleStpgeEtcItem03)."""
+    params = {"pageNo": str(page_no), "numOfRows": str(num_of_rows), "type": response_type}
+    if item_seq:
+        params["item_seq"] = item_seq
+    logger.info(f"의약품외 회수 상세조회 요청: {params}")
+    try:
+        response = _make_request(API_ENDPOINTS["recall_etc_detail"], params)
+        parsed = _parse_xml_response(response.text)
+        items = [_item_to_dict(item) for item in parsed["items"]]
+        return {"success": True, "totalCount": parsed["totalCount"], "items": items}
+    except Exception as e:
+        logger.warning(f"의약품외 회수 상세조회 실패: {str(e)}")
+        return {"success": False, "error": str(e), "totalCount": 0, "items": []}
 
 
 def download_image(image_url: str, item_name: str) -> Optional[str]:
@@ -660,35 +716,36 @@ def download_image(image_url: str, item_name: str) -> Optional[str]:
 def fetch_identification(
     item_name: Optional[str] = None,
     entp_name: Optional[str] = None,
+    item_seq: Optional[str] = None,
     page_no: int = 1,
     num_of_rows: int = 10,
     response_type: str = "xml",
     download_images: bool = True
 ) -> Dict[str, Any]:
     """
-    의약품 낱알식별정보 조회
-    
+    NO 563 의약품 낱알식별정보 조회 (getMdcinGrnIdntfcInfoList03).
+
     Args:
-        item_name: 제품명
-        entp_name: 제조사명
+        item_name: 제품명 (snake_case)
+        entp_name: 업체명
+        item_seq: 품목기준코드 (검색 시 정확도↑)
         page_no: 페이지 번호
         num_of_rows: 페이지당 데이터 수
         response_type: 응답 형식
         download_images: 이미지 자동 다운로드 여부
-    
-    Returns:
-        API 응답 데이터
     """
     params = {
         "pageNo": str(page_no),
         "numOfRows": str(num_of_rows),
         "type": response_type
     }
-    
+
     if item_name:
         params["item_name"] = item_name
     if entp_name:
         params["entp_name"] = entp_name
+    if item_seq:
+        params["item_seq"] = item_seq
     
     logger.info(f"낱알식별정보 조회 요청: {params}")
     

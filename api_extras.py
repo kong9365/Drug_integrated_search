@@ -93,10 +93,10 @@ def fetch_quasi_approval(item_name=None, entp_name=None, page_no=1, num_of_rows=
     )
 
 
-def fetch_drug_review(entp_name=None, item_name=None, page_no=1, num_of_rows=10):
-    """NO 554 의약품 재심사."""
+def fetch_drug_review(entp_name=None, item_name=None, item_no=None, page_no=1, num_of_rows=10):
+    """NO 554 의약품 재심사 — 명세는 소문자 snake (entp_name, item_name, item_no)."""
     return _fetch_generic("drug_review", "재심사",
-                          {"ENTP_NAME": entp_name, "ITEM_NAME": item_name},
+                          {"entp_name": entp_name, "item_name": item_name, "item_no": item_no},
                           page_no=page_no, num_of_rows=num_of_rows)
 
 
@@ -125,29 +125,29 @@ def fetch_drug_gmp(entp_name=None, page_no=1, num_of_rows=10):
 
 
 def fetch_drug_release(item_name=None, manuf_name=None, page_no=1, num_of_rows=10):
-    """NO 142 의약품 국가출하승인."""
+    """NO 142 의약품 국가출하승인 — 명세는 snake_case (goods_name, manuf_entp_name)."""
     return _fetch_generic("drug_natn_shipmnt", "국가출하승인",
-                          {"goodsName": item_name, "manufEntpName": manuf_name},
+                          {"goods_name": item_name, "manuf_entp_name": manuf_name},
                           page_no=page_no, num_of_rows=num_of_rows)
 
 
 def fetch_drug_entity_list(entp_name=None, induty=None, page_no=1, num_of_rows=10):
-    """NO 144 의약품 등 업체허가 (목록)."""
+    """NO 144 의약품 등 업체허가 (목록) — 명세는 Pascal Case (Entrps, Induty)."""
     return _fetch_generic("drug_entity_list", "업체허가목록",
-                          {"ENTRPS": entp_name, "INDUTY": induty},
+                          {"Entrps": entp_name, "Induty": induty},
                           page_no=page_no, num_of_rows=num_of_rows)
 
 
 def fetch_drug_entity_detail(permit_no=None, page_no=1, num_of_rows=10):
-    """NO 144 의약품 등 업체허가 (상세)."""
-    return _fetch_generic("drug_entity_detail", "업체허가상세", {"PRMISN_NO": permit_no},
+    """NO 144 의약품 등 업체허가 (상세). 키 명세 미확정 — Pascal/UPPER 양쪽 시도."""
+    return _fetch_generic("drug_entity_detail", "업체허가상세", {"Prmisn_no": permit_no},
                           page_no=page_no, num_of_rows=num_of_rows)
 
 
-def fetch_drug_dmf(ingredient=None, manufacturer=None, page_no=1, num_of_rows=10):
-    """NO 483 원료의약품등록 (DMF)."""
+def fetch_drug_dmf(ingredient=None, entp_name=None, page_no=1, num_of_rows=10):
+    """NO 483 원료의약품등록 (DMF) — 명세는 소문자 snake (ingr_kor_name, entp_name)."""
     return _fetch_generic("drug_dmf", "DMF",
-                          {"INGR_KOR_NAME": ingredient, "MNFCTR_NAME": manufacturer},
+                          {"ingr_kor_name": ingredient, "entp_name": entp_name},
                           page_no=page_no, num_of_rows=num_of_rows)
 
 
@@ -175,9 +175,10 @@ def fetch_drug_fda_p4(drug_name=None, page_no=1, num_of_rows=10):
                           page_no=page_no, num_of_rows=num_of_rows)
 
 
-def fetch_drug_fda_orangebook(ingredient=None, page_no=1, num_of_rows=10):
-    """NO 562 FDA 오렌지북."""
-    return _fetch_generic("drug_fda_orangebook", "FDA오렌지북", {"INGR_NAME": ingredient},
+def fetch_drug_fda_orangebook(ingredient=None, item_name=None, page_no=1, num_of_rows=10):
+    """NO 562 FDA 오렌지북 — 명세는 소문자 snake (ingr_name, prt_name)."""
+    return _fetch_generic("drug_fda_orangebook", "FDA오렌지북",
+                          {"ingr_name": ingredient, "prt_name": item_name},
                           page_no=page_no, num_of_rows=num_of_rows)
 
 
@@ -189,8 +190,8 @@ def fetch_drug_clinical(item_name=None, sponsor=None, page_no=1, num_of_rows=10)
 
 
 def fetch_drug_clinical_org(lab_name=None, page_no=1, num_of_rows=10):
-    """NO 568 의약품 임상시험 실시기관."""
-    return _fetch_generic("drug_clinical_org", "임상기관", {"LAB_NAME": lab_name},
+    """NO 568 의약품 임상시험 실시기관 — 명세는 소문자 snake (lab_name)."""
+    return _fetch_generic("drug_clinical_org", "임상기관", {"lab_name": lab_name},
                           page_no=page_no, num_of_rows=num_of_rows)
 
 
@@ -201,10 +202,10 @@ def fetch_drug_reference(ingredient=None, item_name=None, page_no=1, num_of_rows
                           page_no=page_no, num_of_rows=num_of_rows)
 
 
-def fetch_drug_bioeq(ingredient=None, item_name=None, page_no=1, num_of_rows=10):
-    """NO 485 생동성인정품목."""
+def fetch_drug_bioeq(item_name=None, page_no=1, num_of_rows=10):
+    """NO 485 생동성인정품목 — 명세는 소문자 snake, 단일 파라미터 item_name."""
     return _fetch_generic("drug_bioeq", "생동성",
-                          {"INGR_KOR_NAME": ingredient, "ITEM_NAME": item_name},
+                          {"item_name": item_name},
                           page_no=page_no, num_of_rows=num_of_rows)
 
 
@@ -215,6 +216,7 @@ def fetch_drug_bioeq(ingredient=None, item_name=None, page_no=1, num_of_rows=10)
 def fetch_dur_item(category: str = "list", item_name=None, page_no=1, num_of_rows=10):
     """
     NO 531 DUR 품목정보 — 9개 카테고리 중 1개 호출.
+    명세는 camelCase (itemName) — 서버는 양쪽 모두 수용하지만 명세 준수.
     category ∈ {combine, elderly, list, age, capacity, period, efficacy, seobang, pregnancy}
     """
     key_map = {
@@ -229,7 +231,7 @@ def fetch_dur_item(category: str = "list", item_name=None, page_no=1, num_of_row
         "pregnancy": "dur_item_pregnancy",
     }
     key = key_map.get(category, "dur_item_list")
-    return _fetch_generic(key, f"DUR 품목/{category}", {"ITEM_NAME": item_name},
+    return _fetch_generic(key, f"DUR 품목/{category}", {"itemName": item_name},
                           page_no=page_no, num_of_rows=num_of_rows)
 
 
@@ -297,17 +299,52 @@ def fetch_food_disc(category: str = "mnft", entp_name=None, page_no=1, num_of_ro
                           page_no=page_no, num_of_rows=num_of_rows)
 
 
-def fetch_food_recall_import(product_name=None, page_no=1, num_of_rows=10):
-    """NO 153 수입식품 회수판매중지."""
+def fetch_food_recall_import(product_name=None, entp_name=None, barcode=None,
+                             page_no=1, num_of_rows=10):
+    """NO 153 수입식품 회수판매중지 — UPPER_CASE 파라미터 3종 지원."""
     return _fetch_generic("food_recall_import", "수입식품회수",
-                          {"PRDT_NM": product_name},
+                          {"PRDT_NM": product_name, "CLNT_BSSH_NM": entp_name,
+                           "BRCD_NO": barcode},
                           page_no=page_no, num_of_rows=num_of_rows)
 
 
 def fetch_food_inspect(item_name=None, page_no=1, num_of_rows=10):
-    """NO 535 식품 검사부적합."""
+    """NO 535 식품 검사부적합 (목록)."""
     return _fetch_generic("food_inspect_list", "식품검사부적합",
                           {"PRDUCT": item_name},
+                          page_no=page_no, num_of_rows=num_of_rows)
+
+
+def fetch_food_inspect_detail(prsec_no=None, page_no=1, num_of_rows=1):
+    """NO 535 식품 검사부적합 (상세) — getPrsecImproptFoodItem02."""
+    return _fetch_generic("food_inspect_item", "식품검사부적합상세",
+                          {"PRSEC_NO": prsec_no},
+                          page_no=page_no, num_of_rows=num_of_rows)
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# 희귀필수의약품 (NO 81 — 5 오퍼레이션)
+# ────────────────────────────────────────────────────────────────────────────
+
+def fetch_rare_essential(category: str = "treat", page_no=1, num_of_rows=10):
+    """
+    NO 81 희귀필수의약품 — 5개 카테고리 중 1개 호출.
+    category ∈ {self, treat, unreg, reg, narc}
+      - self : 자가치료용 마약류 (getRareNartDrugSelftreat)
+      - treat: 치료용 (getRareSelfmdcin)
+      - unreg: 긴급도입 보험미등재 (getRareEmerIntdInsurceUnregistMdcin)
+      - reg  : 긴급도입 보험등재 (getRareEmerIntdInsurceRegistMdcin)
+      - narc : 긴급도입 마약류 (getRareEmerIntdNarticDrug)
+    """
+    key_map = {
+        "self":  "drug_rare_self",
+        "treat": "drug_rare_treat",
+        "unreg": "drug_rare_unreg",
+        "reg":   "drug_rare_reg",
+        "narc":  "drug_rare_narc",
+    }
+    key = key_map.get(category, "drug_rare_treat")
+    return _fetch_generic(key, f"희귀필수의약품/{category}", None,
                           page_no=page_no, num_of_rows=num_of_rows)
 
 

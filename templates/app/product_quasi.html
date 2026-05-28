@@ -119,8 +119,8 @@
           <div style="display:flex;flex-direction:column;gap:8px">
             {% for s in related_sanctions %}
             <div class="alert-row"><div class="alert-row__bar" style="background:var(--warn)"></div>
-              <span class="alert-row__time">{{ (s.DSPS_DCSNDT or '')[:10] }}</span>
-              <div class="flex-1"><div class="alert-row__title">{{ s.ENTP_NAME }}</div><div class="alert-row__meta">{{ (s.VIOLATION_DETAIL or s.VIOLATION_LAW or '')|truncate(80) }}</div></div>
+              <span class="alert-row__time">{{ (s.LAST_SETTLE_DATE or s.DSPS_DCSNDT or '')[:10] }}</span>
+              <div class="flex-1"><div class="alert-row__title">{{ s.ENTP_NAME }}</div><div class="alert-row__meta">{{ (s.EXPOSE_CONT or s.ADM_DISPS_NAME or s.BEF_APPLY_LAW or '')|truncate(80) }}</div></div>
               <span class="badge badge--warn">행정처분</span>
             </div>
             {% endfor %}

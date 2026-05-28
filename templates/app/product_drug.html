@@ -484,10 +484,16 @@
           {% if safety_letters %}
           <div style="display:flex;flex-direction:column;gap:10px">
             {% for s in safety_letters %}
-            <div class="alert-row"><div class="alert-row__bar" style="background:var(--warn)"></div>
+            <div class="alert-row" style="flex-wrap:wrap"><div class="alert-row__bar" style="background:var(--warn)"></div>
               <span class="alert-row__time">{{ (s.PBANC_YMD or '')[:10] }}</span>
-              <div class="flex-1"><div class="alert-row__title">{{ s.TITLE }}</div><div class="alert-row__meta">{{ s.SUMRY_CONT|truncate(120) if s.SUMRY_CONT else '' }}</div></div>
-              <span class="badge badge--warn">{{ s.PBANC_DIVS_NM or '?' }}</span>
+              <div class="flex-1">
+                <div class="alert-row__title">{{ s.TITLE }}</div>
+                <div class="alert-row__meta">{{ s.SUMRY_CONT|truncate(120) if s.SUMRY_CONT else (s.PBANC_CONT|truncate(120) if s.PBANC_CONT else '') }}</div>
+                {% if s.ATTACH_FILE_URL %}
+                <div style="margin-top:4px"><a href="{{ s.ATTACH_FILE_URL }}" target="_blank" rel="noopener" style="font-size:11px;color:var(--brand);text-decoration:none">📎 첨부 파일</a></div>
+                {% endif %}
+              </div>
+              <span class="badge badge--warn">{{ s.PBANC_DIVS_NM or '안전성서한' }}</span>
             </div>
             {% endfor %}
           </div>
@@ -541,10 +547,29 @@
           <div class="app-card__head"><div class="app-card__title">공급중단·공급부족 — {{ supply_stops|length }}건</div><span class="app-card__caption">공급망</span></div>
           {% if supply_stops %}
           <table style="width:100%;border-collapse:collapse;font-size:13px">
-            <thead><tr style="background:var(--bg-subtle)"><th style="padding:8px;text-align:left">유형</th><th style="padding:8px;text-align:left">업체</th><th style="padding:8px;text-align:left">품목</th><th style="padding:8px;text-align:left">상태</th></tr></thead>
+            <thead><tr style="background:var(--bg-subtle)">
+              <th style="padding:8px;text-align:left">유형</th>
+              <th style="padding:8px;text-align:left">업체</th>
+              <th style="padding:8px;text-align:left">품목</th>
+              <th style="padding:8px;text-align:left">중단일</th>
+              <th style="padding:8px;text-align:left">상태</th>
+            </tr></thead>
             <tbody>
             {% for s in supply_stops %}
-            <tr><td style="padding:8px;border-top:1px solid var(--line-2)">{{ s.SUSPEND_REPORT_FLAG or '?' }}</td><td style="padding:8px;border-top:1px solid var(--line-2)">{{ s.ENTP_NAME or '?' }}</td><td style="padding:8px;border-top:1px solid var(--line-2)">{{ s.ITEM_NAME or '?' }}</td><td style="padding:8px;border-top:1px solid var(--line-2)"><span class="badge">{{ s.REPORT_PGS_CODE or '?' }}</span></td></tr>
+            <tr>
+              <td style="padding:8px;border-top:1px solid var(--line-2)">{{ s.SUSPEND_REPORT_FLAG or '공급중단' }}</td>
+              <td style="padding:8px;border-top:1px solid var(--line-2)">{{ s.ENTP_NAME or '?' }}</td>
+              <td style="padding:8px;border-top:1px solid var(--line-2)">{{ s.ITEM_NAME or '?' }}</td>
+              <td style="padding:8px;border-top:1px solid var(--line-2);font-family:'JetBrains Mono',monospace">{{ (s.SUSPEND_DATE or s.LAST_SUPPLY_DATE or '')[:10] }}</td>
+              <td style="padding:8px;border-top:1px solid var(--line-2)"><span class="badge">{{ s.REPORT_PGS_CODE or '진행중' }}</span></td>
+            </tr>
+            {% if s.SUSPEND_REASON or s.SUPPLY_PLAN %}
+            <tr><td colspan="5" style="padding:8px 8px 12px;color:var(--ink-2);font-size:12px;border-top:none">
+              {% if s.SUSPEND_REASON %}<div><strong style="color:var(--ink-3)">중단 사유:</strong> {{ s.SUSPEND_REASON|truncate(150) }}</div>{% endif %}
+              {% if s.SUPPLY_PLAN %}<div style="margin-top:4px"><strong style="color:var(--ink-3)">공급 계획:</strong> {{ s.SUPPLY_PLAN|truncate(150) }}</div>{% endif %}
+              {% if s.INV_QTY %}<div style="margin-top:4px"><strong style="color:var(--ink-3)">자사 재고:</strong> {{ s.INV_QTY }}</div>{% endif %}
+            </td></tr>
+            {% endif %}
             {% endfor %}
             </tbody>
           </table>
