@@ -8,16 +8,21 @@
 
 ## 🔑 인증키 정보
 
-### 공통 SERVICE_KEY (data.go.kr 계열 38개 API)
+### 공통 SERVICE_KEY (data.go.kr 계열 40+ API)
 | 항목 | 값 |
 |---|---|
 | 환경변수 | `PUBLIC_DATA_SERVICE_KEY` |
 | 발급처 | https://www.data.go.kr (공공데이터포털) |
+| 키 식별자 | `5cd…d1` (마이페이지 16자 prefix — 전체 키는 .env에서만 관리) |
 | 보관 위치 | `.env` (gitignored, 로컬 전용) — 절대 git push 금지 |
-| 호출 한도 | 개발계정 10,000회/일 |
-| 유효기간 | 2026-05-26 ~ 2028-05-26 |
-| 적용 API | NO 140·145·539·563·564·547·534·537·531·533 등 18개 작동 + 17개 신규 승인 |
+| 호출 한도 | 개발계정 **10,000회/일/API** (활용신청 표 일괄 확인) |
+| 신청 유형 | 개발계정 / 활용신청 / **자동 승인** |
+| 서비스 유형 | REST |
+| 데이터 포맷 | JSON+XML (NO 484·485·483 등 일부는 XML only) |
+| 활용기간 | API별 상이 — 2025-05-13(NO 539)·2025-07-03(NO 564)·2025-10-31(NO 140)·2025-11-13(NO 145·563)·2026-05-26·2026-05-27 |
+| 적용 API | 작동 18개 + 2026-05-26~27 신규 승인 22개 + 식품공전·건기식 4개 |
 | 로드 방식 | `config.py`에서 `python-dotenv` 자동 로드 |
+| 활용 목적 | 의약품/식품 규제정보 통합 조회 시스템 개발 및 PoC |
 
 ### 식품안전나라 KeyID (별도 발급 필요)
 | 항목 | 값 |
@@ -481,3 +486,118 @@ python -m drug_integrated_search._verify_all_apis
 ```
 
 최근 결과 (2026-05-28): **완전 작동 36 / 부분/0건 8 / 실패 0 / 전체 44**
+
+---
+
+## 📑 API 운영 메타데이터 (활용기간·참고문서·일일 트래픽)
+
+> 공통 사항: 서비스 유형 **REST**, 자동 승인, **일일 트래픽 10,000회/API**.
+> 데이터 포맷은 `JSON+XML` 기본, 일부 API만 `XML only` 표기.
+
+### 의약품 핵심 (Phase 1 — 기존 작동 18개)
+
+| NO | 서비스 | End Point Base | 활용기간 | 참고 문서 | Format |
+|---|---|---|---|---|---|
+| 140 | 의약품 제품 허가정보 (3 ops) | `…/DrugPrdtPrmsnInfoService07` | 2025-10-31 ~ 2027-10-31 | — | JSON+XML |
+| 539 | 의약품 회수·판매중지 (4 ops) | `…/MdcinRtrvlSleStpgeInfoService04` | 2025-05-13 ~ 2027-05-13 | — | JSON+XML |
+| 564 | 의약품 행정처분 | `…/MdcinExaathrService04` | 2025-07-03 ~ 2027-07-03 | `IROS_50_의약품행정처분서비스_v1.6.docx` | JSON+XML |
+| 563 | 의약품 낱알식별 | `…/MdcinGrnIdntfcInfoService03` | 2025-11-13 ~ 2027-11-13 | — | JSON+XML |
+| 547 | 의약품 안전성서한 | `…/DrugSafeLetterService02` | 2026-05-26 ~ 2028-05-26 | — | JSON+XML |
+| 531 | DUR 품목정보 (9 ops) | `…/DURPrdlstInfoService03` | 2026-05-26 ~ 2028-05-26 | — | JSON+XML |
+| 533 | DUR 성분정보 (7 ops) | `…/DURIrdntInfoService03` | 2026-05-26 ~ 2028-05-26 | — | JSON+XML |
+| 534 | 의약품 생산·수입·공급중단 | `…/MdcinPrdctnIncmeSuplyService2` | 2026-05-26 ~ 2028-05-26 | `IROS_73_의약품생산수입공급중단 정보_v1.2.docx` | JSON+XML |
+| 537 | 의약품 공급부족 | `…/MdcinSuplyLackService03` | 2026-05-26 ~ 2028-05-26 | — | JSON+XML |
+| 145 | 의약외품 제품 허가 | `…/QdrgPrdtPrmsnInfoService03` | 2025-11-13 ~ 2027-11-13 | — | JSON+XML |
+| 1 | 식품영양성분 DB | `…/FoodNtrCpntDbInfo02` | 2026-05-26 ~ 2028-05-26 | `출력메세지_식품영양성분DB정보.xlsx` | JSON+XML |
+| 3 | 행정처분(수입식품업) | `…/AdmmRsltIprtFoodService` | 2026-05-26 ~ 2028-05-26 | — | JSON+XML |
+| 5 | 행정처분(식품판매업) | `…/AdmmRsltFoodSaleService` | 2026-05-26 ~ 2028-05-26 | — | JSON+XML |
+| 6 | 행정처분(식품제조가공업) | `…/AdmmRsltFoodMnftPrcsService` | 2026-05-26 ~ 2028-05-26 | — | JSON+XML |
+| 153 | 수입식품 회수판매중지 | `…/IprtFoodReclSaleStopPrdtStusService` | 2026-05-26 ~ 2028-05-26 | `IROS_373_수입식품회수판매중지제품 정보_v1.0-수정.docx` | JSON+XML |
+
+### 의약품 Phase 2 — 2026-05-27 신규 승인 (R&D / BD / 안전성·품질)
+
+> **활용기간 일괄: 2026-05-27 ~ 2028-05-27 · 모두 일일 10,000회**
+
+| NO | 서비스 | End Point Base | 참고 문서 | Format |
+|---|---|---|---|---|
+| 248 | 의약품개요정보(e약은요) | `…/DrbEasyDrugInfoService` | `IROS_239_의약품개요정보(e약은요) 서비스_v1.0.docx` | JSON+XML |
+| 269 | 묶음의약품정보서비스 | `…/DrbBundleInfoService02` | — | JSON+XML |
+| 132 | 의약품GMP적합판정서발급현황 | `…/DrugGmpStbltJgmtIssuStusService` | `IROS_408_의약품GMP적합판정서발급현황_v1.0.docx` | JSON+XML |
+| 142 | 의약품 국가출하승인정보 | `…/DrugNatnShipmntAprvInfoService` | `IROS_402_의약품_국가출하승인정보_v1.0.docx` | JSON+XML |
+| 144 | 의약품 등 업체허가현황 (2 ops) | `…/DrugEtcBsshBspmStusService` | `IROS_403_의약품등_업체허가현황_v1.0.docx` | JSON+XML |
+| 483 | 원료의약품등록(DMF)현황 | `…/MdcDmfInfoService01` | `IROS_76_원료의약품(DMF)현황_v1.1.docx` | **XML only** |
+| 561 | 의약품 특허정보 | `…/MdcinPatentInfoService2` | — | JSON+XML |
+| 557 | 국내소송 의약품(특허) | `…/DmstcLwstMdcinInfoService02` | — | JSON+XML |
+| 552 | FDA Paragraph IV | `…/ParagraphIVTrgetMdcinService02` | — | JSON+XML |
+| 562 | FDA 오렌지북 특허정보 | `…/FdaOrngbkPatentInfoService01` | `IROS_30_FDA 오렌지북 특허정보_v1.1.docx` | JSON+XML |
+| 566 | 의약품 임상시험 정보 | `…/MdcinClincTestInfoService02` | — | JSON+XML |
+| 568 | 의약품임상시험 실시기관 | `…/ClinicTestOprtnInsttInfoService01` | `IROS_15_의약품임상시험 실시기관 정보_v1.1.docx` | JSON+XML |
+| 484 | 대조약조회 | `…/MdcCompDrugInfoService04` | — | **XML only** |
+| 485 | 생동성인정품목조회 | `…/MdcBioEqInfoService01` | `IROS_77_생동성인정품목조회_v1.2.docx` | **XML only** |
+| 554 | 의약품 재심사 정보 | `…/MdcinRejdgeService01` | `IROS_54_의약품 재심사 정보_v1.1.docx` | JSON+XML |
+| 556 | 의약품 재평가 정보 | `…/MdcinRevalService02` | — | JSON+XML |
+| 565 | 희귀의약품 정보 | `…/RareMdcinInfoService02` | — | JSON+XML |
+| 81 | 희귀필수의약품 (5 ops) | `…/RareEsentMdcin` | — | JSON+XML |
+
+### 식품·건기식·HACCP — 2026-05-26 ~ 2026-05-27 신규 승인
+
+| NO | 서비스 | End Point Base | 활용기간 | Format |
+|---|---|---|---|---|
+| 535 | 검사 부적합 식품정보 (2 ops) | `…/PrsecImproptFoodInfoService03` | 2026-05-27 ~ 2028-05-27 | JSON+XML |
+| 12 | 식품 스마트HACCP (B553748) | `…/B553748/SmartCertFoodListService` | 2026-05-27 ~ 2028-05-27 | JSON+XML |
+| 51 | 건강기능식품 GMP | `…/FoodGmpStbltCompInfo` | 2026-05-27 ~ 2028-05-27 | JSON+XML |
+
+---
+
+## 🆕 추가 신청 완료 API (2026-05-26 ~ 2026-05-27)
+
+> 이전엔 **"End Point 확인 대기"** 였던 5개 + 신규 4개. End Point 매핑 후 `config.py`에 추가 등록 + smoke test 필요.
+
+### 건강기능식품 4개 (모두 2026-05-27 승인)
+
+| NO | 서비스명 | data.go.kr URL | 활용기간 |
+|---|---|---|---|
+| 334 | 건강기능식품 개별인정형 정보 | https://www.data.go.kr/data/15074311/openapi.do | 2026-05-27 ~ 2028-05-27 |
+| 203 | 건강기능식품 영양DB | https://www.data.go.kr/data/15085712/openapi.do | 2026-05-27 ~ 2028-05-27 |
+| 478 | 건강기능식품 품목제조 신고사항 현황 | https://www.data.go.kr/data/15058865/openapi.do | 2026-05-27 ~ 2028-05-27 |
+| 51 | 건강기능식품 GMP 지정현황 | https://www.data.go.kr/data/15111987/openapi.do | 2026-05-27 ~ 2028-05-27 |
+
+### 식품 (2026-05-26 ~ 2026-05-27)
+
+| NO | 서비스명 | data.go.kr URL | 활용기간 |
+|---|---|---|---|
+| - | 식품공전 | https://www.data.go.kr (검색 필요) | 2026-05-27 ~ 2028-05-27 |
+| 469 | 검사부적합(국내) | https://www.data.go.kr/data/15063677/openapi.do | 2026-05-27 ~ 2028-05-27 |
+| 477 | 행정처분결과(식품접객업) | https://www.data.go.kr/data/15058429/openapi.do | 2026-05-26 ~ 2028-05-26 |
+| 444 | 식품(첨가물)품목제조보고 | https://www.data.go.kr/data/15064909/openapi.do | 2026-05-26 ~ 2028-05-26 |
+| 470 | 식품(첨가물)품목제조보고(원재료) | https://www.data.go.kr/data/15062098/openapi.do | 2026-05-26 ~ 2028-05-26 |
+| 225 | 해외 위해식품 회수정보 | https://www.data.go.kr/data/15077772/openapi.do | 2026-05-26 ~ 2028-05-26 |
+| 339 | 식품의 회수·판매중지 정보 | https://www.data.go.kr/data/15074318/openapi.do | 2026-05-26 ~ 2028-05-26 |
+
+> 위 9개 API는 신청은 완료됐으나 **End Point URL이 마이페이지 상세에 표기되지 않은 경우** 가 있음. 각 API 상세 페이지에서 End Point 확인 후 `config.py:API_ENDPOINTS`에 등록 + 활용 함수 작성 필요.
+
+---
+
+## 🔐 보안 처리 가이드
+
+| 항목 | 처리 방식 |
+|---|---|
+| `PUBLIC_DATA_SERVICE_KEY` 전체 키 | **`.env` 로컬 전용 — git push 금지** (`.gitignore` 50줄) |
+| 키 식별자 prefix | 마이페이지에서 확인 가능, 본 문서는 검열 처리 (`5cd…d1`) |
+| Encoding/Decoding 인증키 구분 | data.go.kr API 호출은 **Decoding 키** 사용 (URL encode 없이 그대로) |
+| 키 발급 영구 보관 | data.go.kr 마이페이지 → 개발계정 → 인증키 보기 (재발급 시 기존 키 즉시 무효화) |
+| 키 노출 사고 대응 | 마이페이지에서 키 폐기 + 신규 발급 → `.env` 갱신 |
+| GitHub history rewrite | `git filter-branch --tree-filter` 로 모든 커밋에서 키 흔적 제거 (이미 Phase 3에서 적용) |
+
+---
+
+## 📝 활용 목적·내용 (data.go.kr 활용신청 일관)
+
+| 항목 | 내용 |
+|---|---|
+| 활용 목적 | 웹 사이트 개발 (일부 API는 "기타" / "프로그램개발" 분류) |
+| 활용 내용 | "의약품/식품 규제정보 통합 조회 시스템 개발 및 PoC" |
+| 활용 시스템 | **KD-IRIS** (KwangDong Integrated Regulatory Intelligence System) |
+| 대상 부서 | RA·QA·QC·SCM·R&D·식품QA·영업 (Workspaces 7개) |
+| 운영 모드 | Phase 1 개발계정 (10,000회/일) → Phase 2 운영계정 전환 검토 (활용사례 등록 후) |
+
