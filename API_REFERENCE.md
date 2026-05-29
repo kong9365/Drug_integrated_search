@@ -1,8 +1,14 @@
 # KD-IRIS — API 통합 레퍼런스
 
-> **최종 갱신**: 2026-05-28 (검증 36/44 완전 작동, 실패 0)
+> **최종 갱신**: 2026-05-29 (식품안전나라 KeyID 활성화 + 한약 NO35/90 승인 반영 + 화면 연결 현황 추가)
 > **출처**: `API_APPLICATION_LIST.md`(신청 목록) + `_verify_all_apis.py`(전수 검증) + data.go.kr 명세 페이지
 > **검증 코드**: `python -m drug_integrated_search._verify_all_apis`
+>
+> **변경 요약 (2026-05-29)**:
+> - `FOODSAFETY_KEY_ID` **발급·활성** → 식품안전나라 라인 가동(회수 I0490·접객업처분 I2630·해외위해 I2810 + 건기식 개별인정형 I-0050·영양DB I0760·품목제조 I0030·식품공전 I0930)
+> - 한약(생약) **NO 35 허가기원·NO 90 회수** 승인 등록 (동일 `PUBLIC_DATA_SERVICE_KEY`)
+> - 미연결 API 다수 화면 연결: 의약품외 회수(539)·희귀필수(81)·임상기관(568)
+> - 하단 **"🔌 현재 통합·활용 현황"** 표에서 API별 연결 화면·상태 확인
 
 ---
 
@@ -24,11 +30,12 @@
 | 로드 방식 | `config.py`에서 `python-dotenv` 자동 로드 |
 | 활용 목적 | 의약품/식품 규제정보 통합 조회 시스템 개발 및 PoC |
 
-### 식품안전나라 KeyID (별도 발급 필요)
+### 식품안전나라 KeyID (별도 발급)
 | 항목 | 값 |
 |---|---|
 | 환경변수 | `FOODSAFETY_KEY_ID` |
-| 현재 상태 | 미발급 (빈 문자열) |
+| 현재 상태 | **발급·활성 (라이브 작동 확인 2026-05-29)** — 키는 `.env`에만 보관 |
+| 활성 서비스 | `I0490`(회수 350)·`I2630`(접객업처분 2,904)·`I2810`(해외위해)·`I-0050`(개별인정형 430)·`I0760`(영양DB 585)·`I0030`(품목제조 44,832)·`I0930`(식품공전, 품목명 검색형) |
 | 발급처 | https://openapi.foodsafetykorea.go.kr |
 | 신청 페이지 | https://www.foodsafetykorea.go.kr/api/openApiInfo.do (회원가입 후 OpenAPI 이용신청) |
 | URL 패턴 | `http://openapi.foodsafetykorea.go.kr/api/{KEY_ID}/{SERVICE_ID}/{TYPE}/{START}/{END}[/{변수}={값}&{변수}={값}]` |
@@ -42,6 +49,82 @@
 | Base | `https://apis.data.go.kr/B553748` |
 | 인증 | `PUBLIC_DATA_SERVICE_KEY` 그대로 사용 |
 | 적용 API | NO 12 스마트HACCP |
+
+---
+
+## 🔌 현재 통합·활용 현황 (2026-05-29)
+
+> 키·엔드포인트는 **전부 등록·인증되어 호출 가능**. 아래는 실제 **화면 연결(활용)** 기준 현황.
+> **범례** — ✅ 화면 연결됨 · ⚪ 함수 보유(미연결) · ⚠️ 응답 대기(승인 전파 등)
+
+### 의약품 (data.go.kr · `PUBLIC_DATA_SERVICE_KEY`)
+| NO | 서비스 | fetch 함수 | 연결 화면 | 상태 |
+|----|--------|-----------|-----------|:---:|
+| 140 | 허가 목록 | `fetch_approval` | 검색·제품상세 | ✅ |
+| 140 | 허가 상세 | `fetch_approval_detail` | 제품상세(허가상세) | ✅ |
+| 140 | 주성분 상세 | `fetch_approval_ingr` | (MATERIAL_NAME 파싱으로 대체) | ⚪ |
+| 564 | 행정처분 | `fetch_disciplinary` | 모니터·검색·제품상세 신호등 | ✅ |
+| 539 | 회수 목록 | `fetch_recall` | 모니터·검색·제품상세·워치리스트 | ✅ |
+| 539 | 의약품외 회수 목록 | `fetch_recall_etc` | 모니터 | ✅ |
+| 539 | 회수/의약품외 상세 | `fetch_recall_detail`·`fetch_recall_etc_detail` | (드릴다운용) | ⚪ |
+| 563 | 낱알식별 | `fetch_identification` | 제품상세(낱알) | ✅ |
+| 547 | 안전성서한 | `fetch_drug_safety_letter` | 모니터·검색·제품상세·워치리스트 | ✅ |
+| 534 | 공급중단 | `fetch_drug_supply_stop` | 모니터·검색·제품상세 | ✅ |
+| 537 | 공급부족 | `fetch_drug_supply_lack` | SCM 워크스페이스 | ✅ |
+| 531 | DUR 품목(병용·임부·노인) | `fetch_dur_item` | 제품상세 안전성 탭 | ✅ |
+| 533 | DUR 성분 | `fetch_dur_ingredient` | (531 품목으로 충족) | ⚪ |
+| 248 | e약은요 | `fetch_drug_easy` | 검색·제품상세 | ✅ |
+| 269 | 묶음의약품 | `fetch_drug_bundle` | 제품상세 | ✅ |
+| 132 | GMP 적합판정 | `fetch_drug_gmp` | 홈·제품상세·RA 워크스페이스 | ✅ |
+| 142 | 국가출하승인 | `fetch_drug_release` | 검색·제품상세 | ✅ |
+| 144 | 업체허가 목록 | `fetch_drug_entity_list` | 검색 | ✅ |
+| 144 | 업체허가 상세 | `fetch_drug_entity_detail` | — | ⚪ |
+| 483 | 원료의약품 DMF | `fetch_drug_dmf` | 검색·제품상세·SCM | ✅ |
+| 561 | 의약품 특허 | `fetch_drug_patent` | 검색·제품상세 | ✅ |
+| **557** | **국내소송 의약품(특허)** | `fetch_drug_lawsuit` | **R&D 특허 트래커·제품상세** | ✅ |
+| 552 | FDA Paragraph IV | `fetch_drug_fda_p4` | R&D 트래커·검색·제품상세 | ✅ |
+| 562 | FDA 오렌지북 | `fetch_drug_fda_orangebook` | R&D 트래커·검색·제품상세 | ✅ |
+| 566 | 임상시험 | `fetch_drug_clinical` | 모니터·검색·제품상세 | ✅ |
+| 568 | 임상시험 실시기관 | `fetch_drug_clinical_org` | R&D 워크스페이스 | ✅ |
+| 484 | 대조약 | `fetch_drug_reference` | 검색·제품상세 | ✅ |
+| 485 | 생동성인정품목 | `fetch_drug_bioeq` | 검색·제품상세 | ✅ |
+| 554 | 재심사 | `fetch_drug_review` | 모니터·검색·제품상세·홈·RA D-Day | ✅ |
+| 556 | 재평가 | `fetch_drug_reeval` | 모니터·검색·제품상세 | ✅ |
+| 565 | 희귀의약품 | `fetch_drug_orphan` | 검색·제품상세 | ✅ |
+| 81 | 희귀필수의약품(5종) | `fetch_rare_essential` | R&D 워크스페이스 | ✅ |
+
+### 의약외품 / 식품 (data.go.kr)
+| NO | 서비스 | fetch 함수 | 연결 화면 | 상태 |
+|----|--------|-----------|-----------|:---:|
+| 145 | 의약외품 허가 | `fetch_quasi_approval` | 의약외품 제품상세·자사 enrichment | ✅ |
+| 1 | 식품영양성분DB | `fetch_food_nutrition` | 검색 | ✅ |
+| 3·5·6 | 식품 행정처분(수입·판매·제조) | `fetch_food_disc` | 식품QA 워크스페이스 | ✅ |
+| 153 | 수입식품 회수 | `fetch_food_recall_import` | 검색·식품 제품상세 | ✅ |
+| 535 | 검사부적합 목록 | `fetch_food_inspect` | 검사부적합 페이지·모니터 | ✅ |
+| 535 | 검사부적합 상세 | `fetch_food_inspect_detail` | — | ⚪ |
+| 51 | 건강기능식품 GMP | `fetch_hf_gmp` | 검색 | ✅ |
+| 12 | 스마트HACCP | `fetch_haccp_smart` | 검색 | ✅ |
+
+### 식품안전나라 (`FOODSAFETY_KEY_ID` · 활성)
+| serviceId | 서비스 | fetch 함수 | 연결 화면 | 상태 |
+|-----------|--------|-----------|-----------|:---:|
+| I-0050 | 건기식 개별인정형 | `fetch_hf_individual` | 식품QA | ✅ |
+| I0760 | 건기식 영양DB 분류 | `fetch_hf_nutrition` | 식품QA | ✅ |
+| I0030 | 건기식 품목제조 신고 | `fetch_hf_report` | 식품QA | ✅ |
+| I0930 | 식품공전 기준규격 | `fetch_food_code` | 식품QA(품목명 검색형) | ✅ |
+| I0490 | 식품 회수·판매중지 | `fetch_food_recall_domestic` | (data.go.kr 동등본 사용) | ⚪ |
+| I2810 | 해외 위해식품 회수 | `fetch_food_recall_overseas` | — | ⚪ |
+| I2630 | 행정처분(식품접객업) | `fetch_food_disc_service` | — | ⚪ |
+| I1250·C002 | 식품(첨가물) 품목제조보고 | `fetch_food_report`·`_raw` | — | ⚪ |
+
+### 한약(생약) (2026-05-29 승인 · `PUBLIC_DATA_SERVICE_KEY`)
+| NO | 서비스 | 엔드포인트 | fetch 함수 | 연결 화면 | 상태 |
+|----|--------|-----------|-----------|-----------|:---:|
+| 90 | 한약제제 회수·판매중지 | `1471000/HerbRtrvlSleStpgeInfo` | `fetch_herbal_recall` | 모니터(한약 회수, 290건) | ✅ |
+| 35 | 한약제제 허가 기원 | `1471057/HbmdMdctPrmsnOrigInfoService` | `fetch_herbal_approval` | RA 워크스페이스(생약명 검색) | ⚠️ |
+
+> ⚠️ **NO 35** — 엔드포인트·키 정상 등록. 단, 2026-05-29 승인 직후 접근 시 **403 Forbidden**(승인 전파 지연 추정). 화면은 graceful 안내 처리. 전파 후 자동 작동.
+> 파라미터 — NO 35: `DRNM`(생약명)·`TXNGRP_NM`(동식물명) / NO 90: `ITEM_NAME`·`ENTP_NAME` (응답 `DISPS_CONT` 회수사유).
 
 ---
 
