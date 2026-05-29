@@ -182,6 +182,26 @@ def scheduler_status():
     return jsonify(scheduler.get_status())
 
 
+@qa_bp.route("/mock/demo-gmp", methods=["POST", "GET"])
+def mock_demo_gmp():
+    """데모용 [MOCK] GMP D-25 이벤트 주입 (D-90 로직 시연). is_mock=1 명시."""
+    from . import mock
+    eid = mock.inject_demo_gmp(25)
+    if request.method == "GET":
+        return jsonify({"ok": True, "event_id": eid, "is_mock": True})
+    return redirect(url_for("qa.qa_home") + "?msg=mock_injected")
+
+
+@qa_bp.route("/mock/purge", methods=["POST", "GET"])
+def mock_purge():
+    """모든 [MOCK] 데이터 일괄 삭제."""
+    from . import mock
+    n = mock.purge_mocks()
+    if request.method == "GET":
+        return jsonify({"ok": True, "purged": n})
+    return redirect(url_for("qa.qa_home") + f"?msg=mock_purged_{n}")
+
+
 @qa_bp.route("/event/<int:event_id>")
 def event_detail(event_id):
     """이벤트 상세 (P3) — severity·자사매칭·원시 payload·권장액션·상태."""

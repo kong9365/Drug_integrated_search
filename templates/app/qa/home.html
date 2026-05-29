@@ -62,6 +62,7 @@
         <a href="{{ url_for('qa.event_detail', event_id=e.event_id) }}" class="alert-row" style="text-decoration:none;color:inherit">
           <div class="alert-row__bar" style="background:var(--{{ e.sev.color }})"></div>
           <span class="badge {% if e.severity=='CRITICAL' %}badge--danger{% elif e.severity=='HIGH' %}badge--warn{% else %}badge--ok{% endif %}">{{ e.sev.label }}</span>
+          {% if e.is_mock %}<span class="badge" style="background:#7c3aed;color:#fff">🧪 MOCK</span>{% endif %}
           <div class="flex-1">
             <div class="alert-row__title">{{ e.title }}</div>
             <div class="alert-row__meta">

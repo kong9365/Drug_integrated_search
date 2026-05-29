@@ -15,6 +15,7 @@
   <div class="app-card" style="padding:20px;margin-bottom:16px;border-left:4px solid var(--{{ sev.color }})">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
       <span class="badge {% if ev.severity=='CRITICAL' %}badge--danger{% elif ev.severity=='HIGH' %}badge--warn{% else %}badge--ok{% endif %}">{{ sev.label }} · {{ ev.severity }}</span>
+      {% if ev.is_mock %}<span class="badge" style="background:#7c3aed;color:#fff">🧪 MOCK · 테스트 데이터</span>{% endif %}
       {% if ev.impact_level == 'direct' %}<span class="badge badge--danger">자사 직접</span>
       {% elif ev.impact_level == 'same_ingredient' %}<span class="badge badge--warn">동성분</span>
       {% elif ev.impact_level == 'manufacturer' %}<span class="badge badge--warn">제조소</span>

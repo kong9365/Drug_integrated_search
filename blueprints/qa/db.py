@@ -35,6 +35,8 @@ def init_db() -> None:
     conn = get_conn()
     try:
         conn.executescript(sql)
+        # 경량 마이그레이션 — 기존 DB에 누락 컬럼 추가 (CREATE IF NOT EXISTS 는 컬럼 추가 안 함)
+        _ensure_column(conn, "event", "is_mock", "INTEGER DEFAULT 0")
         conn.commit()
         logger.info(f"SQLite init_db 완료: {DB_PATH}")
     except Exception as e:
@@ -42,6 +44,14 @@ def init_db() -> None:
         raise
     finally:
         conn.close()
+
+
+def _ensure_column(conn, table: str, col: str, decl: str) -> None:
+    """기존 테이블에 컬럼이 없으면 ALTER ADD COLUMN (멱등 마이그레이션)."""
+    cols = [r[1] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()]
+    if col not in cols:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {decl}")
+        logger.info(f"마이그레이션: {table}.{col} 추가")
 
 
 # ────────────────────────────────────────────────────────────────────────────

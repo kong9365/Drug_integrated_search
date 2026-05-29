@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS event (
     raw_payload         JSON,
     status              TEXT DEFAULT 'new',      -- 'new'|'reviewing'|'closed'
     note                TEXT,
+    is_mock             INTEGER DEFAULT 0,       -- 1=테스트/데모용 mock (UI에 [MOCK] 표시, 실데이터와 분리)
     UNIQUE (api_id, event_date, title, entity)   -- 멱등 (동일 이벤트 중복 적재 방지)
 );
 CREATE INDEX IF NOT EXISTS idx_event_status   ON event(status);
