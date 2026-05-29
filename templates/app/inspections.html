@@ -75,11 +75,11 @@
         <div class="kpi-card__delta" style="color:{% if kpi.our_company %}var(--danger){% else %}var(--ink-3){% endif %}">{% if kpi.our_company %}즉시 검토 필요{% else %}안전 상태{% endif %}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-card__label">부적합 사유 TOP</div>
-        {% if kpi.reason_top %}
+        <div class="kpi-card__label">부적합 사유 분류 TOP</div>
+        {% if kpi.class_chart %}
         <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px;font-size:11px">
-          {% for reason, cnt in kpi.reason_top[:3] %}
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-2);font-weight:600">{{ reason|truncate(14) }}</span><span class="tnum" style="color:var(--warn)">{{ cnt }}건</span></div>
+          {% for c in kpi.class_chart[:3] %}
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-2);font-weight:600">{{ c.label }}</span><span class="tnum" style="color:var(--warn)">{{ c.count }}건</span></div>
           {% endfor %}
         </div>
         {% else %}
@@ -87,6 +87,47 @@
         {% endif %}
       </div>
     </div>
+
+    <!-- 분류 차트 + 제조소 순위 (v3 R3-4) -->
+    {% if kpi.class_chart %}
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:20px">
+      <!-- 분류 차트 (순수 CSS 가로 바) -->
+      <div class="app-card">
+        <div class="app-card__head"><div class="app-card__title">부적합 사유 분류</div><span class="app-card__caption">{{ kpi.total }}건 기준</span></div>
+        <div style="display:flex;flex-direction:column;gap:10px;padding:4px 2px">
+          {% set colors = {'잔류농약':'#43a047','중금속':'#8e24aa','미생물':'#e53935','기준초과':'#fb8c00','이물·기타':'#90a4ae'} %}
+          {% for c in kpi.class_chart %}
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+              <span style="font-weight:600">{{ c.label }}</span>
+              <span style="color:var(--ink-3)">{{ c.count }}건 ({{ c.pct }}%)</span>
+            </div>
+            <div style="height:10px;background:var(--bg-subtle);border-radius:5px;overflow:hidden">
+              <div style="height:100%;width:{{ c.pct }}%;background:{{ colors.get(c.label, '#90a4ae') }};border-radius:5px"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <!-- 제조소 순위 TOP5 -->
+      <div class="app-card">
+        <div class="app-card__head"><div class="app-card__title">제조소 부적합 순위</div><span class="app-card__caption">TOP 5</span></div>
+        {% if kpi.maker_top %}
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          {% for m in kpi.maker_top %}
+          <tr style="border-bottom:1px solid var(--line-2)">
+            <td style="padding:8px 6px;color:var(--ink-3);width:28px">{{ loop.index }}</td>
+            <td style="padding:8px 6px">{{ m.name|truncate(24) }}{% if '광동' in m.name %} <span class="badge badge--danger" style="font-size:10px">자사</span>{% endif %}</td>
+            <td style="padding:8px 6px;text-align:right"><span class="tnum" style="color:{% if m.risk %}var(--danger){% else %}var(--ink-2){% endif %};font-weight:600">{{ m.count }}건</span>{% if m.risk %} 🔴{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% else %}
+        <div style="padding:20px;text-align:center;color:var(--ink-3);font-size:12px">데이터 없음</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
 
     <!-- 결과 리스트 -->
     <div class="app-card">

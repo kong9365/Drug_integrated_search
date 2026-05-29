@@ -1320,7 +1320,8 @@ def inspections():
 
     recent_30 = 0
     our_company_hits = 0
-    reason_counter = {}
+    class_counter = {}        # 사유 분류 (잔류농약/중금속/미생물/이물·기타)
+    maker_counter = {}        # 제조소별 부적합 카운트
     for it in items:
         date = (it.get("REGIST_DT") or it.get("DSPS_DCSNDT") or "")[:8]
         if date and date >= thirty_days_ago.replace("-", ""):
@@ -1328,25 +1329,60 @@ def inspections():
         entrps = (it.get("ENTRPS") or "") + " " + (it.get("BSSH_NM") or "")
         if "광동" in entrps:
             our_company_hits += 1
-        reason = (it.get("IMPROPT_ITM") or "").strip()
-        if reason:
-            # 사유의 첫 카테고리 추출 (잔류농약/중금속/미생물 등)
-            key = reason.split(" ")[0][:20] if reason else ""
-            if key:
-                reason_counter[key] = reason_counter.get(key, 0) + 1
-    reason_top = sorted(reason_counter.items(), key=lambda x: x[1], reverse=True)[:5]
+        # 부적합 사유 분류
+        cls = _classify_reason(it.get("IMPROPT_ITM") or "")
+        class_counter[cls] = class_counter.get(cls, 0) + 1
+        # 제조소 순위
+        maker = (it.get("ENTRPS") or it.get("BSSH_NM") or "").strip()
+        if maker:
+            maker_counter[maker] = maker_counter.get(maker, 0) + 1
+
+    total = len(items)
+    # 분류 차트 (비율 포함, 큰 순)
+    class_chart = [
+        {"label": k, "count": v, "pct": round(v / total * 100) if total else 0}
+        for k, v in sorted(class_counter.items(), key=lambda x: x[1], reverse=True)
+    ]
+    # 제조소 TOP5 (5건↑ 위험 표시)
+    maker_top = [
+        {"name": k, "count": v, "risk": v >= 5}
+        for k, v in sorted(maker_counter.items(), key=lambda x: x[1], reverse=True)[:5]
+    ]
 
     kpi = {
-        "total": len(items),
+        "total": total,
         "recent_30": recent_30,
         "our_company": our_company_hits,
-        "reason_top": reason_top,
+        "class_chart": class_chart,
+        "maker_top": maker_top,
     }
+
+    # 광동 매칭 항목 상단 고정
+    items_sorted = sorted(items, key=lambda it: 0 if "광동" in ((it.get("ENTRPS") or "") + (it.get("BSSH_NM") or "")) else 1)
 
     return render_template(
         "app/inspections.html",
         active_page="inspections",
         query=q,
-        items=items[:50],
+        items=items_sorted[:50],
         kpi=kpi,
     )
+
+
+# 검사부적합 사유 분류 (v3 R3-4)
+_REASON_RULES = [
+    ("잔류농약", ("농약", "잔류농약", "피프로닐", "글리포세이트", "클로르")),
+    ("중금속", ("중금속", "납", "카드뮴", "비소", "수은", "크롬")),
+    ("미생물", ("대장균", "세균", "미생물", "살모넬라", "리스테리아", "황색포도상", "효모", "곰팡이")),
+    ("기준초과", ("기준", "초과", "함량", "산가", "과산화물", "타르색소", "보존료", "사카린", "벤조피렌")),
+    ("이물·기타", ()),
+]
+
+
+def _classify_reason(text: str) -> str:
+    """부적합 사유 텍스트 → 분류 (잔류농약/중금속/미생물/기준초과/이물·기타)."""
+    t = text or ""
+    for label, kws in _REASON_RULES:
+        if kws and any(k in t for k in kws):
+            return label
+    return "이물·기타"
