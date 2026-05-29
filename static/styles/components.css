@@ -149,7 +149,7 @@
 .logo--sm .logo__mark::before { top: 7px; left: 7px; width: 8px; height: 8px; }
 
 /* 광동제약 로고 이미지 (있을 때만 표시, 없으면 .logo__mark 폴백) */
-.logo__img { height: 44px; width: auto; max-width: 190px; object-fit: contain; display: inline-block; vertical-align: middle; }
+.logo__img { height: 56px; width: auto; max-width: 220px; object-fit: contain; display: inline-block; vertical-align: middle; }
 .logo--sm .logo__text { font-weight: 700; letter-spacing: -0.01em; }
 
 /* ===================== Top nav (landing) ===================== */
