@@ -35,9 +35,11 @@
     </button>
   </div>
 
+  {# 메뉴 — group(core/tools/poc)별 헤더와 함께 렌더 (Phase M-nav) #}
+  {% for gkey, glabel in (nav_groups or [('core','Menu')]) %}
   <div class="sidebar__group">
-    <div class="sidebar__label">Menu</div>
-    {% for item in nav_items %}
+    <div class="sidebar__label">{{ glabel }}</div>
+    {% for item in nav_items if (item.group or 'core') == gkey %}
       {% if item.disabled %}
         <span class="nav-item is-disabled" style="opacity:0.4;cursor:not-allowed">
           <svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{{ item.icon_svg|safe }}</svg>
@@ -53,6 +55,7 @@
       {% endif %}
     {% endfor %}
   </div>
+  {% endfor %}
 
   <div class="sidebar__group">
     <div class="sidebar__label">Workspaces</div>

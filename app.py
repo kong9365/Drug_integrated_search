@@ -14,7 +14,7 @@ from .config import BASE_DIR, STATIC_FOLDER, LOG_DIR, SECRET_KEY
 from .blueprints import landing_bp, app_bp, api_bp, api_demo_bp
 from .blueprints.qa import qa_bp
 from .blueprints.qa import db as qa_db
-from .blueprints.nav_config import NAV_ITEMS, USER_INFO
+from .blueprints.nav_config import NAV_ITEMS, NAV_GROUPS, USER_INFO
 from .blueprints.workspaces_config import WORKSPACES
 from .blueprints import watchlist_store, watchlist_match
 
@@ -109,6 +109,7 @@ def inject_nav():
         items.append(it)
     return {
         "nav_items": items,
+        "nav_groups": NAV_GROUPS,
         "workspaces": WORKSPACES,
         "user_info": USER_INFO,
     }
