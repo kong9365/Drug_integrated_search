@@ -31,11 +31,21 @@
         <h1 class="page-head__title">이벤트 모니터</h1>
         <p class="page-head__sub">회수·처분·안전성·공급·R&amp;D 이벤트 통합. 심각도 기반 정렬 + 워치리스트 매칭 표시.</p>
       </div>
-      <div class="page-head__actions" style="display:flex;gap:10px">
+      <div class="page-head__actions" style="display:flex;gap:10px;align-items:center">
+        <!-- 자사 품목만 / 전체 토글 (Phase M2-3) -->
+        <div style="display:flex;gap:4px">
+          <a href="/app/monitor" class="btn btn--sm {% if scope != 'own' %}btn--primary{% else %}btn--secondary{% endif %}">전체 시장</a>
+          <a href="/app/monitor?scope=own" class="btn btn--sm {% if scope == 'own' %}btn--primary{% else %}btn--secondary{% endif %}">자사 품목만</a>
+        </div>
         <span class="badge badge--brand badge--dot">실시간 fetch</span>
         <span class="badge">총 {{ total_count or 0 }}건</span>
       </div>
     </div>
+    {% if scope == 'own' %}
+    <div style="margin-bottom:12px;padding:10px 14px;background:var(--ok-soft);border:1px solid var(--ok);border-radius:8px;font-size:12px;color:var(--ink-2)">
+      📦 <strong>자사 품목만</strong> — 정형화 품목마스터(product_master) 기준 규제 이벤트. 0건이면 "이상 없음"(정상).
+    </div>
+    {% endif %}
 
     <!-- KPI 4종 (전체·CRITICAL·HIGH·LOW) -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">

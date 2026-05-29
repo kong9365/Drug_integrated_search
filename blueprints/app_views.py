@@ -830,9 +830,49 @@ def timeline():
     return redirect(url_for("app.monitor"), code=301)
 
 
+def _monitor_own():
+    """자사 품목만 모드 (Phase M2-3) — product_reg_event 기반."""
+    try:
+        from .qa import db as qadb
+        rows = qadb.query(
+            """SELECT pre.event_type, pre.severity, pre.title, pre.summary, pre.event_date,
+                      pm.product_name
+               FROM product_reg_event pre
+               JOIN product_master pm ON pm.item_seq = pre.item_seq
+               ORDER BY pre.event_date DESC, pre.id DESC""")
+    except Exception as e:
+        logger.warning(f"_monitor_own 조회 실패: {e}")
+        rows = []
+    _color = {"CRITICAL": "danger", "HIGH": "warn", "LOW": "info"}
+    _label = {"recall": "회수·판매중지", "disciplinary": "행정처분", "safety_letter": "안전성서한",
+              "review_due": "재심사 예정", "reeval_done": "재평가", "supplier_closure": "공급중단"}
+    events = []
+    for r in rows:
+        events.append({
+            "type": r["event_type"], "type_label": _label.get(r["event_type"], r["event_type"]),
+            "severity_level": r["severity"], "severity_color": _color.get(r["severity"], "info"),
+            "title": f'{r["product_name"]} — {r["title"]}', "summary": r.get("summary") or "",
+            "entity": r["product_name"], "date": r.get("event_date") or "",
+            "is_new": False, "in_watchlist": True, "_group_count": 1,
+        })
+    severity_counts = {
+        "critical": sum(1 for e in events if e["severity_level"] == "CRITICAL"),
+        "high":     sum(1 for e in events if e["severity_level"] == "HIGH"),
+        "low":      sum(1 for e in events if e["severity_level"] == "LOW"),
+    }
+    return render_template(
+        "app/monitor.html", active_page="monitor", events=events[:50],
+        total_count=len(events), all_count=len(events),
+        severity_counts=severity_counts, type_counts={},
+        filters={"severity": "", "type": "", "period": ""}, scope="own")
+
+
 @app_bp.route("/monitor")
 def monitor():
     """이벤트 모니터 — 회수·처분·안전성·공급중단·R&D 통합 평면화 (KD-IRIS v3)."""
+    # 자사 품목만 토글 (Phase M2-3) — 정형화 품목마스터 기준
+    if (request.args.get("scope") or "").strip() == "own":
+        return _monitor_own()
     events = []
     try:
         # 회수 (NO 539)
@@ -1102,6 +1142,7 @@ def monitor():
         severity_counts=severity_counts,
         type_counts=type_counts,
         filters={"severity": f_sev, "type": f_type, "period": f_period},
+        scope="all",
     )
 
 

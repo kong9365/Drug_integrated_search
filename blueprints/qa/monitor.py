@@ -247,8 +247,109 @@ def run_monitor() -> Dict:
         stats["alerts"] = alerts.dispatch_new_events()
     except Exception as e:
         logger.warning(f"알람 디스패치 실패: {e}")
+    # Phase M-2 — 정형화 품목마스터(product_master) 품목기준 모니터링 동반 실행
+    try:
+        stats["product_monitoring"] = run_monitoring()
+    except Exception as e:
+        logger.warning(f"품목기준 모니터링 실패: {e}")
     logger.info(f"모니터링 완료: {stats}")
     return stats
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# Phase M-2 — 품목기준 규제 모니터링 (product_master → product_reg_event)
+# ════════════════════════════════════════════════════════════════════════════
+def _base(s: str) -> str:
+    return re.sub(r"\([^)]*\)", "", s or "").split("_")[0]
+
+
+def _product_hit(payload: Dict, seq: str, name_norm: str, base_norm: str,
+                 fields: List[str]) -> bool:
+    """이벤트 payload 가 이 품목(seq/품목명)과 매칭되는지."""
+    if seq and payload.get("ITEM_SEQ") and str(payload.get("ITEM_SEQ")) == str(seq):
+        return True
+    if not name_norm or len(base_norm) < 2:
+        return False
+    blob = _norm(" ".join(str(payload.get(f) or "") for f in fields))
+    return bool(blob) and (base_norm in blob or name_norm in blob)
+
+
+def _upsert_reg_event(item_seq, etype, sev, title, summary, edate, source_api) -> int:
+    """product_reg_event UPSERT (UNIQUE 로 멱등). 신규 1 / 중복 0."""
+    n = qadb.execute(
+        """INSERT OR IGNORE INTO product_reg_event
+             (item_seq, event_type, severity, title, summary, event_date, source_api)
+           VALUES (?,?,?,?,?,?,?)""",
+        (item_seq, etype, sev, (title or "")[:160], (summary or "")[:300],
+         (edate or "")[:8], source_api))
+    return 1 if n else 0
+
+
+# (api_id, event_type, severity, title_fields, summary_field, date_field, match_fields)
+_PROD_SOURCES = [
+    ("NO539", "recall",        "CRITICAL", ["PRDUCT", "ITEM_NAME"], "RTRVL_RESN",  "RECALL_COMMAND_DATE", ["PRDUCT", "ITEM_NAME"]),
+    ("NO564", "disciplinary",  "HIGH",     ["ITEM_NAME", "ENTP_NAME"], "EXPOSE_CONT", "LAST_SETTLE_DATE", ["ITEM_NAME", "ENTP_NAME"]),
+    ("NO547", "safety_letter", "HIGH",     ["TITLE"], "SUMRY_CONT", "PBANC_YMD", ["TITLE", "SUMRY_CONT"]),
+    ("NO554", "review_due",    "LOW",      ["ITEM_NAME"], "ENTP_NAME", "REEXAM_DATE", ["ITEM_NAME"]),
+    ("NO556", "reeval_done",   "LOW",      ["ITEM_NAME"], "ENTP_NAME", "REVAL_DT", ["ITEM_NAME"]),
+    ("NO534", "supplier_closure", "HIGH",  ["ITEM_NAME"], "ENTP_NAME", "", ["ITEM_NAME"]),
+]
+
+
+def _fetch_prod_window() -> Dict[str, List[Dict]]:
+    """품목기준 모니터링용 API 윈도우 1회 fetch (대용량 554/556 num_of_rows=50)."""
+    from ...api_extras import (fetch_drug_safety_letter, fetch_drug_review,
+                               fetch_drug_reeval, fetch_drug_supply_stop)
+    out = {}
+    try: out["NO539"] = fetch_recall(num_of_rows=100).get("items", [])
+    except Exception: out["NO539"] = []
+    try: out["NO564"] = fetch_disciplinary(num_of_rows=100).get("items", [])
+    except Exception: out["NO564"] = []
+    try: out["NO547"] = fetch_drug_safety_letter(num_of_rows=50).get("items", [])
+    except Exception: out["NO547"] = []
+    try: out["NO554"] = fetch_drug_review(num_of_rows=50).get("items", [])
+    except Exception: out["NO554"] = []
+    try: out["NO556"] = fetch_drug_reeval(num_of_rows=50).get("items", [])
+    except Exception: out["NO556"] = []
+    try: out["NO534"] = fetch_drug_supply_stop(num_of_rows=50).get("items", [])
+    except Exception: out["NO534"] = []
+    return out
+
+
+def get_all_master_products() -> List[Dict]:
+    return qadb.query("SELECT item_seq, product_name, material_name FROM product_master")
+
+
+def run_monitoring() -> Dict:
+    """product_master 전 품목 → 규제 API 매칭 → product_reg_event 적재 (멱등)."""
+    qadb.init_db()
+    products = get_all_master_products()
+    if not products:
+        return {"products": 0, "new_events": 0}
+    windows = _fetch_prod_window()
+    new_cnt = 0
+    for p in products:
+        seq = p["item_seq"]
+        name_norm = _norm(p.get("product_name"))
+        base_norm = _norm(_base(p.get("product_name")))
+        for api_id, etype, sev, title_fields, sum_field, date_field, match_fields in _PROD_SOURCES:
+            for item in windows.get(api_id, []):
+                if _product_hit(item, seq, name_norm, base_norm, match_fields):
+                    title = next((item.get(f) for f in title_fields if item.get(f)), etype)
+                    edate = (item.get(date_field) or "")[:8] if date_field else ""
+                    new_cnt += _upsert_reg_event(seq, etype, sev, title,
+                                                 item.get(sum_field), edate, api_id)
+    logger.info(f"품목기준 모니터링: {len(products)}품목 → 신규 {new_cnt}건")
+    return {"products": len(products), "new_events": new_cnt}
+
+
+def product_critical_count() -> int:
+    """미확인(acknowledged=0) CRITICAL product_reg_event 수 (자사 품목 배지용)."""
+    try:
+        return qadb.query_one(
+            "SELECT COUNT(*) n FROM product_reg_event WHERE acknowledged=0 AND severity='CRITICAL'")["n"]
+    except Exception:
+        return 0
 
 
 if __name__ == "__main__":
