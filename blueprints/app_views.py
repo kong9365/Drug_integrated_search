@@ -831,28 +831,28 @@ def timeline():
 
 
 def _monitor_own():
-    """자사 품목만 모드 (Phase M2-3) — product_reg_event 기반."""
+    """자사 품목만 모드 (Phase M2-3) — 자사 마스터 매칭 event 기반 (matched_item_codes)."""
     try:
         from .qa import db as qadb
         rows = qadb.query(
-            """SELECT pre.event_type, pre.severity, pre.title, pre.summary, pre.event_date,
-                      pm.product_name
-               FROM product_reg_event pre
-               JOIN product_master pm ON pm.item_seq = pre.item_seq
-               ORDER BY pre.event_date DESC, pre.id DESC""")
+            """SELECT event_type, severity, title, entity, summary, event_date
+               FROM event
+               WHERE status!='closed' AND matched_item_codes IS NOT NULL AND matched_item_codes != '[]'
+               ORDER BY detected_at DESC LIMIT 100""")
     except Exception as e:
         logger.warning(f"_monitor_own 조회 실패: {e}")
         rows = []
     _color = {"CRITICAL": "danger", "HIGH": "warn", "LOW": "info"}
     _label = {"recall": "회수·판매중지", "disciplinary": "행정처분", "safety_letter": "안전성서한",
-              "review_due": "재심사 예정", "reeval_done": "재평가", "supplier_closure": "공급중단"}
+              "gmp_expiry": "GMP 만료", "review_due": "재심사 예정", "reeval_done": "재평가",
+              "supplier_closure": "공급중단"}
     events = []
     for r in rows:
         events.append({
             "type": r["event_type"], "type_label": _label.get(r["event_type"], r["event_type"]),
             "severity_level": r["severity"], "severity_color": _color.get(r["severity"], "info"),
-            "title": f'{r["product_name"]} — {r["title"]}', "summary": r.get("summary") or "",
-            "entity": r["product_name"], "date": r.get("event_date") or "",
+            "title": r.get("title") or "", "summary": r.get("summary") or "",
+            "entity": r.get("entity") or "", "date": r.get("event_date") or "",
             "is_new": False, "in_watchlist": True, "_group_count": 1,
         })
     severity_counts = {

@@ -86,6 +86,11 @@
       <option value="unmatched" {% if f_status=='unmatched' %}selected{% endif %}>unmatched</option>
       <option value="pending"   {% if f_status=='pending' %}selected{% endif %}>pending</option>
     </select>
+    <select name="herbal" style="padding:8px 12px;border:1px solid var(--line-2);border-radius:8px">
+      <option value="">한약·비한약</option>
+      <option value="0" {% if f_herbal=='0' %}selected{% endif %}>비한약</option>
+      <option value="1" {% if f_herbal=='1' %}selected{% endif %}>한약</option>
+    </select>
     <button type="submit" class="btn btn--ghost btn--sm">검색</button>
   </form>
 
@@ -129,25 +134,31 @@
         <thead><tr style="background:var(--bg-subtle);text-align:left">
           <th style="padding:10px 12px">품목코드</th>
           <th style="padding:10px 12px">품목명</th>
-          <th style="padding:10px 12px">분류</th>
-          <th style="padding:10px 12px">외주</th>
-          <th style="padding:10px 12px">허가번호</th>
+          <th style="padding:10px 12px">품목기준코드</th>
+          <th style="padding:10px 12px">구분</th>
+          <th style="padding:10px 12px">허가일</th>
           <th style="padding:10px 12px">재심사일</th>
-          <th style="padding:10px 12px">ATC</th>
+          <th style="padding:10px 12px">위험</th>
           <th style="padding:10px 12px">상태</th>
         </tr></thead>
         <tbody>
         {% for it in items %}
+        {% set sev = event_map.get(it.item_code) %}
         <tr style="border-top:1px solid var(--line-2)">
           <td style="padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:12px">
             <a href="{{ url_for('qa.master_detail', code=it.item_code) }}" style="color:var(--brand)">{{ it.item_code }}</a>
           </td>
-          <td style="padding:8px 12px;font-weight:600">{{ it.item_name }}{% if it.is_herbal %} <span class="badge" style="font-size:10px">한약</span>{% endif %}</td>
-          <td style="padding:8px 12px">{{ it.category or '-' }}</td>
-          <td style="padding:8px 12px">{{ '위탁' if it.self_or_consign == '위탁' else '-' }}</td>
-          <td style="padding:8px 12px;font-family:'JetBrains Mono',monospace">{{ it.permit_no or '—' }}</td>
+          <td style="padding:8px 12px;font-weight:600"><a href="{{ url_for('qa.master_detail', code=it.item_code) }}" style="color:var(--ink-1);text-decoration:none">{{ it.item_name }}</a></td>
+          <td style="padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-3)">{{ it.item_seq or '—' }}</td>
+          <td style="padding:8px 12px">{% if it.is_herbal %}<span class="badge" style="font-size:10px">한약</span>{% else %}<span style="color:var(--ink-3);font-size:12px">비한약</span>{% endif %}</td>
+          <td style="padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:12px">{{ it.permit_date or '—' }}</td>
           <td style="padding:8px 12px;color:{% if it.reexam_date %}var(--warn){% else %}var(--ink-3){% endif %}">{{ it.reexam_date or '—' }}</td>
-          <td style="padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:11px">{{ it.atc_code or '—' }}</td>
+          <td style="padding:8px 12px">
+            {% if sev=='CRITICAL' %}<span class="badge badge--danger badge--dot">위험</span>
+            {% elif sev=='HIGH' %}<span class="badge badge--warn badge--dot">주의</span>
+            {% elif sev=='LOW' %}<span class="badge badge--info">정보</span>
+            {% else %}<span class="badge badge--ok badge--dot">정상</span>{% endif %}
+          </td>
           <td style="padding:8px 12px">
             {% if it.enrich_status == 'matched' %}<span class="badge badge--ok">matched</span>
             {% elif it.enrich_status == 'review' %}<span class="badge badge--warn">review</span>

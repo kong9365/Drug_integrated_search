@@ -19,7 +19,7 @@ NAV_ITEMS = [
     },
     {
         "key": "qa", "group": "core",
-        "label": "품목마스터", "href": "/app/qa/home",
+        "label": "품목마스터", "href": "/app/qa/master",
         "icon_svg": '<path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>',
         # inject_nav() 에서 오늘 신규 CRITICAL 건수 동적 주입
         "badge": None, "disabled": False,

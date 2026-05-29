@@ -27,11 +27,16 @@
     <form action="" method="get" id="apqrForm" style="display:flex;gap:10px;align-items:end;flex-wrap:wrap"
           onsubmit="event.preventDefault(); var s=document.getElementById('seqSel').value; var y=document.getElementById('yearSel').value; if(s){ window.location='/app/qa/apqr/'+s+'?year='+y; }">
       <div>
-        <div class="t-caption">품목</div>
-        <select id="seqSel" style="height:38px;min-width:240px;padding:0 10px;border:1px solid var(--line-1);border-radius:8px;background:var(--bg-elevated);color:var(--ink-1)">
+        <div class="t-caption">품목 검색 (matched만)</div>
+        <input id="seqSearch" placeholder="제품명·코드 입력하여 필터"
+               style="height:38px;min-width:240px;padding:0 10px;border:1px solid var(--line-1);border-radius:8px;background:var(--bg-elevated);color:var(--ink-1);font-size:13px;outline:none">
+      </div>
+      <div>
+        <div class="t-caption">품목 선택</div>
+        <select id="seqSel" style="height:38px;min-width:280px;padding:0 10px;border:1px solid var(--line-1);border-radius:8px;background:var(--bg-elevated);color:var(--ink-1)">
           <option value="">— 품목 선택 —</option>
           {% for p in products %}
-          <option value="{{ p.item_seq }}" {% if p.item_seq==sel_seq %}selected{% endif %}>{{ p.product_name }} ({{ p.item_seq }})</option>
+          <option value="{{ p.item_code }}" data-label="{{ p.item_name }} {{ p.item_code }} {{ p.item_seq }}" {% if p.item_code==sel_seq %}selected{% endif %}>{{ p.item_name }} ({{ p.item_seq }})</option>
           {% endfor %}
         </select>
       </div>
@@ -43,12 +48,26 @@
       </div>
       <button type="submit" class="btn btn--primary btn--sm" style="height:38px">초안 생성</button>
       {% if doc %}
-      <a href="{{ url_for('qa.apqr_export', item_seq=sel_seq, year=sel_year) }}" class="btn btn--secondary btn--sm" style="height:38px">📥 Word 다운로드</a>
+      <a href="{{ url_for('qa.apqr_export', item_code=sel_seq, year=sel_year) }}" class="btn btn--secondary btn--sm" style="height:38px">📥 Word 다운로드</a>
       {% endif %}
     </form>
     {% if not products %}
-    <div style="margin-top:10px;font-size:12px;color:var(--ink-3)">등록된 정형화 품목이 없습니다. 먼저 <a href="{{ url_for('qa.product_list') }}" style="color:var(--brand)">품목마스터</a>에서 등록하세요.</div>
+    <div style="margin-top:10px;font-size:12px;color:var(--ink-3)">enrich 완료(matched) 품목이 없습니다. 먼저 <a href="{{ url_for('qa.master') }}" style="color:var(--brand)">품목마스터</a>에서 Enrichment를 실행하세요.</div>
     {% endif %}
+    <script>
+    (function(){
+      var inp=document.getElementById('seqSearch'), sel=document.getElementById('seqSel');
+      if(!inp||!sel) return;
+      inp.addEventListener('input', function(){
+        var q=this.value.toLowerCase();
+        for(var i=0;i<sel.options.length;i++){
+          var o=sel.options[i]; if(!o.value){continue;}
+          var lab=(o.getAttribute('data-label')||o.text).toLowerCase();
+          o.hidden = q && lab.indexOf(q)<0;
+        }
+      });
+    })();
+    </script>
   </div>
 
   {% if doc %}
@@ -112,8 +131,8 @@
   </div>
 
   <div style="margin-top:18px;display:flex;gap:8px">
-    <a href="{{ url_for('qa.apqr_export', item_seq=sel_seq, year=sel_year) }}" class="btn btn--primary btn--sm">📥 Word 다운로드</a>
-    <a href="{{ url_for('qa.product_detail', item_seq=sel_seq) }}" class="btn btn--ghost btn--sm">품목 상세 →</a>
+    <a href="{{ url_for('qa.apqr_export', item_code=sel_seq, year=sel_year) }}" class="btn btn--primary btn--sm">📥 Word 다운로드</a>
+    <a href="{{ url_for('qa.master_detail', code=sel_seq) }}" class="btn btn--ghost btn--sm">품목 상세 →</a>
   </div>
   {% endif %}
 

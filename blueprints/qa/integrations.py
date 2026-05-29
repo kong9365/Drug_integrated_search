@@ -13,24 +13,24 @@ from . import db as qadb
 logger = logging.getLogger(__name__)
 
 
-def fetch_sap_batches(item_seq: str, year: int) -> List[Dict]:
-    """[SAP 연동 예정] 제조번호·제조/시험 결과 조회.
+def fetch_sap_batches(item_code: str, year: int) -> List[Dict]:
+    """[SAP 연동 예정] 제조번호·제조/시험 결과 조회 (사내 품목코드 기준).
     현재는 product_batch 테이블(빈 상태)을 반환. TODO: SAP RFC/OData 연동."""
     try:
         return qadb.query(
-            "SELECT lot_no, mfg_date, test_result, oos_yn FROM product_batch WHERE item_seq=?",
-            (item_seq,))
+            "SELECT lot_no, mfg_date, test_result, oos_yn FROM product_batch WHERE item_code=?",
+            (item_code,))
     except Exception:
         return []
 
 
-def fetch_edms_documents(item_seq: str, doc_types: List[str]) -> List[Dict]:
-    """[EDMS 연동 예정] 제품표준서·일탈·CAPA·변경관리 문서 조회.
+def fetch_edms_documents(item_code: str, doc_types: List[str]) -> List[Dict]:
+    """[EDMS 연동 예정] 제품표준서·일탈·CAPA·변경관리 문서 조회 (사내 품목코드 기준).
     현재는 product_document 테이블(빈 상태)을 반환. TODO: EDMS API 연동."""
     try:
         return qadb.query(
-            "SELECT doc_type, doc_no, title FROM product_document WHERE item_seq=?",
-            (item_seq,))
+            "SELECT doc_type, doc_no, title FROM product_document WHERE item_code=?",
+            (item_code,))
     except Exception:
         return []
 

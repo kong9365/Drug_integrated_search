@@ -1,75 +1,222 @@
 {% extends "_layout.html" %}
+{% from "_macros.html" import risk_signal_badge %}
 
-{% block title %}{{ item.item_name }} — 자사 품목 상세 — 광동 KD-IRIS{% endblock %}
+{% block title %}{{ item.item_name }} — 품목마스터 — 광동 KD-IRIS{% endblock %}
 
 {% block breadcrumb %}
-  <a href="{{ url_for('qa.master') }}" style="color:var(--ink-3);text-decoration:none">자사 품목 마스터</a>
+  <a href="{{ url_for('qa.master') }}" style="color:var(--ink-3);text-decoration:none">품목마스터</a>
   <span class="crumb-divider">/</span>
   <span class="crumb-active">{{ item.item_name }}</span>
 {% endblock %}
 
+{% block extra_head %}
+<style>
+  [data-p360-panel] { display: none; }
+  [data-p360-panel].is-active { display: block; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="app-content" style="padding:24px 32px 40px;max-width:1000px">
+<div class="app-content" style="padding:24px 32px 40px">
 
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-    <h2 style="margin:0">{{ item.item_name }}</h2>
-    {% if item.is_herbal %}<span class="badge">한약(생약)</span>{% endif %}
-    {% if item.enrich_status == 'matched' %}<span class="badge badge--ok">matched · {{ item.enrich_confidence }}</span>
-    {% elif item.enrich_status == 'review' %}<span class="badge badge--warn">확인 필요</span>
-    {% else %}<span class="badge">{{ item.enrich_status }}</span>{% endif %}
-  </div>
+  {% if flash_msg %}<div style="margin-bottom:12px"><span class="badge badge--brand badge--dot">{{ flash_msg|replace('_',' ') }}</span></div>{% endif %}
 
-  <!-- 사내 입력 vs 공공 enrichment 비교 -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-    <div class="app-card">
-      <div class="app-card__head"><div class="app-card__title">사내 입력 (마스터 xlsx)</div></div>
-      <table style="width:100%;border-collapse:collapse;font-size:13px">
-        <tr><td style="padding:7px;color:var(--ink-3);width:38%">품목코드</td><td style="padding:7px;font-family:'JetBrains Mono',monospace">{{ item.item_code }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">품목명2</td><td style="padding:7px">{{ item.item_name_alt or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">전문분류</td><td style="padding:7px">{{ item.category or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">품목분류</td><td style="padding:7px">{{ item.sub_category or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">품목구분</td><td style="padding:7px">{{ item.gubun or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">유효기간(월)</td><td style="padding:7px">{{ item.shelf_life_mo or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">포장규격</td><td style="padding:7px">{{ item.pack_spec or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">자사/위탁</td><td style="padding:7px">{{ item.self_or_consign or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">위탁처</td><td style="padding:7px">{{ item.consign_maker or '—' }}</td></tr>
-      </table>
-    </div>
-
-    <div class="app-card">
-      <div class="app-card__head"><div class="app-card__title">공공데이터 Enrichment</div><span class="app-card__caption">{{ item.source_api or '—' }}</span></div>
-      <table style="width:100%;border-collapse:collapse;font-size:13px">
-        <tr><td style="padding:7px;color:var(--ink-3);width:38%">ITEM_SEQ</td><td style="padding:7px;font-family:'JetBrains Mono',monospace">{{ item.item_seq or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">허가번호</td><td style="padding:7px;font-family:'JetBrains Mono',monospace">{{ item.permit_no or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">허가일자</td><td style="padding:7px">{{ item.permit_date or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">허가권자</td><td style="padding:7px">{{ item.entp_name or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">재심사 예정일</td><td style="padding:7px;color:{% if item.reexam_date %}var(--warn){% else %}var(--ink-3){% endif %};font-weight:600">{{ item.reexam_date or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">ATC 코드</td><td style="padding:7px;font-family:'JetBrains Mono',monospace">{{ item.atc_code or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">EDI 보험코드</td><td style="padding:7px;font-family:'JetBrains Mono',monospace">{{ item.edi_code or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">바코드</td><td style="padding:7px;font-family:'JetBrains Mono',monospace;font-size:11px">{{ item.bar_code or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">성상</td><td style="padding:7px">{{ item.chart or '—' }}</td></tr>
-        <tr><td style="padding:7px;color:var(--ink-3)">저장방법</td><td style="padding:7px">{{ item.storage_method or '—' }}</td></tr>
-      </table>
-    </div>
-  </div>
-
-  <!-- 주성분 -->
-  <div class="app-card" style="margin-top:16px">
-    <div class="app-card__head"><div class="app-card__title">주성분 — {{ ingredients|length }}건</div></div>
-    {% if ingredients %}
-    <table style="width:100%;border-collapse:collapse;font-size:13px">
-      <thead><tr style="background:var(--bg-subtle);text-align:left"><th style="padding:8px">성분명</th><th style="padding:8px">분량</th><th style="padding:8px">단위</th></tr></thead>
-      <tbody>
-      {% for ing in ingredients %}
-      <tr style="border-top:1px solid var(--line-2)"><td style="padding:8px">{{ ing.ingr_name }}</td><td style="padding:8px">{{ ing.qty or '—' }}</td><td style="padding:8px">{{ ing.unit or '—' }}</td></tr>
+  {# enrich 확인 필요 배너 (review 후보) #}
+  {% if item.enrich_status == 'review' and item.candidates %}
+  <div class="app-card" style="margin-bottom:14px;border-left:4px solid var(--warn)">
+    <div style="font-weight:600;margin-bottom:8px">⚠ enrich 확인 필요 — 후보 {{ item.candidates|length }}건 중 선택</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      {% for c in item.candidates %}
+      <form method="post" action="{{ url_for('qa.master_confirm') }}" style="margin:0;border:1px solid var(--line-2);border-radius:8px;padding:10px;min-width:240px">
+        <input type="hidden" name="item_code" value="{{ item.item_code }}">
+        <input type="hidden" name="item_seq" value="{{ c.ITEM_SEQ }}">
+        <input type="hidden" name="action" value="confirm">
+        <div style="font-size:13px;font-weight:600">{{ c.ITEM_NAME }}</div>
+        <div style="font-size:11px;color:var(--ink-3);margin:2px 0">{{ c.ENTP_NAME }} · seq {{ c.ITEM_SEQ }}</div>
+        <button type="submit" class="btn btn--primary btn--sm" style="margin-top:6px">이 품목으로 확정</button>
+      </form>
       {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div style="padding:24px;text-align:center;color:var(--ink-3)">성분 정보 없음 (enrichment 미완 또는 미매칭)</div>
-    {% endif %}
+      <form method="post" action="{{ url_for('qa.master_confirm') }}" style="margin:0;align-self:center">
+        <input type="hidden" name="item_code" value="{{ item.item_code }}">
+        <input type="hidden" name="action" value="reject">
+        <button type="submit" class="btn btn--ghost btn--sm">매칭 없음</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 헤더 카드 -->
+  <div class="app-card" style="margin-bottom:16px">
+    <div style="display:flex;gap:20px;align-items:flex-start">
+      {% if pill_image_url %}
+      <div style="width:120px;height:80px;border:1px solid var(--line-1);border-radius:10px;background-image:url('{{ pill_image_url }}');background-size:cover;background-position:center;flex-shrink:0"></div>
+      {% else %}
+      <div style="width:120px;height:80px;border:1px solid var(--line-2);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--ink-4);font-size:11px;flex-shrink:0;text-align:center">낱알<br>이미지<br>없음</div>
+      {% endif %}
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <h1 style="margin:0;font-size:22px">{{ item.item_name }}</h1>
+          {% if item.is_herbal %}<span class="badge">한약</span>{% else %}<span class="badge">{{ item.category or '비한약' }}</span>{% endif %}
+          {% if item.enrich_status=='matched' %}<span class="badge badge--ok">보강 ✓</span>{% elif item.enrich_status=='review' %}<span class="badge badge--warn">확인 필요</span>{% else %}<span class="badge">{{ item.enrich_status }}</span>{% endif %}
+          {% if signal %}{{ risk_signal_badge(signal) }}{% endif %}
+        </div>
+        <div style="margin-top:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px 16px;font-size:12px">
+          <div><span style="color:var(--ink-3)">사내 품목코드</span><br><strong style="font-family:'JetBrains Mono',monospace">{{ item.item_code }}</strong></div>
+          <div><span style="color:var(--ink-3)">품목기준코드</span><br><strong style="font-family:'JetBrains Mono',monospace">{{ item.item_seq or '—' }}</strong></div>
+          <div><span style="color:var(--ink-3)">허가번호</span><br><strong>{{ item.permit_no or '—' }}</strong></div>
+          <div><span style="color:var(--ink-3)">허가일자</span><br><strong>{{ item.permit_date or '—' }}</strong></div>
+          <div><span style="color:var(--ink-3)">허가권자</span><br><strong>{{ item.entp_name or '—' }}</strong></div>
+          <div><span style="color:var(--ink-3)">의약품구분</span><br><strong>{{ item.category or '—' }}</strong></div>
+          <div><span style="color:var(--ink-3)">분류</span><br><strong>{{ item.sub_category or '—' }}</strong></div>
+          <div><span style="color:var(--ink-3)">성상</span><br><strong>{{ (item.chart or '—')|truncate(20) }}</strong></div>
+          <div><span style="color:var(--ink-3)">보관조건</span><br><strong>{{ (item.storage_method or '—')|truncate(20) }}</strong></div>
+          <div><span style="color:var(--ink-3)">사용기간</span><br><strong>{{ (item.shelf_life_mo ~ '개월') if item.shelf_life_mo else '—' }}</strong></div>
+          <div><span style="color:var(--ink-3)">제조단위</span><br><strong>{{ item.batch_size or '—' }}</strong></div>
+          <div><span style="color:var(--ink-3)">포장규격</span><br><strong>{{ item.pack_spec or '—' }}</strong></div>
+          <div><span style="color:var(--ink-3)">보험코드(EDI)</span><br><strong>{{ item.edi_code or '—' }}</strong></div>
+          <div><span style="color:var(--ink-3)">ATC</span><br><strong>{{ item.atc_code or '—' }}</strong></div>
+          <div><span style="color:var(--ink-3)">재심사 기한</span><br><strong style="color:var(--warn)">{{ item.reexam_date or '—' }}</strong></div>
+          <div><span style="color:var(--ink-3)">위수탁</span><br><strong>{{ item.self_or_consign or '—' }}{% if item.consign_maker %} ({{ item.consign_maker }}){% endif %}</strong></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+        {% if can_apqr %}
+        <a href="/app/qa/apqr/{{ item.item_code }}" class="btn btn--primary btn--sm">📄 APQR 초안</a>
+        {% else %}
+        <span class="btn btn--secondary btn--sm" style="opacity:0.5;cursor:not-allowed" title="enrich 완료(matched) 후 가능">📄 APQR (보강 대기)</span>
+        {% endif %}
+        <a href="/app/export/qa_master" class="btn btn--ghost btn--sm">⬇ Excel</a>
+        <a href="{{ url_for('qa.master') }}" class="btn btn--ghost btn--sm">← 목록</a>
+      </div>
+    </div>
   </div>
 
-  <div style="margin-top:16px"><a href="{{ url_for('qa.master') }}" class="btn btn--ghost btn--sm">← 마스터 목록</a></div>
+  <!-- 9탭 -->
+  <nav class="p360-tabs" style="display:flex;gap:4px;border-bottom:1px solid var(--line-2);margin-bottom:18px;flex-wrap:wrap">
+    {% for tid, tlabel, tkind in tabs %}
+    <button class="p360-tab{% if loop.first %} is-active{% endif %}" data-p360-tab="{{ tid }}"
+            style="padding:8px 14px;border:0;background:transparent;color:var(--ink-2);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent">
+      {{ tlabel }}{% if tkind=='pending' %} <span style="color:var(--ink-4);font-weight:400">·대기</span>{% endif %}
+    </button>
+    {% endfor %}
+  </nav>
+
+  <!-- 원약분량 -->
+  <div data-p360-panel="ingredient" class="is-active">
+    <div class="app-card">
+      <div class="app-card__head"><div class="app-card__title">원약분량 — {{ ingredients|length }}개 원료</div></div>
+      {% if ingredients %}
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="background:var(--bg-subtle)">
+          <th style="padding:8px;text-align:left">원료명</th><th style="padding:8px;text-align:left">배합목적</th>
+          <th style="padding:8px;text-align:left">규격</th><th style="padding:8px;text-align:left">분량</th>
+          <th style="padding:8px;text-align:left">단위</th><th style="padding:8px;text-align:left">제조처</th><th style="padding:8px;text-align:left">공급처</th>
+        </tr></thead>
+        <tbody>
+        {% for ing in ingredients %}
+        <tr>
+          <td style="padding:8px;border-top:1px solid var(--line-2);font-weight:600">{{ ing.ingr_name }}</td>
+          <td style="padding:8px;border-top:1px solid var(--line-2)">{{ ing.purpose or '주성분' }}</td>
+          <td style="padding:8px;border-top:1px solid var(--line-2)">{{ ing.spec or '—' }}</td>
+          <td style="padding:8px;border-top:1px solid var(--line-2)">{{ ing.qty or '—' }}</td>
+          <td style="padding:8px;border-top:1px solid var(--line-2)">{{ ing.unit or '—' }}</td>
+          <td style="padding:8px;border-top:1px solid var(--line-2)">{{ ing.manufacturer or '—' }}</td>
+          <td style="padding:8px;border-top:1px solid var(--line-2)">{{ ing.supplier or '—' }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div style="padding:24px;text-align:center;color:var(--ink-3);font-size:13px">원약분량 데이터 없음 — enrich(NO 140 상세 MATERIAL_NAME) 후 채워집니다. 제조처/공급처는 SAP/DMF 연동 보강.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 포장 -->
+  <div data-p360-panel="packaging">
+    <div class="app-card">
+      <div class="app-card__head"><div class="app-card__title">포장단위 · 포장자재 — {{ packaging|length }}건</div></div>
+      {% if packaging %}
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="background:var(--bg-subtle)">
+          <th style="padding:8px;text-align:left">포장형태</th><th style="padding:8px;text-align:left">규격(내수)</th>
+          <th style="padding:8px;text-align:left">규격(수출)</th><th style="padding:8px;text-align:left">생산여부</th>
+        </tr></thead>
+        <tbody>
+        {% for pk in packaging %}
+        <tr>
+          <td style="padding:8px;border-top:1px solid var(--line-2)">{{ pk.pkg_type or '—' }}</td>
+          <td style="padding:8px;border-top:1px solid var(--line-2)">{{ pk.spec_dom or '—' }}</td>
+          <td style="padding:8px;border-top:1px solid var(--line-2)">{{ pk.spec_exp or '—' }}</td>
+          <td style="padding:8px;border-top:1px solid var(--line-2)">{{ pk.production_yn or '—' }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div style="padding:24px;text-align:center;color:var(--ink-3);font-size:13px">포장 상세 데이터 없음 — 사내 포장규격: <strong>{{ item.pack_spec or '—' }}</strong> (SAP 연동 시 포장자재 상세 보강)</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 규제 이벤트 -->
+  <div data-p360-panel="reg_event">
+    <div class="app-card">
+      <div class="app-card__head"><div class="app-card__title">규제 이벤트 — {{ reg_events|length }}건</div><span class="app-card__caption">APQR 규제 섹션 소스 (event 테이블)</span></div>
+      {% if reg_events %}
+      <div style="display:flex;flex-direction:column;gap:8px">
+        {% for e in reg_events %}
+        <a href="{{ url_for('qa.event_detail', event_id=e.event_id) }}" class="alert-row" style="padding:10px 12px;text-decoration:none;color:inherit">
+          <div class="alert-row__bar" style="background:var(--{% if e.severity=='CRITICAL' %}danger{% elif e.severity=='HIGH' %}warn{% else %}ok{% endif %})"></div>
+          <span class="alert-row__time">{{ e.event_date or '-' }}</span>
+          <div class="flex-1">
+            <div class="alert-row__title">{{ e.title }}</div>
+            <div class="alert-row__meta">{{ e.entity or '' }}{% if e.impact_level %} · {{ e.impact_level }}{% endif %}</div>
+          </div>
+          <span class="badge {% if e.severity=='CRITICAL' %}badge--danger{% elif e.severity=='HIGH' %}badge--warn{% else %}badge--ok{% endif %}">{{ e.event_type }}</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="padding:24px;text-align:center;background:var(--ok-soft);color:var(--ok);border-radius:10px;font-size:13px;font-weight:600">✓ 관련 규제 이벤트 없음 — 이상 없음 (회수·처분·서한·재심사 0건은 정상)</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 관련 품목 (동일 성분) -->
+  <div data-p360-panel="related">
+    <div class="app-card">
+      <div class="app-card__head"><div class="app-card__title">동일 성분 관련 품목 — {{ related|length }}건</div></div>
+      {% if related %}
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
+        {% for r in related %}
+        <a href="{{ url_for('qa.master_detail', code=r.item_code) }}" style="text-decoration:none;color:inherit">
+          <div style="padding:12px;border:1px solid var(--line-1);border-radius:10px;background:var(--bg-elevated)">
+            <div style="font-size:13px;font-weight:600;color:var(--ink-1)">{{ r.item_name }}</div>
+            <div style="font-size:11px;color:var(--ink-3);margin-top:4px">{{ r.ingr_name or '' }}{% if r.permit_no %} · {{ r.permit_no }}{% endif %}</div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="padding:24px;text-align:center;color:var(--ink-3);font-size:13px">동일 성분 자사 품목 없음.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 연동 대기 placeholder 탭 -->
+  {% for tid, tlabel, tkind in tabs if tkind=='pending' %}
+  <div data-p360-panel="{{ tid }}">
+    <div class="app-card">
+      <div class="app-card__head"><div class="app-card__title">{{ tlabel }}</div></div>
+      <div style="padding:40px;text-align:center;color:var(--ink-3)">
+        <div style="font-size:32px;margin-bottom:10px">🔌</div>
+        <h3 style="color:var(--ink-1);font-size:16px;margin:0 0 6px">{{ tlabel }} — SAP/EDMS 연동 예정</h3>
+        <p style="font-size:13px;max-width:440px;margin:0 auto">사내 SAP(제조·시험)·EDMS(문서·일탈·CAPA) 연동 시 자동 채워집니다. (Phase M-4 인터페이스 준비됨)</p>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
 </div>
 {% endblock %}

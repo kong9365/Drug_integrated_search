@@ -19,18 +19,21 @@ logger = logging.getLogger(__name__)
 
 
 # ────────────────────────────────────────────────────────────────────────────
-def _year_events(item_seq: str, year: int) -> List[Dict]:
+def _year_events(item_code: str, year: int) -> List[Dict]:
+    """품목(사내코드)의 규제 이벤트 — event.matched_item_codes 기반(lookup 재사용) + 연도 필터."""
     y = str(year)
-    rows = qadb.query(
-        "SELECT * FROM product_reg_event WHERE item_seq=? ORDER BY event_date DESC, id DESC",
-        (item_seq,))
-    # event_date 가 해당 연도이거나, 날짜 미상이면 보수적으로 포함
+    try:
+        from . import lookup as qa_lookup
+        rows = qa_lookup.events_for_item(item_code, limit=200)
+    except Exception:
+        rows = []
+    # event_date(YYYYMMDD) 가 해당 연도이거나, 날짜 미상이면 보수적으로 포함
     return [e for e in rows if (e.get("event_date") or "").startswith(y) or not e.get("event_date")]
 
 
 def _summary_text(p: Dict, recalls, discs, letters, reviews, ingredients) -> str:
     """종합 평가 서술 (룰베이스 초안). MISO 연동 시 이 함수를 교체."""
-    name = p.get("product_name") or p.get("item_seq")
+    name = p.get("item_name") or p.get("item_code")
     parts = [f"본 평가는 {name}의 당해 연도 규제·품질 관련 외부 이벤트를 종합한 것이다."]
     if recalls:
         parts.append(f"회수·판매중지 {len(recalls)}건이 확인되어 해당 배치 영향 평가 및 시정조치 이행 여부 점검이 필요하다.")
@@ -52,16 +55,16 @@ def _summary_text(p: Dict, recalls, discs, letters, reviews, ingredients) -> str
     return " ".join(parts)
 
 
-def build_apqr(item_seq: str, year: int) -> Optional[Dict]:
-    """품목 + 연도 → APQR 초안 데이터 구조. 규제 섹션 자동, SAP/EDMS 'pending'."""
-    p = qadb.query_one("SELECT * FROM product_master WHERE item_seq=?", (item_seq,))
+def build_apqr(item_code: str, year: int) -> Optional[Dict]:
+    """품목(사내 품목코드) + 연도 → APQR 초안. 규제 섹션 자동(master_item+event), SAP/EDMS 'pending'."""
+    p = qadb.query_one("SELECT * FROM master_item WHERE item_code=?", (item_code,))
     if not p:
         return None
-    ingredients = qadb.query("SELECT * FROM product_ingredient WHERE item_seq=?", (item_seq,))
-    yev = _year_events(item_seq, year)
+    ingredients = qadb.query("SELECT * FROM master_ingredient WHERE item_code=?", (item_code,))
+    yev = _year_events(item_code, year)
 
     def by_type(*types):
-        return [e for e in yev if e["event_type"] in types]
+        return [e for e in yev if e.get("event_type") in types]
 
     recalls = by_type("recall")
     discs = by_type("disciplinary")
@@ -69,16 +72,17 @@ def build_apqr(item_seq: str, year: int) -> Optional[Dict]:
     reviews = by_type("review_due", "reeval_done")
     suppliers = by_type("supplier_closure")
 
-    sap = fetch_sap_batches(item_seq, year)
-    edms = fetch_edms_documents(item_seq, ["std", "deviation", "capa"])
+    sap = fetch_sap_batches(item_code, year)
+    edms = fetch_edms_documents(item_code, ["std", "deviation", "capa"])
 
     today = datetime.date.today().isoformat()
     meta = {
-        "item_seq": item_seq,
-        "product_name": p.get("product_name"),
+        "item_code": item_code,
+        "item_seq": p.get("item_seq") or "—",
+        "product_name": p.get("item_name"),
         "permit_no": p.get("permit_no"),
-        "permit_holder": p.get("permit_holder"),
-        "etc_otc": p.get("etc_otc"),
+        "permit_holder": p.get("entp_name"),
+        "etc_otc": p.get("category"),
         "year": year,
         "period": f"{year}-01-01 ~ {year}-12-31",
         "created_at": today,
@@ -88,11 +92,13 @@ def build_apqr(item_seq: str, year: int) -> Optional[Dict]:
     sections = [
         {"no": 1, "title": "제품 개요 및 허가사항", "source": "MASTER", "auto": True,
          "rows": [
-             ("제품명", p.get("product_name")), ("품목기준코드", p.get("item_seq")),
-             ("허가번호", p.get("permit_no")), ("허가일자", p.get("permit_date")),
-             ("허가권자", p.get("permit_holder")), ("의약품구분", p.get("etc_otc")),
-             ("제형", p.get("form_type")), ("성상", p.get("appearance")),
-             ("보관조건", p.get("storage_temp")), ("사용기간", p.get("shelf_life_dom")),
+             ("제품명", p.get("item_name")), ("사내 품목코드", p.get("item_code")),
+             ("품목기준코드", p.get("item_seq")), ("허가번호", p.get("permit_no")),
+             ("허가일자", p.get("permit_date")), ("허가권자", p.get("entp_name")),
+             ("의약품구분", p.get("category")), ("분류", p.get("sub_category")),
+             ("성상", p.get("chart")), ("보관조건", p.get("storage_method")),
+             ("사용기간", (str(p.get("shelf_life_mo")) + "개월") if p.get("shelf_life_mo") else None),
+             ("제조단위", p.get("batch_size")), ("포장규격", p.get("pack_spec")),
              ("보험코드(EDI)", p.get("edi_code")), ("ATC", p.get("atc_code")),
          ]},
         {"no": 2, "title": "허가 변경이력", "source": "API:140", "auto": True,
@@ -127,9 +133,9 @@ def build_apqr(item_seq: str, year: int) -> Optional[Dict]:
 # ────────────────────────────────────────────────────────────────────────────
 # Word(.docx) 출력 — python-docx
 # ────────────────────────────────────────────────────────────────────────────
-def export_apqr_docx(item_seq: str, year: int) -> Optional[io.BytesIO]:
+def export_apqr_docx(item_code: str, year: int) -> Optional[io.BytesIO]:
     """APQR 초안을 Word(.docx) BytesIO 로 생성. 데이터 없으면 None."""
-    data = build_apqr(item_seq, year)
+    data = build_apqr(item_code, year)
     if not data:
         return None
     from docx import Document
