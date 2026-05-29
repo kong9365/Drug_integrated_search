@@ -1,0 +1,121 @@
+{% extends "_layout.html" %}
+
+{% block title %}연간품질평가(APQR) — 광동 KD-IRIS{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ url_for('qa.qa_home') }}" style="color:var(--ink-3);text-decoration:none">품목마스터</a>
+  <span class="crumb-divider">/</span>
+  <span class="crumb-active">연간품질평가(APQR)</span>
+{% endblock %}
+
+{% block content %}
+<div class="app-content" style="padding:24px 32px 40px;max-width:1000px">
+
+  <div class="page-head">
+    <div>
+      <div class="t-caption">Phase M-3 · 킬러 기능</div>
+      <h1 class="page-head__title">연간제품품질평가(APQR) 초안</h1>
+      <p class="page-head__sub">품목 + 평가연도를 선택하면 규제 공공데이터로 13개 섹션 초안을 자동 생성합니다. 규제 섹션(1~7)은 자동, 제조·시험(8~12)은 SAP/EDMS 연동 대기, 종합(13)은 AI 서술입니다.</p>
+    </div>
+    <div class="page-head__actions">
+      {% if flash_msg %}<span class="badge badge--brand badge--dot">{{ flash_msg|replace('_',' ') }}</span>{% endif %}
+    </div>
+  </div>
+
+  <!-- 선택 -->
+  <div class="app-card" style="margin-bottom:18px">
+    <form action="" method="get" id="apqrForm" style="display:flex;gap:10px;align-items:end;flex-wrap:wrap"
+          onsubmit="event.preventDefault(); var s=document.getElementById('seqSel').value; var y=document.getElementById('yearSel').value; if(s){ window.location='/app/qa/apqr/'+s+'?year='+y; }">
+      <div>
+        <div class="t-caption">품목</div>
+        <select id="seqSel" style="height:38px;min-width:240px;padding:0 10px;border:1px solid var(--line-1);border-radius:8px;background:var(--bg-elevated);color:var(--ink-1)">
+          <option value="">— 품목 선택 —</option>
+          {% for p in products %}
+          <option value="{{ p.item_seq }}" {% if p.item_seq==sel_seq %}selected{% endif %}>{{ p.product_name }} ({{ p.item_seq }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <div class="t-caption">평가연도</div>
+        <select id="yearSel" style="height:38px;padding:0 10px;border:1px solid var(--line-1);border-radius:8px;background:var(--bg-elevated);color:var(--ink-1)">
+          {% for y in years %}<option value="{{ y }}" {% if y==sel_year %}selected{% endif %}>{{ y }}년</option>{% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn--primary btn--sm" style="height:38px">초안 생성</button>
+      {% if doc %}
+      <a href="{{ url_for('qa.apqr_export', item_seq=sel_seq, year=sel_year) }}" class="btn btn--secondary btn--sm" style="height:38px">📥 Word 다운로드</a>
+      {% endif %}
+    </form>
+    {% if not products %}
+    <div style="margin-top:10px;font-size:12px;color:var(--ink-3)">등록된 정형화 품목이 없습니다. 먼저 <a href="{{ url_for('qa.product_list') }}" style="color:var(--brand)">품목마스터</a>에서 등록하세요.</div>
+    {% endif %}
+  </div>
+
+  {% if doc %}
+  {% set m = doc.meta %}
+  <!-- 메타 -->
+  <div class="app-card" style="margin-bottom:16px;border-left:4px solid var(--brand)">
+    <h2 style="margin:0 0 6px">{{ m.product_name }} — {{ m.year }}년 APQR</h2>
+    <div style="font-size:12px;color:var(--ink-3)">
+      평가기간 {{ m.period }} · 작성일 {{ m.created_at }} · 허가번호 {{ m.permit_no or '—' }} · 허가권자 {{ m.permit_holder or '—' }} · {{ m.etc_otc or '—' }}
+    </div>
+  </div>
+
+  <!-- 13개 섹션 아코디언 -->
+  <div style="display:flex;flex-direction:column;gap:10px">
+    {% for s in doc.sections %}
+    <details class="app-card" {% if s.no <= 3 or s.no==13 %}open{% endif %} style="padding:0">
+      <summary style="cursor:pointer;padding:14px 18px;display:flex;align-items:center;gap:10px;font-weight:600">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--ink-3)">{{ '%02d'|format(s.no) }}</span>
+        <span style="flex:1">{{ s.title }}</span>
+        {% if s.auto %}
+          <span class="badge badge--ok">자동</span>
+        {% else %}
+          <span class="badge badge--warn">{{ s.status or '연동 대기' }}</span>
+        {% endif %}
+      </summary>
+      <div style="padding:0 18px 16px">
+        {% if not s.auto %}
+          <div style="padding:16px;background:var(--bg-subtle);border:1px dashed var(--line-1);border-radius:8px;color:var(--ink-3);font-size:13px">
+            🔌 <strong>{{ s.source }}</strong> 시스템 연동 시 자동 작성됩니다. (현재 연동 대기 — Phase M-4 인터페이스 준비됨)
+          </div>
+        {% else %}
+          {% if s.text %}<p style="font-size:13px;color:var(--ink-2);line-height:1.6;margin:6px 0">{{ s.text }}</p>{% endif %}
+          {% if s.summary %}<div style="font-size:13px;margin:6px 0"><strong>요약:</strong> {{ s.summary }}</div>{% endif %}
+          {% if s.rows %}
+          <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:6px">
+            {% for label, val in s.rows %}
+            <tr><td style="padding:6px 8px;border-bottom:1px solid var(--line-2);color:var(--ink-3);width:32%">{{ label }}</td>
+                <td style="padding:6px 8px;border-bottom:1px solid var(--line-2)">{{ val if val is not none else '—' }}</td></tr>
+            {% endfor %}
+          </table>
+          {% endif %}
+          {% if s.events %}
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+            {% for e in s.events %}
+            <div class="alert-row" style="padding:8px 10px">
+              <div class="alert-row__bar" style="background:var(--{% if e.severity=='CRITICAL' %}danger{% elif e.severity=='HIGH' %}warn{% else %}ok{% endif %})"></div>
+              <span class="alert-row__time">{{ e.event_date or '-' }}</span>
+              <div class="flex-1"><div class="alert-row__title">{{ e.title }}</div><div class="alert-row__meta">{{ (e.summary or '')|truncate(70) }}</div></div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% if s.no == 13 %}
+          <textarea style="width:100%;min-height:120px;margin-top:8px;padding:10px;border:1px solid var(--line-1);border-radius:8px;background:var(--bg-elevated);color:var(--ink-1);font-size:13px;line-height:1.6;resize:vertical">{{ s.text }}</textarea>
+          <div style="font-size:11px;color:var(--ink-4);margin-top:4px">※ AI 서술 초안 (편집 가능). MISO drug_consult_agent 연동 시 자동 고도화.</div>
+          {% endif %}
+        {% endif %}
+      </div>
+    </details>
+    {% endfor %}
+  </div>
+
+  <div style="margin-top:18px;display:flex;gap:8px">
+    <a href="{{ url_for('qa.apqr_export', item_seq=sel_seq, year=sel_year) }}" class="btn btn--primary btn--sm">📥 Word 다운로드</a>
+    <a href="{{ url_for('qa.product_detail', item_seq=sel_seq) }}" class="btn btn--ghost btn--sm">품목 상세 →</a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

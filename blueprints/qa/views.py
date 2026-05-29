@@ -240,6 +240,62 @@ def product_detail(item_seq):
                            flash_msg=request.args.get("msg") or "")
 
 
+# ════════════════════════════════════════════════════════════════════════
+# Phase M-3 — APQR(연간제품품질평가) 초안 자동작성
+# ════════════════════════════════════════════════════════════════════════
+def _apqr_years():
+    y = datetime.date.today().year
+    return [y, y - 1, y - 2]
+
+
+@qa_bp.route("/apqr")
+def apqr_home():
+    """APQR 품목·연도 선택 화면."""
+    products = qadb.query("SELECT item_seq, product_name FROM product_master ORDER BY product_name")
+    years = _apqr_years()
+    return render_template("app/qa/apqr.html", active_page="apqr",
+                           products=products, years=years, doc=None,
+                           sel_seq=None, sel_year=years[0],
+                           flash_msg=request.args.get("msg") or "")
+
+
+@qa_bp.route("/apqr/<item_seq>")
+def apqr_detail(item_seq):
+    """APQR 초안 미리보기 (13섹션 아코디언)."""
+    from . import apqr as apqr_mod
+    year = request.args.get("year")
+    try:
+        year = int(year) if year else datetime.date.today().year
+    except ValueError:
+        year = datetime.date.today().year
+    doc = apqr_mod.build_apqr(item_seq, year)
+    if not doc:
+        return redirect(url_for("qa.apqr_home") + "?msg=품목없음")
+    products = qadb.query("SELECT item_seq, product_name FROM product_master ORDER BY product_name")
+    return render_template("app/qa/apqr.html", active_page="apqr",
+                           products=products, years=_apqr_years(), doc=doc,
+                           sel_seq=item_seq, sel_year=year,
+                           flash_msg=request.args.get("msg") or "")
+
+
+@qa_bp.route("/apqr/export/<item_seq>")
+def apqr_export(item_seq):
+    """APQR 초안 Word(.docx) 다운로드."""
+    from flask import send_file
+    from . import apqr as apqr_mod
+    year = request.args.get("year")
+    try:
+        year = int(year) if year else datetime.date.today().year
+    except ValueError:
+        year = datetime.date.today().year
+    buf = apqr_mod.export_apqr_docx(item_seq, year)
+    if not buf:
+        return redirect(url_for("qa.apqr_home") + "?msg=생성실패")
+    return send_file(buf, as_attachment=True,
+                     download_name=f"APQR_{item_seq}_{year}.docx",
+                     mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+
 @qa_bp.route("/run-monitor", methods=["POST", "GET"])
 def run_monitor_route():
     """모니터링 배치 수동 트리거 (스냅샷+diff). S2 — 스케줄러 대신 수동/외부 cron."""
