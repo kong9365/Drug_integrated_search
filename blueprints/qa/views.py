@@ -95,7 +95,8 @@ def master():
 # 9탭 정의 (품목마스터 상세) — 데이터 탭 + SAP/EDMS 연동대기 placeholder
 _PM_TABS = [
     ("ingredient", "원약분량", "data"),
-    ("packaging", "포장", "data"),
+    ("packaging", "포장단위", "data"),
+    ("pkg_material", "포장자재", "pending"),
     ("reg_event", "규제 이벤트", "data"),
     ("related", "관련 품목", "data"),
     ("std_doc", "제품표준서", "pending"),

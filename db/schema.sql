@@ -51,9 +51,13 @@ CREATE TABLE IF NOT EXISTS master_ingredient (
     ingr_code    TEXT,      -- MTRAL_CODE
     qty          TEXT,      -- 분량 (QNT)
     unit         TEXT,      -- 단위
-    -- 9탭 원약분량 확장 (Phase M-재정렬, db.py _ensure_column 멱등 마이그레이션)
+    -- 9탭 원약분량 컬럼 설계 이관 (product_ingredient → master_ingredient; db.py _ensure_column 멱등)
     purpose      TEXT,      -- 배합목적 (주성분/활택제/부형제)
     spec         TEXT,      -- 규격 (KP/JP/NF)
+    permit_qty   TEXT,      -- 허가량
+    stm_spec     TEXT,      -- STM규격
+    stm_storage  TEXT,      -- STM보관조건
+    stm_shelf    TEXT,      -- STM사용기간
     manufacturer TEXT,      -- 제조처
     supplier     TEXT,      -- 공급처
     section      TEXT,      -- 구분 (속방부/서방부)
@@ -122,6 +126,13 @@ CREATE INDEX IF NOT EXISTS idx_alert_event ON alert_log(event_id);
 --     · 포장     → master_packaging (아래 신규)
 --     · 규제이벤트 → 기존 event 테이블 흡수 (matched_item_codes JSON, lookup.events_for_item)
 -- ════════════════════════════════════════════════════════════════════════
+
+-- product_master(item_seq) 레이어 폐기 — 이전 M-1 빌드의 잔존 테이블 제거 (멱등)
+-- ※ FK ON 상태이므로 자식(FK 보유)부터 DROP 후 부모(product_master) DROP
+DROP TABLE IF EXISTS product_reg_event;
+DROP TABLE IF EXISTS product_ingredient;
+DROP TABLE IF EXISTS product_packaging;
+DROP TABLE IF EXISTS product_master;
 
 -- 포장 (포장단위 + 포장자재 탭) — item_code FK
 CREATE TABLE IF NOT EXISTS master_packaging (

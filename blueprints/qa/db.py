@@ -37,8 +37,9 @@ def init_db() -> None:
         conn.executescript(sql)
         # 경량 마이그레이션 — 기존 DB에 누락 컬럼 추가 (CREATE IF NOT EXISTS 는 컬럼 추가 안 함)
         _ensure_column(conn, "event", "is_mock", "INTEGER DEFAULT 0")
-        # 9탭 원약분량 확장 (Phase M-재정렬)
-        for col in ("purpose", "spec", "manufacturer", "supplier", "section"):
+        # 9탭 원약분량 컬럼 설계 이관 (product_ingredient → master_ingredient)
+        for col in ("purpose", "spec", "permit_qty", "stm_spec", "stm_storage",
+                    "stm_shelf", "manufacturer", "supplier", "section"):
             _ensure_column(conn, "master_ingredient", col, "TEXT")
         # SAP/EDMS 스텁 테이블 item_code 키 (기존 DB는 item_seq였음)
         _ensure_column(conn, "product_batch", "item_code", "TEXT")
