@@ -1,0 +1,108 @@
+{% extends "_layout.html" %}
+
+{% block title %}{{ ev.title }} — 이벤트 상세 — 광동 KD-IRIS{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ url_for('qa.qa_home') }}" style="color:var(--ink-3);text-decoration:none">의약품QA</a>
+  <span class="crumb-divider">/</span>
+  <span class="crumb-active">이벤트 #{{ ev.event_id }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="app-content" style="padding:24px 32px 40px;max-width:900px">
+
+  <!-- 헤더 -->
+  <div class="app-card" style="padding:20px;margin-bottom:16px;border-left:4px solid var(--{{ sev.color }})">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <span class="badge {% if ev.severity=='CRITICAL' %}badge--danger{% elif ev.severity=='HIGH' %}badge--warn{% else %}badge--ok{% endif %}">{{ sev.label }} · {{ ev.severity }}</span>
+      {% if ev.impact_level == 'direct' %}<span class="badge badge--danger">자사 직접</span>
+      {% elif ev.impact_level == 'same_ingredient' %}<span class="badge badge--warn">동성분</span>
+      {% elif ev.impact_level == 'manufacturer' %}<span class="badge badge--warn">제조소</span>
+      {% else %}<span class="badge">경쟁사</span>{% endif %}
+      <span style="margin-left:auto;font-size:12px;color:var(--ink-3)">{{ ev.event_date or '날짜 미상' }}</span>
+    </div>
+    <h2 style="margin:4px 0">{{ ev.title }}</h2>
+    <div style="color:var(--ink-3);font-size:13px">{{ ev.entity }}</div>
+    {% if ev.summary %}<p style="margin:10px 0 0;color:var(--ink-2);font-size:13px;line-height:1.55">{{ ev.summary }}</p>{% endif %}
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <!-- 자사 매칭 -->
+    <div class="app-card">
+      <div class="app-card__head"><div class="app-card__title">자사 영향 품목 — {{ matched|length }}건</div></div>
+      {% if matched %}
+      <div style="display:flex;flex-direction:column;gap:6px">
+        {% for m in matched %}
+        <a href="{{ url_for('qa.master_detail', code=m.item_code) }}" style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid var(--line-2);text-decoration:none;color:inherit">
+          <span>{{ m.item_name }}</span>
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--ink-3);font-size:12px">{{ m.permit_no or '—' }}</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="padding:20px;text-align:center;color:var(--ink-3);font-size:12px">직접 매칭 품목 없음 (영향도: {{ ev.impact_level }})</div>
+      {% endif %}
+      {% if ev.matched_ingredients %}
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2)">
+        <div class="t-caption">매칭 성분</div>
+        <div style="font-size:12px">{{ ev.matched_ingredients|join(', ') }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- 권장 액션 -->
+    <div class="app-card">
+      <div class="app-card__head"><div class="app-card__title">권장 액션</div></div>
+      <div style="font-size:13px;line-height:1.8">
+        {% if ev.event_type == 'recall' %}
+          <label style="display:block"><input type="checkbox"> ① 자사 영향 평가 (해당 배치·유통 확인)</label>
+          <label style="display:block"><input type="checkbox"> ② 라벨·표시 검토</label>
+          <label style="display:block"><input type="checkbox"> ③ 회수 공문 작성·보고</label>
+        {% elif ev.event_type == 'gmp_expiry' %}
+          <label style="display:block"><input type="checkbox"> ① GMP 갱신 신청 일정 확인</label>
+          <label style="display:block"><input type="checkbox"> ② 갱신 서류 준비</label>
+          <label style="display:block"><input type="checkbox"> ③ 생산 일정 영향 검토</label>
+        {% elif ev.event_type == 'disciplinary' %}
+          <label style="display:block"><input type="checkbox"> ① 처분 내용·법령 확인</label>
+          <label style="display:block"><input type="checkbox"> ② 자사 동일 위반 여부 점검</label>
+        {% else %}
+          <label style="display:block"><input type="checkbox"> ① 자사 성분·품목 영향 평가</label>
+          <label style="display:block"><input type="checkbox"> ② 관련 부서 공유</label>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 상태 변경 -->
+  <div class="app-card" style="margin-top:16px">
+    <div class="app-card__head"><div class="app-card__title">상태 · 메모</div>
+      <span class="badge">{{ ev.status }}</span></div>
+    <form method="post" action="{{ url_for('qa.event_status', event_id=ev.event_id) }}" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <div>
+        <div class="t-caption">상태</div>
+        <select name="status" style="padding:8px;border:1px solid var(--line-2);border-radius:8px">
+          <option value="new" {% if ev.status=='new' %}selected{% endif %}>new (미확인)</option>
+          <option value="reviewing" {% if ev.status=='reviewing' %}selected{% endif %}>reviewing (검토중)</option>
+          <option value="closed" {% if ev.status=='closed' %}selected{% endif %}>closed (완료)</option>
+        </select>
+      </div>
+      <input type="text" name="note" value="{{ ev.note or '' }}" placeholder="메모"
+             style="flex:1;min-width:200px;padding:8px;border:1px solid var(--line-2);border-radius:8px">
+      <button type="submit" class="btn btn--primary btn--sm">저장</button>
+    </form>
+    {% if alerts %}
+    <div style="margin-top:12px;font-size:11px;color:var(--ink-3)">
+      알람 발송: {% for a in alerts %}{{ a.team }}/{{ a.channel }} ({{ a.sent_at[:16] }}){% if not loop.last %} · {% endif %}{% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- 원시 데이터 -->
+  <details class="app-card" style="margin-top:16px">
+    <summary style="cursor:pointer;font-weight:600;padding:4px 0">원시 API 데이터</summary>
+    <pre style="font-size:11px;background:var(--bg-subtle);padding:12px;border-radius:8px;overflow-x:auto;margin-top:10px">{{ ev.raw_payload | tojson(indent=2) }}</pre>
+  </details>
+
+  <div style="margin-top:16px"><a href="{{ url_for('qa.qa_home') }}" class="btn btn--ghost btn--sm">← 대시보드</a></div>
+</div>
+{% endblock %}

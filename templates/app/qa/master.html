@@ -1,0 +1,194 @@
+{% extends "_layout.html" %}
+
+{% block title %}자사 품목 마스터 — 광동 KD-IRIS{% endblock %}
+
+{% block breadcrumb %}
+  <span class="crumb-active">의약품QA / 자사 품목 마스터</span>
+{% endblock %}
+
+{% block content %}
+<div class="app-content" style="padding:24px 32px 40px">
+
+  <!-- KPI 요약 -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px">
+    <div class="app-card" style="padding:16px">
+      <div class="t-caption">자사 완제품</div>
+      <div style="font-size:26px;font-weight:700">{{ stats.total }}</div>
+      <div style="font-size:11px;color:var(--ink-3)">한약 {{ stats.herbal }} · 비한약 {{ stats.non_herbal }}</div>
+    </div>
+    <div class="app-card" style="padding:16px">
+      <div class="t-caption">Enrichment 완성도</div>
+      <div style="font-size:26px;font-weight:700;color:var(--ok)">{{ stats.match_pct_nh }}%</div>
+      <div style="font-size:11px;color:var(--ink-3)">비한약 {{ stats.matched_nh }}/{{ stats.non_herbal }} matched</div>
+    </div>
+    <div class="app-card" style="padding:16px">
+      <div class="t-caption">전체 matched</div>
+      <div style="font-size:26px;font-weight:700">{{ stats.matched }}</div>
+      <div style="font-size:11px;color:var(--ink-3)">{{ stats.match_pct }}% (한약 포함)</div>
+    </div>
+    <div class="app-card" style="padding:16px;border-color:{% if stats.review %}var(--warn){% else %}var(--line-2){% endif %}">
+      <div class="t-caption">확인 필요</div>
+      <div style="font-size:26px;font-weight:700;color:{% if stats.review %}var(--warn){% else %}var(--ink-2){% endif %}">{{ stats.review }}</div>
+      <div style="font-size:11px;color:var(--ink-3)">후보 다수 (수동 검토)</div>
+    </div>
+    <div class="app-card" style="padding:16px">
+      <div class="t-caption">미매칭</div>
+      <div style="font-size:26px;font-weight:700;color:var(--ink-2)">{{ stats.unmatched }}</div>
+      <div style="font-size:11px;color:var(--ink-3)">한약 라인 다수 (NO 35 대기)</div>
+    </div>
+  </div>
+
+  <!-- Enrichment 실행 + 진행률 -->
+  <div class="app-card" style="padding:16px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <form method="post" action="{{ url_for('qa.master_enrich') }}" style="margin:0">
+      <input type="hidden" name="scope" value="pending">
+      <button type="submit" class="btn btn--primary btn--sm" id="enrichBtn">
+        ⚙ Enrichment 실행 (미매칭/확인필요 대상)
+      </button>
+    </form>
+    <form method="post" action="{{ url_for('qa.master_enrich') }}" style="margin:0">
+      <input type="hidden" name="scope" value="all">
+      <button type="submit" class="btn btn--ghost btn--sm">전체 재실행</button>
+    </form>
+    <div id="enrichProgress" style="flex:1;font-size:13px;color:var(--ink-3)">
+      {% if progress.running %}
+        <span style="color:var(--brand)">⏳ 진행 중… {{ progress.done }}/{{ progress.total }}</span>
+      {% elif progress.finished_at %}
+        <span style="color:var(--ok)">✓ 최근 실행 완료 — matched {{ progress.matched }} / review {{ progress.review }} / unmatched {{ progress.unmatched }}</span>
+      {% else %}
+        <span>NO 140 목록·상세로 허가번호·성분·재심사일·ATC·EDI 자동 채움 (병렬 10, 880품목 약 15분)</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 탭 -->
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <a href="{{ url_for('qa.master') }}" class="btn btn--sm {% if tab != 'review' %}btn--primary{% else %}btn--ghost{% endif %}">전체</a>
+    <a href="{{ url_for('qa.master', tab='review') }}" class="btn btn--sm {% if tab == 'review' %}btn--primary{% else %}btn--ghost{% endif %}">
+      확인 필요 {% if stats.review %}<span class="badge badge--warn">{{ stats.review }}</span>{% endif %}
+    </a>
+  </div>
+
+  <!-- 검색·필터 -->
+  <form method="get" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    {% if tab == 'review' %}<input type="hidden" name="tab" value="review">{% endif %}
+    <input type="text" name="q" value="{{ q }}" placeholder="품목명·코드 검색"
+           style="flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--line-2);border-radius:8px">
+    <select name="cat" style="padding:8px 12px;border:1px solid var(--line-2);border-radius:8px">
+      <option value="">전체 분류</option>
+      {% for c in categories %}<option value="{{ c }}" {% if c==f_cat %}selected{% endif %}>{{ c }}</option>{% endfor %}
+    </select>
+    <select name="status" style="padding:8px 12px;border:1px solid var(--line-2);border-radius:8px">
+      <option value="">전체 상태</option>
+      <option value="matched"   {% if f_status=='matched' %}selected{% endif %}>matched</option>
+      <option value="review"    {% if f_status=='review' %}selected{% endif %}>review</option>
+      <option value="unmatched" {% if f_status=='unmatched' %}selected{% endif %}>unmatched</option>
+      <option value="pending"   {% if f_status=='pending' %}selected{% endif %}>pending</option>
+    </select>
+    <button type="submit" class="btn btn--ghost btn--sm">검색</button>
+  </form>
+
+  {% if tab == 'review' %}
+    <!-- 확인 필요 탭: 후보 카드 -->
+    {% if items %}
+    <div style="display:flex;flex-direction:column;gap:12px">
+      {% for it in items %}
+      <div class="app-card" style="padding:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div><strong>{{ it.item_name }}</strong> <span style="color:var(--ink-3);font-size:12px">{{ it.item_code }} · {{ it.category or '미분류' }}</span></div>
+          <span class="badge badge--warn">후보 {{ it.candidates|length }}건</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          {% for c in it.candidates %}
+          <form method="post" action="{{ url_for('qa.master_confirm') }}" style="margin:0;flex:1;min-width:240px;border:1px solid var(--line-2);border-radius:8px;padding:10px">
+            <input type="hidden" name="item_code" value="{{ it.item_code }}">
+            <input type="hidden" name="item_seq" value="{{ c.ITEM_SEQ }}">
+            <input type="hidden" name="action" value="confirm">
+            <div style="font-size:13px;font-weight:600">{{ c.ITEM_NAME }}</div>
+            <div style="font-size:11px;color:var(--ink-3);margin:2px 0">{{ c.ENTP_NAME }} · 허가 {{ c.PRDUCT_PRMISN_NO or '?' }} · seq {{ c.ITEM_SEQ }}</div>
+            <button type="submit" class="btn btn--primary btn--sm" style="margin-top:6px">이 품목으로 확정</button>
+          </form>
+          {% endfor %}
+          <form method="post" action="{{ url_for('qa.master_confirm') }}" style="margin:0;align-self:center">
+            <input type="hidden" name="item_code" value="{{ it.item_code }}">
+            <input type="hidden" name="action" value="reject">
+            <button type="submit" class="btn btn--ghost btn--sm">매칭 없음</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="app-card" style="padding:40px;text-align:center;color:var(--ink-3)">확인 필요한 품목이 없습니다.</div>
+    {% endif %}
+  {% else %}
+    <!-- 전체 탭: 테이블 -->
+    <div class="app-card" style="padding:0;overflow:hidden">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="background:var(--bg-subtle);text-align:left">
+          <th style="padding:10px 12px">품목코드</th>
+          <th style="padding:10px 12px">품목명</th>
+          <th style="padding:10px 12px">분류</th>
+          <th style="padding:10px 12px">외주</th>
+          <th style="padding:10px 12px">허가번호</th>
+          <th style="padding:10px 12px">재심사일</th>
+          <th style="padding:10px 12px">ATC</th>
+          <th style="padding:10px 12px">상태</th>
+        </tr></thead>
+        <tbody>
+        {% for it in items %}
+        <tr style="border-top:1px solid var(--line-2)">
+          <td style="padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:12px">
+            <a href="{{ url_for('qa.master_detail', code=it.item_code) }}" style="color:var(--brand)">{{ it.item_code }}</a>
+          </td>
+          <td style="padding:8px 12px;font-weight:600">{{ it.item_name }}{% if it.is_herbal %} <span class="badge" style="font-size:10px">한약</span>{% endif %}</td>
+          <td style="padding:8px 12px">{{ it.category or '-' }}</td>
+          <td style="padding:8px 12px">{{ '위탁' if it.self_or_consign == '위탁' else '-' }}</td>
+          <td style="padding:8px 12px;font-family:'JetBrains Mono',monospace">{{ it.permit_no or '—' }}</td>
+          <td style="padding:8px 12px;color:{% if it.reexam_date %}var(--warn){% else %}var(--ink-3){% endif %}">{{ it.reexam_date or '—' }}</td>
+          <td style="padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:11px">{{ it.atc_code or '—' }}</td>
+          <td style="padding:8px 12px">
+            {% if it.enrich_status == 'matched' %}<span class="badge badge--ok">matched</span>
+            {% elif it.enrich_status == 'review' %}<span class="badge badge--warn">review</span>
+            {% elif it.enrich_status == 'pending' %}<span class="badge">pending</span>
+            {% else %}<span class="badge" style="color:var(--ink-3)">unmatched</span>{% endif %}
+            {% if it.enrich_confidence %}<span style="font-size:10px;color:var(--ink-3)">{{ it.enrich_confidence }}</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% if not items %}<div style="padding:40px;text-align:center;color:var(--ink-3)">결과 없음</div>{% endif %}
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:var(--ink-3)">{{ items|length }}건 표시 (최대 1000)</div>
+  {% endif %}
+</div>
+
+<script>
+// Enrichment 진행률 폴링
+(function() {
+  var prog = document.getElementById('enrichProgress');
+  var btn = document.getElementById('enrichBtn');
+  function poll() {
+    fetch('{{ url_for("qa.master_enrich_status") }}')
+      .then(function(r){ return r.json(); })
+      .then(function(p){
+        if (p.running) {
+          if (btn) btn.disabled = true;
+          prog.innerHTML = '<span style="color:var(--brand)">⏳ 진행 중… ' + p.done + '/' + p.total +
+            ' (matched ' + p.matched + ' / review ' + p.review + ' / unmatched ' + p.unmatched + ')</span>';
+          setTimeout(poll, 2000);
+        } else if (p.finished_at && btn && btn.disabled) {
+          // 방금 끝남 → 새로고침해서 테이블 갱신
+          window.location.reload();
+        }
+      })
+      .catch(function(){ /* 무시 */ });
+  }
+  // 실행 직후(running) 또는 started 메시지면 폴링 시작
+  var params = new URLSearchParams(window.location.search);
+  {% if progress.running %}poll();{% endif %}
+  if (params.get('msg') === 'started') { setTimeout(poll, 1500); }
+})();
+</script>
+{% endblock %}

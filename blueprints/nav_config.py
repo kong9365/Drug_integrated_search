@@ -25,6 +25,15 @@ NAV_ITEMS = [
         "disabled": False,
     },
     {
+        "key": "qa",
+        "label": "의약품QA",
+        "href": "/app/qa/home",
+        "icon_svg": '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+        # inject_nav() 에서 오늘 신규 CRITICAL 건수 동적 주입 (S2-2)
+        "badge": None,
+        "disabled": False,
+    },
+    {
         "key": "search",
         "label": "제품·업체 조회",
         "href": "/",

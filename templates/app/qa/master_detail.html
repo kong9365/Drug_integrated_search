@@ -1,0 +1,75 @@
+{% extends "_layout.html" %}
+
+{% block title %}{{ item.item_name }} — 자사 품목 상세 — 광동 KD-IRIS{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ url_for('qa.master') }}" style="color:var(--ink-3);text-decoration:none">자사 품목 마스터</a>
+  <span class="crumb-divider">/</span>
+  <span class="crumb-active">{{ item.item_name }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="app-content" style="padding:24px 32px 40px;max-width:1000px">
+
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+    <h2 style="margin:0">{{ item.item_name }}</h2>
+    {% if item.is_herbal %}<span class="badge">한약(생약)</span>{% endif %}
+    {% if item.enrich_status == 'matched' %}<span class="badge badge--ok">matched · {{ item.enrich_confidence }}</span>
+    {% elif item.enrich_status == 'review' %}<span class="badge badge--warn">확인 필요</span>
+    {% else %}<span class="badge">{{ item.enrich_status }}</span>{% endif %}
+  </div>
+
+  <!-- 사내 입력 vs 공공 enrichment 비교 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="app-card">
+      <div class="app-card__head"><div class="app-card__title">사내 입력 (마스터 xlsx)</div></div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <tr><td style="padding:7px;color:var(--ink-3);width:38%">품목코드</td><td style="padding:7px;font-family:'JetBrains Mono',monospace">{{ item.item_code }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">품목명2</td><td style="padding:7px">{{ item.item_name_alt or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">전문분류</td><td style="padding:7px">{{ item.category or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">품목분류</td><td style="padding:7px">{{ item.sub_category or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">품목구분</td><td style="padding:7px">{{ item.gubun or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">유효기간(월)</td><td style="padding:7px">{{ item.shelf_life_mo or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">포장규격</td><td style="padding:7px">{{ item.pack_spec or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">자사/위탁</td><td style="padding:7px">{{ item.self_or_consign or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">위탁처</td><td style="padding:7px">{{ item.consign_maker or '—' }}</td></tr>
+      </table>
+    </div>
+
+    <div class="app-card">
+      <div class="app-card__head"><div class="app-card__title">공공데이터 Enrichment</div><span class="app-card__caption">{{ item.source_api or '—' }}</span></div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <tr><td style="padding:7px;color:var(--ink-3);width:38%">ITEM_SEQ</td><td style="padding:7px;font-family:'JetBrains Mono',monospace">{{ item.item_seq or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">허가번호</td><td style="padding:7px;font-family:'JetBrains Mono',monospace">{{ item.permit_no or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">허가일자</td><td style="padding:7px">{{ item.permit_date or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">허가권자</td><td style="padding:7px">{{ item.entp_name or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">재심사 예정일</td><td style="padding:7px;color:{% if item.reexam_date %}var(--warn){% else %}var(--ink-3){% endif %};font-weight:600">{{ item.reexam_date or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">ATC 코드</td><td style="padding:7px;font-family:'JetBrains Mono',monospace">{{ item.atc_code or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">EDI 보험코드</td><td style="padding:7px;font-family:'JetBrains Mono',monospace">{{ item.edi_code or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">바코드</td><td style="padding:7px;font-family:'JetBrains Mono',monospace;font-size:11px">{{ item.bar_code or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">성상</td><td style="padding:7px">{{ item.chart or '—' }}</td></tr>
+        <tr><td style="padding:7px;color:var(--ink-3)">저장방법</td><td style="padding:7px">{{ item.storage_method or '—' }}</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 주성분 -->
+  <div class="app-card" style="margin-top:16px">
+    <div class="app-card__head"><div class="app-card__title">주성분 — {{ ingredients|length }}건</div></div>
+    {% if ingredients %}
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="background:var(--bg-subtle);text-align:left"><th style="padding:8px">성분명</th><th style="padding:8px">분량</th><th style="padding:8px">단위</th></tr></thead>
+      <tbody>
+      {% for ing in ingredients %}
+      <tr style="border-top:1px solid var(--line-2)"><td style="padding:8px">{{ ing.ingr_name }}</td><td style="padding:8px">{{ ing.qty or '—' }}</td><td style="padding:8px">{{ ing.unit or '—' }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div style="padding:24px;text-align:center;color:var(--ink-3)">성분 정보 없음 (enrichment 미완 또는 미매칭)</div>
+    {% endif %}
+  </div>
+
+  <div style="margin-top:16px"><a href="{{ url_for('qa.master') }}" class="btn btn--ghost btn--sm">← 마스터 목록</a></div>
+</div>
+{% endblock %}

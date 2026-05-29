@@ -281,7 +281,8 @@ def fetch_approval(
     end_change_date: Optional[str] = None,  # 변경일자 종료 (YYYYMMDD)
     atc_code: Optional[str] = None,  # ATC코드
     rare_drug_yn: Optional[str] = None,  # 희귀의약품여부
-    main_item_ingr: Optional[str] = None  # 유효성분
+    main_item_ingr: Optional[str] = None,  # 유효성분
+    merge_excel: bool = True,  # 엑셀 폴백 병합 (UI=True, 대량 enrichment=False — 43K행 로드 회피)
 ) -> Dict[str, Any]:
     """
     의약품 허가정보 조회
@@ -384,7 +385,8 @@ def fetch_approval(
             items = [_item_to_dict(item) for item in parsed["items"]]
             
             # 엑셀 데이터와 병합 (API에 없는 정보는 엑셀 데이터로 채움)
-            if EXCEL_LOADER_AVAILABLE:
+            # merge_excel=False 시 스킵 — 대량 enrichment 에서 43K행 Excel 반복 로드 회피 (성능)
+            if merge_excel and EXCEL_LOADER_AVAILABLE:
                 try:
                     items = merge_api_with_excel_data(items, item_name, entp_name)
                     logger.info(f"API 데이터와 엑셀 데이터 병합 완료: {len(items)}건")
@@ -518,6 +520,46 @@ def fetch_approval_detail(
         "items": [],
         "totalCount": 0,
     }
+
+
+def fetch_approval_ingr(
+    item_name: Optional[str] = None,
+    entp_name: Optional[str] = None,
+    item_seq: Optional[str] = None,
+    page_no: int = 1,
+    num_of_rows: int = 20,
+    response_type: str = "xml",
+) -> Dict[str, Any]:
+    """
+    NO 140 의약품 제품 주성분 상세정보 (getDrugPrdtMcpnDtlInq07).
+
+    응답 필드(검증): ENTRPS(업체명), PRDUCT(제품명), MTRAL_SN(주성분일련),
+      MTRAL_CODE(주성분코드), MTRAL_NM(주성분명), QNT(분량), INGD_UNIT_CD(단위코드).
+    주의: NO 140 계열은 item_seq 파라미터 무시 → item_name 으로 조회 후 클라 필터.
+    """
+    endpoint = API_ENDPOINTS.get("approval_ingr")
+    if not endpoint:
+        return {"success": False, "error": "approval_ingr endpoint 미정의",
+                "items": [], "totalCount": 0}
+    params = {"pageNo": str(page_no), "numOfRows": str(num_of_rows), "type": response_type}
+    for k, v in {"item_name": item_name, "entp_name": entp_name, "item_seq": item_seq}.items():
+        if v:
+            params[k] = v
+    logger.info(f"주성분 상세조회: {params}")
+    import time
+    last_err = None
+    for attempt in range(1, 4):
+        try:
+            response = _make_request(endpoint, params)
+            parsed = _parse_xml_response(response.text)
+            items = [_item_to_dict(it) for it in parsed["items"]]
+            return {"success": True, "totalCount": parsed.get("totalCount", len(items)), "items": items}
+        except Exception as e:
+            last_err = e
+            logger.warning(f"주성분 상세조회 시도 {attempt}/3 실패: {e}")
+            if attempt < 3:
+                time.sleep(0.5 * attempt)
+    return {"success": False, "error": f"3회 재시도 실패: {last_err}", "items": [], "totalCount": 0}
 
 
 def fetch_disciplinary(

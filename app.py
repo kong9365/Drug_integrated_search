@@ -12,6 +12,8 @@ from flask import Flask, jsonify, request
 
 from .config import BASE_DIR, STATIC_FOLDER, LOG_DIR, SECRET_KEY
 from .blueprints import landing_bp, app_bp, api_bp, api_demo_bp
+from .blueprints.qa import qa_bp
+from .blueprints.qa import db as qa_db
 from .blueprints.nav_config import NAV_ITEMS, USER_INFO
 from .blueprints.workspaces_config import WORKSPACES
 from .blueprints import watchlist_store, watchlist_match
@@ -48,6 +50,13 @@ app.register_blueprint(landing_bp)
 app.register_blueprint(app_bp)
 app.register_blueprint(api_bp)
 app.register_blueprint(api_demo_bp)
+app.register_blueprint(qa_bp)  # KD-IRIS 1차 빌드 — 의약품QA (/app/qa/*)
+
+# SQLite 스키마 초기화 (멱등 — 부팅 시 1회)
+try:
+    qa_db.init_db()
+except Exception as _e:
+    logger.warning(f"QA DB init 실패(앱은 계속): {_e}")
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -68,6 +77,14 @@ def inject_nav():
     except Exception as e:
         logger.warning(f"inject_nav 워치리스트 카운트 계산 실패: {e}")
 
+    # 의약품QA — 미확인 CRITICAL 이벤트 수 배지
+    qa_critical = 0
+    try:
+        from .blueprints.qa.views import today_critical_count
+        qa_critical = today_critical_count()
+    except Exception as e:
+        logger.debug(f"QA critical count 계산 실패: {e}")
+
     items = []
     for it in NAV_ITEMS:
         if it["key"] == "watchlist":
@@ -77,6 +94,9 @@ def inject_nav():
             elif wl_count > 0:
                 # 등록만 되어 있으면 brand 배지로 건수 표시
                 it = {**it, "badge": {"kind": "brand", "text": str(wl_count)}}
+        elif it["key"] == "qa" and qa_critical > 0:
+            # 미확인 CRITICAL 이벤트가 있으면 danger 배지
+            it = {**it, "badge": {"kind": "danger", "text": str(qa_critical)}}
         items.append(it)
     return {
         "nav_items": items,

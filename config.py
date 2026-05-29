@@ -160,12 +160,17 @@ API_ENDPOINTS = {
     # 한국식품안전관리인증원 (B553748 카테고리 — 동일 SERVICE_KEY 작동 여부 smoke test 검증 필요)
     "haccp_smart":        f"https://apis.data.go.kr/B553748/SmartCertFoodListService/getFoodList",      # NO 12 스마트HACCP
 
-    # ===== End Point 명세 확인 대기 5개 (마이페이지 재확인 필요) ==================
-    # "food_recall_domestic":  "<TBD — NO 339 식품의 회수 및 판매중지 정보>",
-    # "food_recall_overseas":  "<TBD — NO 225 해외 위해식품 회수정보>",
-    # "food_report":           "<TBD — NO 444 식품(첨가물)품목제조보고>",
-    # "food_raw":              "<TBD — NO 470 식품(첨가물)품목제조보고(원재료)>",
-    # "food_disc_service":     "<TBD — NO 477 행정처분결과(식품접객업)>",
+    # ===== 한약(생약) — 미신청 hook (승인 시 endpoint 채우면 즉시 작동) ==========
+    # NO 35 한약(생약)제제 허가 기원 — enrichment 한약 라인 폴백 (1차: 미신청)
+    # "herbal_approval":  f"{_DATA_GO_KR_BASE}/<TBD-NO35-Service>/<TBD-op>",
+    # NO 90 한약(생약)제제 회수·판매중지 — 모니터링 5번째 API (1차: 미신청)
+    # "herbal_recall":    f"{_DATA_GO_KR_BASE}/<TBD-NO90-Service>/<TBD-op>",
+    #   → data.go.kr 마이페이지 활용신청 → 자동승인 → End Point 복사 후 주석 해제.
+    #   → fetch_herbal_approval / fetch_herbal_recall (api_extras stub)가 자동 활성.
+
+    # ===== End Point 명세 확인 대기 (식품안전나라 serviceId 확정 완료, KeyID 발급 대기) =====
+    #   NO 339→I0490 · 225→I2810 · 477→I2630 · 444→I1250 · 470→C002
+    #   FOODSAFETY_SERVICES 에 등록됨. FOODSAFETY_KEY_ID 발급 후 fetch_foodsafety() 작동.
     #
     # ※ 마스크 관련 API (NO 162, 172) — 프로젝트 범위에서 제외
 
@@ -240,6 +245,28 @@ IMAGES_FOLDER.mkdir(parents=True, exist_ok=True)
 # 로그 설정
 LOG_DIR = BASE_DIR / "logs"
 LOG_DIR.mkdir(exist_ok=True)
+
+# ============================================================================
+# KD-IRIS 1차 빌드 — SQLite DB + 자사 품목 마스터 (기능재설계 v2 §11)
+# ============================================================================
+# 데이터 디렉터리 (워치리스트 JSON + SQLite DB 공용)
+DATA_DIR = BASE_DIR / "data"
+DATA_DIR.mkdir(exist_ok=True)
+
+# SQLite DB 경로 (자사 마스터·스냅샷·이벤트 — .gitignore 처리됨)
+DB_PATH = DATA_DIR / "kdiris.sqlite"
+
+# DB 스키마 파일
+SCHEMA_PATH = BASE_DIR / "db" / "schema.sql"
+
+# 자사 품목 마스터 엑셀 경로 — 자사 기밀, repo 밖 C:\Temp 보관 (환경변수로 재정의 가능)
+MASTER_XLSX_PATH = os.getenv(
+    "MASTER_XLSX_PATH",
+    r"C:\Temp\품목 마스터 관리_2026-05-28.xlsx",
+)
+
+# 자사 허가권자명 (enrichment 클라이언트 매칭에 사용 — NO 140 ENTP_NAME 부분일치)
+COMPANY_NAME = os.getenv("COMPANY_NAME", "광동")
 
 # ============================================================================
 # API 요청 설정
