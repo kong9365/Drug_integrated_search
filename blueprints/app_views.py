@@ -9,8 +9,9 @@ RegHub 360 — 앱 페이지 Blueprint (MVP 6개 화면)
   ※ /app/(overview), /app/workspace, /app/watchlist, /app/reports
     Phase 2로 미루어 라우트 제거 (사이드바에서는 비활성 표시).
 """
+import io
 import logging
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, send_file, jsonify
 
 from ..api_client import (
     fetch_approval, fetch_approval_detail,
@@ -1386,3 +1387,82 @@ def _classify_reason(text: str) -> str:
         if kws and any(k in t for k in kws):
             return label
     return "이물·기타"
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# Excel 내보내기 공통 라우트 (v3 R3-7)
+# ────────────────────────────────────────────────────────────────────────────
+def _rows_for_export(resource: str):
+    """resource → (sheet_title, headers, rows). openpyxl 워크북 빌드용."""
+    if resource == "qa_master":
+        from .qa import db as qadb
+        data = qadb.query(
+            """SELECT item_code, item_name, category, sub_category, gubun, self_or_consign,
+                      item_seq, permit_no, reexam_date, atc_code, edi_code,
+                      enrich_status, enrich_confidence, source_api
+               FROM master_item WHERE active=1 ORDER BY item_code""")
+        headers = ["품목코드", "품목명", "전문분류", "품목분류", "품목구분", "자사/위탁",
+                   "ITEM_SEQ", "허가번호", "재심사일", "ATC", "EDI", "enrich상태", "confidence", "출처"]
+        rows = [[d.get(k) for k in
+                 ("item_code", "item_name", "category", "sub_category", "gubun", "self_or_consign",
+                  "item_seq", "permit_no", "reexam_date", "atc_code", "edi_code",
+                  "enrich_status", "enrich_confidence", "source_api")] for d in data]
+        return "자사품목마스터", headers, rows
+
+    if resource == "qa_events":
+        from .qa import db as qadb
+        data = qadb.query(
+            """SELECT event_date, event_type, severity, impact_level, title, entity, status, summary
+               FROM event ORDER BY detected_at DESC""")
+        headers = ["발생일", "유형", "심각도", "자사영향", "제목", "업체", "상태", "요약"]
+        rows = [[d.get(k) for k in
+                 ("event_date", "event_type", "severity", "impact_level", "title", "entity", "status", "summary")]
+                for d in data]
+        return "QA이벤트", headers, rows
+
+    if resource == "inspections":
+        from ..api_extras import fetch_food_inspect
+        try:
+            from . import watchlist_match
+            items = watchlist_match._cached("food_inspect_track", fetch_food_inspect, num_of_rows=200)
+        except Exception:
+            items = []
+        headers = ["제품명", "업체", "부적합사유", "분류", "원재료", "등록일"]
+        rows = [[it.get("PRDUCT"), it.get("ENTRPS"), it.get("IMPROPT_ITM"),
+                 _classify_reason(it.get("IMPROPT_ITM") or ""), it.get("RAWMTRL_NM"),
+                 (it.get("REGIST_DT") or "")[:8]] for it in items]
+        return "검사부적합", headers, rows
+
+    return None
+
+
+@app_bp.route("/export/<resource>")
+def export_xlsx(resource):
+    """리소스를 xlsx로 내보내기. resource ∈ {qa_master, qa_events, inspections}."""
+    import datetime
+    try:
+        from openpyxl import Workbook
+    except ImportError:
+        return jsonify({"error": "openpyxl 미설치"}), 500
+
+    bundle = _rows_for_export(resource)
+    if not bundle:
+        return jsonify({"error": f"알 수 없는 resource: {resource}"}), 404
+    title, headers, rows = bundle
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = title[:31]
+    ws.append(headers)
+    for r in rows:
+        ws.append([("" if v is None else str(v)) for v in r])
+    # 컬럼 폭 자동(간이)
+    for i, h in enumerate(headers, 1):
+        ws.column_dimensions[ws.cell(row=1, column=i).column_letter].width = max(10, min(40, len(str(h)) + 6))
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    fname = f"KD-IRIS_{resource}_{datetime.date.today().isoformat()}.xlsx"
+    return send_file(buf, as_attachment=True, download_name=fname,
+                     mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")

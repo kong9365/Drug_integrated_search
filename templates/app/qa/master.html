@@ -50,6 +50,7 @@
       <input type="hidden" name="scope" value="all">
       <button type="submit" class="btn btn--ghost btn--sm">전체 재실행</button>
     </form>
+    <a href="/app/export/qa_master" class="btn btn--ghost btn--sm" title="자사 마스터 Excel 내보내기">⬇ Excel</a>
     <div id="enrichProgress" style="flex:1;font-size:13px;color:var(--ink-3)">
       {% if progress.running %}
         <span style="color:var(--brand)">⏳ 진행 중… {{ progress.done }}/{{ progress.total }}</span>
