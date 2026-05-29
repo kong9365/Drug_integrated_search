@@ -108,3 +108,104 @@ CREATE TABLE IF NOT EXISTS alert_log (
     FOREIGN KEY (event_id) REFERENCES event(event_id)
 );
 CREATE INDEX IF NOT EXISTS idx_alert_event ON alert_log(event_id);
+
+-- ════════════════════════════════════════════════════════════════════════
+-- 품목마스터 중심 재설계 (Phase M-1) — item_seq 기준 정형화 마스터
+--   기존 master_item(item_code, xlsx 880품목)은 그대로 두고,
+--   스크린샷 9탭 구조를 품목기준코드(item_seq) 단위로 정형화한 신규 레이어.
+--   APQR(연간품질평가)의 1차 데이터 소스.
+-- ════════════════════════════════════════════════════════════════════════
+
+-- 품목 기본 + 허가정보 (스크린샷 헤더 영역)
+CREATE TABLE IF NOT EXISTS product_master (
+    item_seq        TEXT PRIMARY KEY,   -- 품목기준코드 (예: 199401695)
+    product_name    TEXT NOT NULL,      -- 제품명 (베니톨정)
+    appearance      TEXT,               -- 성상
+    form_type       TEXT,               -- 제형구분
+    etc_otc         TEXT,               -- 의약품구분 (전문/일반)
+    permit_type     TEXT,               -- 허가/신고
+    permit_date     TEXT,               -- 허가일자
+    permit_holder   TEXT,               -- 허가권자 (광동제약)
+    permit_no       TEXT,               -- 허가번호
+    consign_yn      TEXT,               -- 위수탁여부
+    make_import     TEXT,               -- 제조/수입
+    storage_temp    TEXT,               -- 보관조건(온도)
+    shelf_life_dom  TEXT,               -- 사용기간(내수)
+    shelf_life_exp  TEXT,               -- 사용기간(수출)
+    storage_cont    TEXT,               -- 저장용기
+    is_self         INTEGER DEFAULT 1,  -- 공정(자사) 여부
+    remark          TEXT,               -- 비고
+    make_unit       TEXT,               -- 제조단위
+    edi_code        TEXT,               -- 보험코드
+    atc_code        TEXT,               -- ATC 코드
+    reexam_date     TEXT,               -- 재심사 기한일 (REEXAM_DATE)
+    material_name   TEXT,               -- 주성분 상세 원문 (MATERIAL_NAME)
+    pill_image_url  TEXT,               -- 낱알 이미지 (NO 563)
+    enrich_status   TEXT DEFAULT 'pending',  -- pending|matched|unmatched
+    enriched_at     TEXT,               -- 규제 API enrich 시각
+    created_at      TEXT DEFAULT (datetime('now')),
+    updated_at      TEXT
+);
+
+-- 원약분량 (원약분량 탭 — 원료별 1:N)
+CREATE TABLE IF NOT EXISTS product_ingredient (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_seq        TEXT NOT NULL,
+    ingr_name       TEXT,               -- 원료명
+    ingr_code       TEXT,               -- 원료신코드
+    purpose         TEXT,               -- 배합목적 (주성분/활택제/부형제)
+    spec            TEXT,               -- 규격 (KP/JP/NF)
+    permit_qty      TEXT,               -- 허가량
+    unit            TEXT,               -- 단위
+    stm_spec        TEXT,               -- STM규격
+    stm_storage     TEXT,               -- STM보관조건
+    stm_shelf       TEXT,               -- STM사용기간
+    manufacturer    TEXT,               -- 제조처
+    supplier        TEXT,               -- 공급처
+    section         TEXT,               -- 구분 (속방부/서방부)
+    FOREIGN KEY (item_seq) REFERENCES product_master(item_seq)
+);
+CREATE INDEX IF NOT EXISTS idx_ping_item ON product_ingredient(item_seq);
+
+-- 포장 (포장단위 + 포장자재 탭)
+CREATE TABLE IF NOT EXISTS product_packaging (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_seq        TEXT NOT NULL,
+    pkg_type        TEXT,               -- 병(HDPE)/PTP 등
+    spec_dom        TEXT,               -- 규격(내수용)
+    spec_exp        TEXT,               -- 규격(수출용)
+    production_yn   TEXT,               -- 생산여부
+    FOREIGN KEY (item_seq) REFERENCES product_master(item_seq)
+);
+CREATE INDEX IF NOT EXISTS idx_ppkg_item ON product_packaging(item_seq);
+
+-- 규제 이벤트 로그 (품목별 연중 누적 → APQR 핵심 소스)
+CREATE TABLE IF NOT EXISTS product_reg_event (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_seq        TEXT NOT NULL,
+    event_type      TEXT,               -- recall/disciplinary/safety_letter/review_due/reeval_done/permit_change/supplier_closure
+    severity        TEXT,               -- CRITICAL/HIGH/LOW
+    title           TEXT,
+    summary         TEXT,
+    event_date      TEXT,
+    source_api      TEXT,               -- 내부 추적용 (화면 노출 X)
+    detected_at     TEXT DEFAULT (datetime('now')),
+    acknowledged    INTEGER DEFAULT 0,
+    UNIQUE (item_seq, event_type, event_date, title),  -- 멱등 (중복 적재 방지)
+    FOREIGN KEY (item_seq) REFERENCES product_master(item_seq)
+);
+CREATE INDEX IF NOT EXISTS idx_preg_item ON product_reg_event(item_seq);
+CREATE INDEX IF NOT EXISTS idx_preg_ack  ON product_reg_event(acknowledged);
+
+-- SAP/EDMS 연동 대기 테이블 (Phase M-4 스텁 — 스키마만 정의, 데이터 미적재)
+CREATE TABLE IF NOT EXISTS product_batch (        -- SAP 연동 예정
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_seq TEXT, lot_no TEXT, mfg_date TEXT,
+    test_result TEXT, oos_yn INTEGER DEFAULT 0,
+    source TEXT DEFAULT 'SAP_PENDING'
+);
+CREATE TABLE IF NOT EXISTS product_document (      -- EDMS 연동 예정
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_seq TEXT, doc_type TEXT, doc_no TEXT,
+    title TEXT, source TEXT DEFAULT 'EDMS_PENDING'
+);

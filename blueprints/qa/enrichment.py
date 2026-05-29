@@ -296,6 +296,134 @@ def _persist(res: Dict) -> None:
         conn.close()
 
 
+# ════════════════════════════════════════════════════════════════════════════
+# Phase M1-3 — product_master(item_seq 기준) 단일 품목 enrich
+#   기존 master_item(item_code) enrichment 와 별개. 스크린샷 9탭 마스터용.
+# ════════════════════════════════════════════════════════════════════════════
+def enrich_product(item_seq: str, edi_code: Optional[str] = None,
+                   product_name: Optional[str] = None) -> Dict:
+    """
+    품목기준코드(item_seq)로 규제 API 조회 → product_master/product_ingredient 보강.
+    NO 140(허가 목록·상세, edi_code 우선) + NO 563(낱알) 사용.
+    반환: 보강된 info dict (enrich_status: matched|unmatched).
+    """
+    from ...api_client import fetch_approval, fetch_approval_detail, fetch_identification
+
+    info: Dict = {"item_seq": item_seq, "product_name": product_name,
+                  "edi_code": edi_code, "enrich_status": "unmatched"}
+
+    # 1) NO 140 목록 — edi_code 우선, item_name 폴백 (API_REFERENCE §5.1)
+    appr: Dict = {}
+    try:
+        if edi_code:
+            r = fetch_approval(edi_code=edi_code, num_of_rows=1, merge_excel=False)
+            if r.get("items"):
+                appr = r["items"][0]
+        if not appr and product_name:
+            r = fetch_approval(item_name=product_name.split("(")[0], num_of_rows=5, merge_excel=False)
+            cands = _company_match(r.get("items", [])) or r.get("items", [])
+            for c in cands:
+                if c.get("ITEM_SEQ") == item_seq:
+                    appr = c
+                    break
+            if not appr and cands:
+                appr = cands[0]
+    except Exception as e:
+        logger.warning(f"enrich_product[{item_seq}] NO140 목록 실패: {e}")
+
+    if appr:
+        info["enrich_status"] = "matched"
+        info["item_seq"] = appr.get("ITEM_SEQ") or item_seq
+        info["product_name"] = appr.get("ITEM_NAME") or product_name
+        info["etc_otc"] = appr.get("SPCLTY_PBLC") or appr.get("ETC_OTC_CODE")
+        info["permit_type"] = appr.get("PERMIT_KIND_CODE")
+        info["permit_date"] = appr.get("ITEM_PERMIT_DATE")
+        info["permit_holder"] = appr.get("ENTP_NAME")
+        info["permit_no"] = appr.get("PRDUCT_PRMISN_NO")
+        info["form_type"] = appr.get("PRDUCT_TYPE")
+        info["pill_image_url"] = appr.get("BIG_PRDT_IMG_URL")
+        if appr.get("EDI_CODE"):
+            info["edi_code"] = appr["EDI_CODE"].split(",")[0]
+
+    # 2) NO 140 상세 — REEXAM_DATE·ATC·CHART·STORAGE·MATERIAL_NAME
+    seq = info.get("item_seq") or item_seq
+    detail: Dict = {}
+    try:
+        dr = fetch_approval_detail(item_seq=seq, num_of_rows=1)
+        if not dr.get("items") and edi_code:
+            dr = fetch_approval_detail(edi_code=edi_code, num_of_rows=1)
+        if dr.get("items"):
+            detail = dr["items"][0]
+    except Exception as e:
+        logger.warning(f"enrich_product[{item_seq}] NO140 상세 실패: {e}")
+    if detail:
+        info["enrich_status"] = "matched"
+        info["appearance"] = detail.get("CHART") or info.get("appearance")
+        info["storage_temp"] = detail.get("STORAGE_METHOD")
+        info["shelf_life_dom"] = detail.get("VALID_TERM")
+        info["atc_code"] = detail.get("ATC_CODE")
+        info["reexam_date"] = detail.get("REEXAM_DATE")
+        info["material_name"] = detail.get("MATERIAL_NAME")
+        if not info.get("edi_code") and detail.get("EDI_CODE"):
+            info["edi_code"] = detail["EDI_CODE"].split(",")[0]
+        if not info.get("permit_date"):
+            info["permit_date"] = detail.get("ITEM_PERMIT_DATE")
+        if not info.get("permit_holder"):
+            info["permit_holder"] = detail.get("ENTP_NAME")
+
+    # 3) NO 563 낱알식별 → pill_image_url
+    if not info.get("pill_image_url"):
+        try:
+            pname = (info.get("product_name") or product_name or "").split("(")[0]
+            if pname:
+                idr = fetch_identification(item_name=pname, num_of_rows=1)
+                if idr.get("items"):
+                    info["pill_image_url"] = idr["items"][0].get("ITEM_IMAGE")
+        except Exception as e:
+            logger.debug(f"enrich_product[{item_seq}] 낱알 실패: {e}")
+
+    # 4) product_master UPSERT
+    _upsert_product_master(info, fallback_name=product_name)
+
+    # 5) 원약분량 — MATERIAL_NAME 파싱 → product_ingredient
+    ings = _parse_material(info.get("material_name"))
+    final_seq = info.get("item_seq") or item_seq
+    if ings:
+        qadb.execute("DELETE FROM product_ingredient WHERE item_seq=?", (final_seq,))
+        for ing in ings:
+            qadb.execute(
+                """INSERT INTO product_ingredient
+                   (item_seq, ingr_name, permit_qty, unit, purpose) VALUES (?,?,?,?,?)""",
+                (final_seq, ing.get("ingr_name"), ing.get("qty"), ing.get("unit"), "주성분"))
+    info["ingredients"] = ings
+    return info
+
+
+def _upsert_product_master(info: Dict, fallback_name: Optional[str] = None) -> None:
+    seq = info.get("item_seq")
+    name = info.get("product_name") or fallback_name or seq
+    qadb.execute(
+        """INSERT INTO product_master
+             (item_seq, product_name, appearance, form_type, etc_otc, permit_type, permit_date,
+              permit_holder, permit_no, storage_temp, shelf_life_dom, storage_cont, edi_code,
+              atc_code, reexam_date, material_name, pill_image_url, enrich_status, enriched_at, updated_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'),datetime('now'))
+           ON CONFLICT(item_seq) DO UPDATE SET
+             product_name=excluded.product_name, appearance=excluded.appearance,
+             form_type=excluded.form_type, etc_otc=excluded.etc_otc, permit_type=excluded.permit_type,
+             permit_date=excluded.permit_date, permit_holder=excluded.permit_holder, permit_no=excluded.permit_no,
+             storage_temp=excluded.storage_temp, shelf_life_dom=excluded.shelf_life_dom,
+             edi_code=excluded.edi_code, atc_code=excluded.atc_code, reexam_date=excluded.reexam_date,
+             material_name=excluded.material_name, pill_image_url=excluded.pill_image_url,
+             enrich_status=excluded.enrich_status, enriched_at=datetime('now'), updated_at=datetime('now')""",
+        (seq, name, info.get("appearance"), info.get("form_type"), info.get("etc_otc"),
+         info.get("permit_type"), info.get("permit_date"), info.get("permit_holder"),
+         info.get("permit_no"), info.get("storage_temp"), info.get("shelf_life_dom"),
+         info.get("storage_cont"), info.get("edi_code"), info.get("atc_code"),
+         info.get("reexam_date"), info.get("material_name"), info.get("pill_image_url"),
+         info.get("enrich_status", "unmatched")))
+
+
 # ────────────────────────────────────────────────────────────────────────────
 # 배치 실행 (CLI + 백그라운드)
 # ────────────────────────────────────────────────────────────────────────────

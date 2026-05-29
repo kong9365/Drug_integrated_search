@@ -165,6 +165,81 @@ def master_confirm():
     return redirect(url_for("qa.master", tab="review"))
 
 
+# ════════════════════════════════════════════════════════════════════════
+# Phase M-1 — 정형화 품목마스터 (product_master, item_seq 9탭)
+#   기존 master_item(item_code) 검토 흐름과 별개. 스크린샷 9탭 + APQR 소스.
+# ════════════════════════════════════════════════════════════════════════
+# 테스트 시드: 베니톨정 (광동제약 자사 일반의약품)
+_SEED_PRODUCT = {"item_seq": "199401695", "edi_code": "641801640", "product_name": "베니톨정"}
+
+# 9탭 정의 — 데이터 탭 + 연동대기 placeholder 탭
+_PM_TABS = [
+    ("ingredient", "원약분량", "data"),
+    ("packaging", "포장", "data"),
+    ("reg_event", "규제 이벤트", "data"),
+    ("std_doc", "제품표준서", "pending"),
+    ("equipment", "설비", "pending"),
+    ("finished", "완제품", "pending"),
+    ("pv", "PV현황", "pending"),
+    ("cv", "CV현황", "pending"),
+    ("consign", "수탁제품", "pending"),
+]
+
+
+@qa_bp.route("/product")
+def product_list():
+    """정형화 품목마스터 목록 (product_master)."""
+    rows = qadb.query(
+        """SELECT item_seq, product_name, etc_otc, permit_holder, permit_date,
+                  reexam_date, enrich_status, enriched_at
+           FROM product_master ORDER BY updated_at DESC, item_seq""")
+    return render_template("app/qa/product_list.html", active_page="qa",
+                           products=rows, seed=_SEED_PRODUCT,
+                           flash_msg=request.args.get("msg") or "")
+
+
+@qa_bp.route("/product/register", methods=["POST"])
+def product_register():
+    """품목기준코드(+보험코드)로 등록 → 즉시 규제 API enrich."""
+    item_seq = (request.form.get("item_seq") or "").strip()
+    edi_code = (request.form.get("edi_code") or "").strip() or None
+    product_name = (request.form.get("product_name") or "").strip() or None
+    if not item_seq:
+        return redirect(url_for("qa.product_list") + "?msg=품목기준코드_필요")
+    try:
+        enr.enrich_product(item_seq, edi_code=edi_code, product_name=product_name)
+    except Exception as e:
+        logger.warning(f"product_register[{item_seq}] 실패: {e}")
+        return redirect(url_for("qa.product_list") + "?msg=enrich_실패")
+    return redirect(url_for("qa.product_detail", item_seq=item_seq) + "?msg=등록·보강_완료")
+
+
+@qa_bp.route("/product/<item_seq>")
+def product_detail(item_seq):
+    """정형화 품목마스터 상세 — 9탭 + 규제 이벤트 타임라인 + 위험 신호등."""
+    p = qadb.query_one("SELECT * FROM product_master WHERE item_seq=?", (item_seq,))
+    if not p:
+        return redirect(url_for("qa.product_list") + "?msg=품목없음")
+    ingredients = qadb.query("SELECT * FROM product_ingredient WHERE item_seq=? ORDER BY id", (item_seq,))
+    packaging = qadb.query("SELECT * FROM product_packaging WHERE item_seq=? ORDER BY id", (item_seq,))
+    reg_events = qadb.query(
+        "SELECT * FROM product_reg_event WHERE item_seq=? ORDER BY event_date DESC, id DESC", (item_seq,))
+    # 위험 신호등 (risk.py 재사용)
+    signal = None
+    try:
+        from ..risk import calc_risk_signal
+        recalls = [e for e in reg_events if e["event_type"] == "recall"]
+        discs = [e for e in reg_events if e["event_type"] == "disciplinary"]
+        signal = calc_risk_signal(approval_data=[p], disciplinary_items=discs,
+                                  recall_items=recalls, review_due_days=None)
+    except Exception as e:
+        logger.debug(f"product 위험 신호등 실패: {e}")
+    return render_template("app/qa/product_detail.html", active_page="qa",
+                           p=p, ingredients=ingredients, packaging=packaging,
+                           reg_events=reg_events, signal=signal, tabs=_PM_TABS,
+                           flash_msg=request.args.get("msg") or "")
+
+
 @qa_bp.route("/run-monitor", methods=["POST", "GET"])
 def run_monitor_route():
     """모니터링 배치 수동 트리거 (스냅샷+diff). S2 — 스케줄러 대신 수동/외부 cron."""
