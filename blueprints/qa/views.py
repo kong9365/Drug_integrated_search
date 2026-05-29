@@ -44,8 +44,10 @@ def qa_home():
         """SELECT item_code, item_name, reexam_date FROM master_item
            WHERE active=1 AND reexam_date IS NOT NULL AND reexam_date >= ?
            ORDER BY reexam_date LIMIT 8""", (today,))
+    from . import scheduler
     return render_template("app/qa/home.html", active_page="qa",
-                           stats=stats, ev=ev_stats, events=events[:10], deadlines=deadlines)
+                           stats=stats, ev=ev_stats, events=events[:10], deadlines=deadlines,
+                           sched=scheduler.get_status())
 
 
 @qa_bp.route("/master")
@@ -171,6 +173,13 @@ def run_monitor_route():
     if request.method == "GET":
         return jsonify({"ok": True, **stats})
     return redirect(url_for("qa.qa_home") + "?msg=monitor_done")
+
+
+@qa_bp.route("/scheduler/status")
+def scheduler_status():
+    """야간 배치 스케줄러 상태 (JSON)."""
+    from . import scheduler
+    return jsonify(scheduler.get_status())
 
 
 @qa_bp.route("/event/<int:event_id>")

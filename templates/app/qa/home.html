@@ -7,6 +7,11 @@
 {% endblock %}
 
 {% block topbar_actions %}
+  {% if sched %}
+  <span style="font-size:11px;color:var(--ink-3);align-self:center" title="야간 자동 배치">
+    {% if sched.last_run %}최근 배치 {{ sched.last_run }}{% elif sched.next_run %}다음 배치 {{ sched.next_run }}{% else %}배치 대기{% endif %}
+  </span>
+  {% endif %}
   <form method="post" action="{{ url_for('qa.run_monitor_route') }}" style="margin:0">
     <button type="submit" class="btn btn--ghost btn--sm" title="회수·처분·안전성서한·GMP 스냅샷 갱신">🔄 모니터링 실행</button>
   </form>

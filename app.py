@@ -146,4 +146,10 @@ if __name__ == "__main__":
     print("서버 시작...")
     print("브라우저에서 http://localhost:5005 을 열어주세요.")
     print("=" * 60)
+    # 모니터링 야간 배치 스케줄러 (서빙 진입점에서만 기동)
+    try:
+        from .blueprints.qa.scheduler import start_scheduler
+        start_scheduler()
+    except Exception as _e:
+        logger.warning(f"스케줄러 기동 실패(앱은 계속): {_e}")
     app.run(debug=True, host="0.0.0.0", port=5005, use_reloader=False)
