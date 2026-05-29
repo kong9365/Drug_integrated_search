@@ -419,17 +419,40 @@ data.go.kr API는 케이스가 **API마다 다름**. 4종 패턴 혼재:
 
 ---
 
-## ⏳ End Point 확인 대기 (5개)
+## ⏳ End Point 확인 대기 → 식품안전나라 serviceId 확정 (5개)
 
-마이페이지 → 개발계정 → "상세보기"에서 End Point 확인 후 `config.py:163-168` 의 주석 해제 + smoke test 필요.
+> 5개 모두 **식품안전나라(foodsafetykorea.go.kr)** 계열로 serviceId 확정됨. data.go.kr 키가 아닌 `FOODSAFETY_KEY_ID` 사용.
+> 공통 URL 패턴: `http://openapi.foodsafetykorea.go.kr/api/{KEY_ID}/{serviceId}/{xml|json}/{startIdx}/{endIdx}[/{변수}={값}&{변수}={값}]`
+> 공통 요청인자 5개: `keyId`·`serviceId`·`dataType`·`startIdx`·`endIdx` (이하 추가 파라미터만 명시)
+> 코드: `config.py:FOODSAFETY_SERVICES` 등록 + `api_extras.fetch_foodsafety()` 호출
 
-| NO | 서비스 | URL |
-|---|---|---|
-| 339 | 식품의 회수 및 판매중지 정보 (식품안전나라 `I0490`) | https://www.data.go.kr/data/15074318/openapi.do |
-| 225 | 해외 위해식품 회수정보 | https://www.data.go.kr/data/15077772/openapi.do |
-| 477 | 행정처분결과(식품접객업) | https://www.data.go.kr/data/15058429/openapi.do |
-| 444 | 식품(첨가물) 품목제조보고 | https://www.data.go.kr/data/15064909/openapi.do |
-| 470 | 식품(첨가물) 품목제조보고(원재료) | https://www.data.go.kr/data/15062098/openapi.do |
+| NO | data.go.kr 원본 | serviceId | 코드 키 |
+|---|---|---|---|
+| 339 | https://www.data.go.kr/data/15074318/openapi.do | `I0490` | `food_recall_domestic` |
+| 225 | https://www.data.go.kr/data/15077772/openapi.do | `I2810` | `food_recall_overseas` |
+| 477 | https://www.data.go.kr/data/15058429/openapi.do | `I2630` | `food_disc_service` |
+| 444 | https://www.data.go.kr/data/15064909/openapi.do | `I1250` | `food_report` |
+| 470 | https://www.data.go.kr/data/15062098/openapi.do | `C002` | `food_report_raw` |
+
+### `I0490` — 식품 회수·판매중지 정보 (NO 339)
+- **추가 파라미터**: `CRET_DTM`(등록일자 YYYYMMDD) · `PRDLST_REPORT_NO`(품목제조보고번호)
+- **응답 필드 (19)**: `PRDTNM`(제품명) / `RTRVLPRVNS`(회수사유) / `BSSHNM`(제조업체명) / `ADDR`(업체주소) / `TELNO`(전화번호) / `BRCDNO`(바코드) / `FRMLCUNIT`(포장단위) / `MNFDT`(제조일자) / `RTRVLPLANDOC_RTRVLMTHD`(회수방법) / `DISTBTMLMT`(유통/소비기한) / `PRDLST_TYPE`(식품분류) / `IMG_FILE_PATH`(제품사진 URL) / `PRDLST_CD`(품목코드) / `CRET_DTM`(등록일) / `RTRVLDSUSE_SEQ`(회수 일련번호) / `PRDLST_REPORT_NO`(품목제조보고번호) / `RTRVL_GRDCD_NM`(회수등급) / `PRDLST_CD_NM`(품목유형) / `LCNS_NO`(업체인허가번호)
+
+### `I2810` — 해외 위해식품 회수정보 (NO 225)
+- **추가 파라미터**: `ST_CRET_DTM`(생성일자 시작범위 YYYYMMDD) · `END_CRET_DTM`(생성일자 종료범위)
+- **응답 필드 (6)**: `TITL`(제품명) / `DETECT_TITL`(유해물질) / `CRET_DTM`(생성일자) / `BDT`(본문내용) / `DOWNLOAD_URL`(이미지 다운로드 URL) / `NTCTXT_NO`(게시글번호)
+
+### `I2630` — 행정처분결과(식품접객업) (NO 477)
+- **추가 파라미터**: `CHNG_DT`(변경일자 — 기준 이후 자료) · `DSPS_DCSNDT`(확정일자) · `LCNS_NO`(인허가번호)
+- **응답 필드 (17)**: `PRCSCITYPOINT_BSSHNM`(업소명) / `INDUTY_CD_NM`(업종) / `LCNS_NO`(인허가번호) / `DSPS_DCSNDT`(처분확정일) / `DSPS_BGNDT`(처분시작일) / `DSPS_ENDDT`(처분종료일) / `DSPS_TYPECD_NM`(처분유형) / `VILTCN`(위반일자·내용) / `ADDR`(주소) / `TEL_NO`(전화번호) / `PRSDNT_NM`(대표자명) / `DSPSCN`(처분내용) / `LAWORD_CD_NM`(위반법령) / `PUBLIC_DT`(공개기한) / `LAST_UPDT_DTM`(최종수정일) / `DSPS_INSTTCD_NM`(처분기관명) / `DSPSDTLS_SEQ`(전산키)
+
+### `I1250` — 식품(첨가물) 품목제조보고 (NO 444)
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `PRDLST_REPORT_NO`(품목제조번호) · `BSSH_NM`(업소명) · `PRDLST_NM`(제품명) · `LCNS_NO`(인허가번호) · `PRMS_DT`(보고일자) · `PRDLST_DCNM`(품목유형명)
+- **응답 필드 (18)**: `LCNS_NO`(인허가번호) / `BSSH_NM`(업소명) / `PRDLST_REPORT_NO`(품목제조번호) / `PRMS_DT`(허가일자) / `PRDLST_NM`(제품명) / `PRDLST_DCNM`(품목유형명) / `PRODUCTION`(생산종료여부) / `HIENG_LNTRT_DVS_NM`(고열량저영양여부) / `CHILD_CRTFC_YN`(어린이기호식품 품질인증) / `POG_DAYCNT`(소비기한) / `LAST_UPDT_DTM`(최종수정일) / `INDUTY_CD_NM`(업종) / `QLITY_MNTNC_TMLMT_DAYCNT`(품질유지기한) / `USAGE`(용법) / `PRPOS`(용도) / `DISPOS`(제품형태) / `FRMLC_MTRQLT`(포장재질) / `ETQTY_XPORT_PRDLST_YN`(내수/겸용)
+
+### `C002` — 식품(첨가물) 품목제조보고(원재료) (NO 470)
+- **추가 파라미터**: `CHNG_DT`(변경일자) · `PRDLST_REPORT_NO`(품목제조번호) · `PRDLST_NM`(품목명) · `BSSH_NM`(업소명) · `LCNS_NO`(인허가번호) · `RAWMTRL_NM`(원재료명) · `PRMS_DT`(보고일자) · `PRDLST_DCNM`(품목유형명)
+- **응답 필드 (10)**: `LCNS_NO`(인허가번호) / `BSSH_NM`(업소명) / `PRDLST_REPORT_NO`(품목제조번호) / `PRMS_DT`(보고일자) / `PRDLST_NM`(품목명) / `PRDLST_DCNM`(품목유형명) / `RAWMTRL_NM`(원재료명) / `RAWMTRL_ORDNO`(원재료표시순서) / `CHNG_DT`(변경일자) / `ETQTY_XPORT_PRDLST_YN`(내수/겸용)
 
 ---
 

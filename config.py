@@ -188,7 +188,38 @@ FOODSAFETY_SERVICES = {
     #          FRMLCUNIT, MNFDT, RTRVLPLANDOC_RTRVLMTHD(회수방법), DISTBTMLMT(유통/소비기한),
     #          PRDLST_TYPE, IMG_FILE_PATH, PRDLST_CD, CRET_DTM, RTRVLDSUSE_SEQ,
     #          PRDLST_REPORT_NO(품목제조보고번호), RTRVL_GRDCD_NM(회수등급), PRDLST_CD_NM, LCNS_NO
+    # 추가 파라미터: CRET_DTM(등록일자), PRDLST_REPORT_NO(품목제조보고번호)
     "food_recall_domestic": "I0490",
+
+    # NO 225 해외 위해식품 회수정보 (serviceId: I2810)
+    # 응답: TITL(제품명), DETECT_TITL(유해물질), CRET_DTM(생성일자), BDT(본문내용),
+    #      DOWNLOAD_URL(이미지 다운로드 URL), NTCTXT_NO(게시글번호)
+    # 추가 파라미터: ST_CRET_DTM(생성 시작범위), END_CRET_DTM(생성 종료범위)
+    "food_recall_overseas": "I2810",
+
+    # NO 477 행정처분결과(식품접객업) (serviceId: I2630)
+    # 응답: PRCSCITYPOINT_BSSHNM(업소명), INDUTY_CD_NM(업종), LCNS_NO(인허가번호),
+    #      DSPS_DCSNDT(처분확정일), DSPS_BGNDT/DSPS_ENDDT(처분기간), DSPS_TYPECD_NM(처분유형),
+    #      VILTCN(위반내용), ADDR, TEL_NO, PRSDNT_NM(대표자), DSPSCN(처분내용),
+    #      LAWORD_CD_NM(위반법령), PUBLIC_DT(공개기한), LAST_UPDT_DTM, DSPS_INSTTCD_NM(처분기관), DSPSDTLS_SEQ
+    # 추가 파라미터: CHNG_DT(변경일자), DSPS_DCSNDT(확정일자), LCNS_NO(인허가번호)
+    "food_disc_service": "I2630",
+
+    # NO 444 식품(첨가물) 품목제조보고 (serviceId: I1250)
+    # 응답: LCNS_NO, BSSH_NM, PRDLST_REPORT_NO, PRMS_DT(허가일자), PRDLST_NM(제품명),
+    #      PRDLST_DCNM(품목유형명), PRODUCTION(생산종료여부), HIENG_LNTRT_DVS_NM(고열량저영양),
+    #      CHILD_CRTFC_YN(어린이기호식품 인증), POG_DAYCNT(소비기한), INDUTY_CD_NM(업종),
+    #      QLITY_MNTNC_TMLMT_DAYCNT, USAGE(용법), PRPOS(용도), DISPOS(제품형태),
+    #      FRMLC_MTRQLT(포장재질), ETQTY_XPORT_PRDLST_YN(내수/겸용), LAST_UPDT_DTM
+    # 추가 파라미터: CHNG_DT, PRDLST_REPORT_NO, BSSH_NM, PRDLST_NM, LCNS_NO, PRMS_DT, PRDLST_DCNM
+    "food_report": "I1250",
+
+    # NO 470 식품(첨가물) 품목제조보고(원재료) (serviceId: C002)
+    # 응답: LCNS_NO, BSSH_NM, PRDLST_REPORT_NO, PRMS_DT(보고일자), PRDLST_NM(품목명),
+    #      PRDLST_DCNM(품목유형명), RAWMTRL_NM(원재료명), RAWMTRL_ORDNO(원재료표시순서),
+    #      CHNG_DT(변경일자), ETQTY_XPORT_PRDLST_YN(내수/겸용)
+    # 추가 파라미터: CHNG_DT, PRDLST_REPORT_NO, PRDLST_NM, BSSH_NM, LCNS_NO, RAWMTRL_NM, PRMS_DT, PRDLST_DCNM
+    "food_report_raw": "C002",
 
     # 향후 추가 예정 (식품안전나라 신청 후):
     # "food_qr": "<푸드QR 서비스ID>",

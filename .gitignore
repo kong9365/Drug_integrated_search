@@ -55,8 +55,16 @@ data/*.json
 data/*.tmp
 data/*.json.tmp
 
+# KD-IRIS 1차 빌드 — SQLite DB + 자사 마스터 원본 (자사 기밀, push 금지)
+data/kdiris.sqlite
+data/kdiris.sqlite-wal
+data/kdiris.sqlite-shm
+data/master_source/
+*.xlsx
+
 # Claude Code / AI 툴링
 .claude/
+.playwright-mcp/
 
 # 런타임 캐시
 cache/

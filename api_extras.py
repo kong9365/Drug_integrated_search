@@ -12,7 +12,10 @@ import logging
 from typing import Dict, List, Any, Optional
 
 from .api_client import _make_request, _parse_xml_response, _item_to_dict
-from .config import API_ENDPOINTS
+from .config import (
+    API_ENDPOINTS, FOODSAFETY_BASE, FOODSAFETY_SERVICES, FOODSAFETY_KEY_ID,
+    REQUEST_TIMEOUT, VERIFY_SSL,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -362,6 +365,129 @@ def fetch_haccp_smart(business_name=None, page_no=1, num_of_rows=10):
     """NO 12 식품 스마트HACCP 인증업체."""
     return _fetch_generic("haccp_smart", "스마트HACCP", {"businessnm": business_name},
                           page_no=page_no, num_of_rows=num_of_rows)
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# 식품안전나라 (foodsafetykorea.go.kr) — 별도 KeyID (FOODSAFETY_KEY_ID)
+# URL: http://openapi.foodsafetykorea.go.kr/api/{KEY_ID}/{serviceId}/{type}/{start}/{end}[/{var}={val}&...]
+# 응답(JSON): { "{serviceId}": { "total_count": "..", "row": [..], "RESULT": {"CODE":"INFO-000","MSG":".."} } }
+# ────────────────────────────────────────────────────────────────────────────
+
+def fetch_foodsafety(
+    service_key: str,
+    extra_params: Optional[Dict[str, Any]] = None,
+    start_idx: int = 1,
+    end_idx: int = 10,
+    data_type: str = "json",
+) -> Dict[str, Any]:
+    """
+    식품안전나라 OPEN-API 범용 호출.
+
+    Args:
+        service_key: FOODSAFETY_SERVICES 의 코드 키 (예: 'food_recall_domestic')
+                     또는 serviceId 직접 (예: 'I0490')
+        extra_params: 추가 검색 파라미터 (예: {'PRDLST_NM': '홍삼'})
+                      — URL 경로에 /{변수}={값}&{변수}={값} 형태로 부착
+        start_idx / end_idx: 요청 시작/종료 위치 (1-base, 양끝 포함)
+        data_type: 'json' 또는 'xml'
+
+    Returns:
+        {success, totalCount, items, service_id}
+    """
+    # 코드 키 → serviceId 변환 (직접 serviceId 전달도 허용)
+    service_id = FOODSAFETY_SERVICES.get(service_key, service_key)
+
+    if not FOODSAFETY_KEY_ID:
+        logger.warning(
+            f"[식품안전나라/{service_id}] FOODSAFETY_KEY_ID 미설정 — "
+            "식품안전나라(foodsafetykorea.go.kr) 회원가입 후 OpenAPI 신청 필요. "
+            ".env에 FOODSAFETY_KEY_ID=... 추가."
+        )
+        return {"success": False, "error": "FOODSAFETY_KEY_ID 미설정",
+                "items": [], "totalCount": 0, "service_id": service_id}
+
+    # URL 조립: /api/{KEY}/{serviceId}/{type}/{start}/{end}
+    url = f"{FOODSAFETY_BASE}/{FOODSAFETY_KEY_ID}/{service_id}/{data_type}/{start_idx}/{end_idx}"
+    # 추가 파라미터: /{변수}={값}&{변수}={값2}  (공식 명세 패턴)
+    if extra_params:
+        kv = "&".join(f"{k}={v}" for k, v in extra_params.items() if v is not None and v != "")
+        if kv:
+            url += "/" + kv
+
+    logger.info(f"[식품안전나라/{service_id}] 호출: start={start_idx}, end={end_idx}, params={extra_params}")
+    try:
+        import requests
+        resp = requests.get(url, timeout=REQUEST_TIMEOUT, verify=VERIFY_SSL)
+        resp.raise_for_status()
+
+        if data_type == "json":
+            data = resp.json()
+            # 응답 구조: { serviceId: { total_count, row[], RESULT{CODE,MSG} } }
+            block = data.get(service_id, {})
+            result = block.get("RESULT", {}) or {}
+            code = result.get("CODE", "")
+            rows = block.get("row", []) or []
+            total = int(block.get("total_count", len(rows)) or 0)
+            # INFO-000 = 정상, INFO-200 = 데이터 없음(정상), 그 외 ERROR
+            if code and not code.startswith("INFO"):
+                return {"success": False, "error": f"{code}: {result.get('MSG','')}",
+                        "items": [], "totalCount": 0, "service_id": service_id}
+            return {"success": True, "totalCount": total, "items": rows,
+                    "service_id": service_id}
+        else:
+            # XML 응답 — data.go.kr 파서 재사용 (구조 다를 수 있음)
+            parsed = _parse_xml_response(resp.text)
+            items = [_item_to_dict(it) for it in parsed.get("items", [])]
+            return {"success": True, "totalCount": parsed.get("totalCount", len(items)),
+                    "items": items, "service_id": service_id}
+    except Exception as e:
+        logger.error(f"[식품안전나라/{service_id}] 실패: {e}")
+        return {"success": False, "error": str(e), "items": [], "totalCount": 0,
+                "service_id": service_id}
+
+
+def fetch_food_recall_domestic(product_name=None, report_no=None, cret_dtm=None,
+                               start_idx=1, end_idx=10):
+    """NO 339 식품 회수·판매중지 정보 (I0490)."""
+    return fetch_foodsafety("food_recall_domestic",
+                            {"PRDLST_REPORT_NO": report_no, "CRET_DTM": cret_dtm},
+                            start_idx=start_idx, end_idx=end_idx)
+
+
+def fetch_food_recall_overseas(st_cret_dtm=None, end_cret_dtm=None,
+                               start_idx=1, end_idx=10):
+    """NO 225 해외 위해식품 회수정보 (I2810). 날짜 범위 검색만 지원."""
+    return fetch_foodsafety("food_recall_overseas",
+                            {"ST_CRET_DTM": st_cret_dtm, "END_CRET_DTM": end_cret_dtm},
+                            start_idx=start_idx, end_idx=end_idx)
+
+
+def fetch_food_disc_service(chng_dt=None, dsps_dcsndt=None, lcns_no=None,
+                            start_idx=1, end_idx=10):
+    """NO 477 행정처분결과(식품접객업) (I2630)."""
+    return fetch_foodsafety("food_disc_service",
+                            {"CHNG_DT": chng_dt, "DSPS_DCSNDT": dsps_dcsndt, "LCNS_NO": lcns_no},
+                            start_idx=start_idx, end_idx=end_idx)
+
+
+def fetch_food_report(product_name=None, entp_name=None, report_no=None,
+                      lcns_no=None, chng_dt=None, start_idx=1, end_idx=10):
+    """NO 444 식품(첨가물) 품목제조보고 (I1250)."""
+    return fetch_foodsafety("food_report",
+                            {"PRDLST_NM": product_name, "BSSH_NM": entp_name,
+                             "PRDLST_REPORT_NO": report_no, "LCNS_NO": lcns_no,
+                             "CHNG_DT": chng_dt},
+                            start_idx=start_idx, end_idx=end_idx)
+
+
+def fetch_food_report_raw(product_name=None, entp_name=None, rawmtrl_name=None,
+                          report_no=None, lcns_no=None, start_idx=1, end_idx=10):
+    """NO 470 식품(첨가물) 품목제조보고(원재료) (C002). 원재료명(RAWMTRL_NM) 검색 지원."""
+    return fetch_foodsafety("food_report_raw",
+                            {"PRDLST_NM": product_name, "BSSH_NM": entp_name,
+                             "RAWMTRL_NM": rawmtrl_name, "PRDLST_REPORT_NO": report_no,
+                             "LCNS_NO": lcns_no},
+                            start_idx=start_idx, end_idx=end_idx)
 
 
 # ────────────────────────────────────────────────────────────────────────────
