@@ -1,4 +1,5 @@
 {% extends "_layout.html" %}
+{% from "_macros.html" import risk_signal_badge %}
 
 {% block title %}{{ (product_live.ITEM_NAME.split('(')[0] if product_live else product_code) }} — 광동 KD-IRIS{% endblock %}
 
@@ -154,19 +155,16 @@
         </div>
       </div>
       <div class="p360-hero__risk">
-        <span class="t-caption">Risk Score</span>
-        {# 간단한 Risk Score 계산 — 회수 +40 / 처분 +30 / DUR 임부금기 +10 #}
+        <span class="t-caption">종합 위험 신호등</span>
+        {# v3 R2-2 — calc_risk_signal 기반 신호등 + reasons + 재심사 D-Day #}
+        {% if risk_signal %}
+          <div style="margin:6px 0">{{ risk_signal_badge(risk_signal) }}</div>
+        {% endif %}
         {% set risk = (related_recalls|length * 40) + (dur_items|length * 10) + (supply_stops|length * 20) + (safety_letters|length * 15) %}
         {% set risk = risk if risk <= 100 else 100 %}
         <div class="p360-hero__risk-num"><span class="tnum">{{ risk }}</span><small>/ 100</small></div>
-        {% if risk == 0 %}
-          <span class="badge badge--ok badge--dot">Normal · 특이사항 없음</span>
-        {% elif risk < 40 %}
-          <span class="badge badge--warn badge--dot">Low · 관찰</span>
-        {% elif risk < 60 %}
-          <span class="badge badge--warn badge--dot">Medium · 모니터링</span>
-        {% else %}
-          <span class="badge badge--danger badge--dot">High · 검토 필요</span>
+        {% if review_due_days is not none %}
+          <span class="badge {% if review_due_days <= 30 %}badge--danger{% elif review_due_days <= 90 %}badge--warn{% else %}badge--ok{% endif %} badge--dot" style="margin-top:4px">재심사 D-{{ review_due_days }}</span>
         {% endif %}
         <span class="t-caption" style="margin-top:4px">실 데이터 집계</span>
       </div>
@@ -177,6 +175,7 @@
       <button class="p360-tab is-active" data-p360-tab="info">기본정보</button>
       <button class="p360-tab" data-p360-tab="history">허가·변경 이력</button>
       <button class="p360-tab" data-p360-tab="safety">안전성 정보</button>
+      <button class="p360-tab" data-p360-tab="related">관련 품목</button>
       <button class="p360-tab" data-p360-tab="quality">품질·규제 이벤트</button>
       <button class="p360-tab" data-p360-tab="supply">공급망</button>
       <button class="p360-tab" data-p360-tab="rnd">개발·BD</button>
@@ -383,11 +382,10 @@
                 <span style="font-size:13px">병용금기</span>
                 <span style="font-size:18px;font-weight:700;color:{% if dur_items %}var(--warn){% else %}var(--ok){% endif %};font-variant-numeric:tabular-nums">{{ dur_items|length }}</span>
               </div>
-              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-2)"><span style="font-size:13px">연령금기</span><span style="font-size:18px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums">0</span></div>
-              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-2)"><span style="font-size:13px">임부금기</span><span style="font-size:18px;font-weight:700;color:var(--ink-3);font-variant-numeric:tabular-nums">—</span></div>
-              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0"><span style="font-size:13px">중복처방</span><span style="font-size:18px;font-weight:700;color:var(--ink-3);font-variant-numeric:tabular-nums">—</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-2)"><span style="font-size:13px">노인주의</span><span style="font-size:18px;font-weight:700;color:{% if dur_elderly %}var(--warn){% else %}var(--ok){% endif %};font-variant-numeric:tabular-nums">{{ dur_elderly|length }}</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0"><span style="font-size:13px">임부금기</span><span style="font-size:18px;font-weight:700;color:{% if dur_pregnancy %}var(--warn){% else %}var(--ok){% endif %};font-variant-numeric:tabular-nums">{{ dur_pregnancy|length }}</span></div>
             </div>
-            <div style="margin-top:10px;font-size:11px;color:var(--ink-3)">※ 연령/임부/중복은 Phase 2 (9 오퍼레이션 통합)에서 활성화</div>
+            <div style="margin-top:10px;font-size:11px;color:var(--ink-3)">※ NO 531 DUR 품목정보 (병용금기·임부·노인) 실시간. 상세는 [안전성 정보] 탭.</div>
           </div>
 
           <div class="app-card">
@@ -682,6 +680,69 @@
           <div style="padding:30px;text-align:center;background:var(--ok-soft);color:var(--ok);border-radius:10px">병용금기 정보 없음 (안전)</div>
           {% endif %}
         </div>
+
+        {# DUR 임부금기 · 노인주의 (v3 R2-8) #}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+          <div class="app-card">
+            <div class="app-card__head"><div class="app-card__title">임부금기 — {{ dur_pregnancy|length }}건</div><span class="app-card__caption">DUR 임부</span></div>
+            {% if dur_pregnancy %}
+            <div style="display:flex;flex-direction:column;gap:8px">
+              {% for d in dur_pregnancy %}
+              <div style="padding:10px 12px;background:var(--warn-soft);border:1px solid var(--warn);border-radius:8px">
+                <div style="font-size:13px;font-weight:600;color:var(--ink-1)">{{ d.INGR_KOR_NAME or d.INGR_NAME or d.ITEM_NAME or '?' }}</div>
+                <div style="font-size:12px;color:var(--ink-2);margin-top:2px">{{ (d.PROHBT_CONTENT or d.TYPE_NAME or '')|truncate(90) }}</div>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div style="padding:20px;text-align:center;background:var(--ok-soft);color:var(--ok);border-radius:10px;font-size:13px">해당 데이터 없음 (일반의약품은 DUR 미등록이 정상)</div>
+            {% endif %}
+          </div>
+          <div class="app-card">
+            <div class="app-card__head"><div class="app-card__title">노인주의 — {{ dur_elderly|length }}건</div><span class="app-card__caption">DUR 노인</span></div>
+            {% if dur_elderly %}
+            <div style="display:flex;flex-direction:column;gap:8px">
+              {% for d in dur_elderly %}
+              <div style="padding:10px 12px;background:var(--warn-soft);border:1px solid var(--warn);border-radius:8px">
+                <div style="font-size:13px;font-weight:600;color:var(--ink-1)">{{ d.INGR_KOR_NAME or d.INGR_NAME or d.ITEM_NAME or '?' }}</div>
+                <div style="font-size:12px;color:var(--ink-2);margin-top:2px">{{ (d.PROHBT_CONTENT or d.TYPE_NAME or '')|truncate(90) }}</div>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div style="padding:20px;text-align:center;background:var(--ok-soft);color:var(--ok);border-radius:10px;font-size:13px">해당 데이터 없음 (일반의약품은 DUR 미등록이 정상)</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {# ────────── 관련 품목 탭 (v3 R3-3, 동일 성분 유사 품목) ────────── #}
+      <div data-p360-panel="related">
+        <div class="app-card">
+          <div class="app-card__head">
+            <div class="app-card__title">동일 성분 유사 품목 — {{ similar_items|length }}건</div>
+            <span class="app-card__caption">주성분 기준 · 최대 8건</span>
+          </div>
+          {% if similar_items %}
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">
+            {% for s in similar_items %}
+            {% set s_code = (s.EDI_CODE.split(',')[0] if s.EDI_CODE else '') or s.ITEM_SEQ or '' %}
+            <a href="/app/product/{{ s_code }}" style="text-decoration:none;color:inherit">
+              <div style="padding:14px;border:1px solid var(--line-1);border-radius:10px;background:var(--bg-elevated);height:100%">
+                <div style="font-size:13px;font-weight:600;color:var(--ink-1);line-height:1.4">{{ (s.ITEM_NAME or '?').split('(')[0] }}</div>
+                <div style="font-size:12px;color:var(--ink-3);margin-top:4px">{{ s.ENTP_NAME or '' }}</div>
+                <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+                  {% if s.ENTP_NAME and '광동' in s.ENTP_NAME %}<span class="badge badge--ok">자사</span>{% endif %}
+                  {% if s.ETC_OTC_CODE %}<span class="badge">{{ s.ETC_OTC_CODE }}</span>{% endif %}
+                </div>
+              </div>
+            </a>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div style="padding:30px;text-align:center;color:var(--ink-3);font-size:13px">동일 성분 유사 품목을 찾지 못했습니다.</div>
+          {% endif %}
+        </div>
       </div>
 
       {# ────────── 품질·규제 이벤트 탭 ────────── #}
@@ -703,6 +764,40 @@
           </div>
           {% else %}
           <div style="padding:30px;text-align:center;background:var(--ok-soft);color:var(--ok);border-radius:10px">관련 회수·판매중지 이력 없음</div>
+          {% endif %}
+        </div>
+
+        {# GMP 적합판정 상태 (v3 R2-9, NO 132) #}
+        <div class="app-card" style="margin-top:16px">
+          <div class="app-card__head"><div class="app-card__title">GMP 적합판정 상태</div><span class="app-card__caption">제조소 GMP</span></div>
+          {% if gmp_info %}
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+            <div style="display:flex;justify-content:space-between;padding:10px 12px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:8px">
+              <span style="color:var(--ink-3)">제조소</span>
+              <strong>{{ gmp_info.BSSH_NM or '?' }}</strong>
+            </div>
+            {% if gmp_info.KGMP_BGMP_NAME %}
+            <div style="display:flex;justify-content:space-between;padding:10px 12px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:8px">
+              <span style="color:var(--ink-3)">판정 구분</span><span>{{ gmp_info.KGMP_BGMP_NAME }}</span>
+            </div>
+            {% endif %}
+            {% if gmp_info.GMP_INGR_MM_GROUP_NAME %}
+            <div style="display:flex;justify-content:space-between;padding:10px 12px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:8px">
+              <span style="color:var(--ink-3)">제형군</span><span style="text-align:right;max-width:60%">{{ gmp_info.GMP_INGR_MM_GROUP_NAME|truncate(60) }}</span>
+            </div>
+            {% endif %}
+            {% if gmp_info.VLD_PRD_YMD %}
+            <div style="display:flex;justify-content:space-between;padding:10px 12px;background:var(--warn-soft);border:1px solid var(--warn);border-radius:8px">
+              <span style="color:var(--warn);font-weight:600">유효기간 만료</span>
+              <strong style="font-family:'JetBrains Mono',monospace;color:var(--warn)">{{ gmp_info.VLD_PRD_YMD }}</strong>
+            </div>
+            {% endif %}
+            {% if gmp_info.FCTR_ADDR %}
+            <div style="font-size:11px;color:var(--ink-3)">{{ gmp_info.FCTR_ADDR }}</div>
+            {% endif %}
+          </div>
+          {% else %}
+          <div style="padding:24px;text-align:center;color:var(--ink-3);font-size:13px">제조소 GMP 적합판정 정보 없음</div>
           {% endif %}
         </div>
       </div>

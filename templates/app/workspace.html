@@ -84,6 +84,92 @@
     </div>
     {% endif %}
 
+    {# 식품QA 전용 — 식품 행정처분 3종 통합 (v3 R3-8) #}
+    {% if food_sanctions %}
+    <div class="app-card" style="margin-bottom:20px">
+      <div class="app-card__head">
+        <div class="app-card__title">식품 행정처분 — 수입·판매·제조</div>
+        <span class="app-card__caption">총 {{ food_sanctions.total }}건 · 처분일 정렬</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px">
+        {% for code, label in [('import','수입식품업'),('sale','식품판매업'),('mnft','식품제조가공업')] %}
+        {% set b = food_sanctions.by_cat.get(code) %}
+        <div style="border:1px solid var(--line-2);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:24px;font-weight:700;color:{% if b and b.count %}var(--warn){% else %}var(--ink-3){% endif %}">{{ b.count if b else 0 }}</div>
+          <div style="font-size:12px;color:var(--ink-3)">{{ label }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% if food_sanctions.merged %}
+      <div style="display:flex;flex-direction:column;gap:6px">
+        {% for s in food_sanctions.merged %}
+        <div class="alert-row" style="padding:10px 12px">
+          <div class="alert-row__bar" style="background:var(--warn)"></div>
+          <span class="alert-row__time">{{ s.date or '-' }}</span>
+          <div class="flex-1">
+            <div class="alert-row__title">{{ s.entity|truncate(30) }} <span class="badge">{{ s.label }}</span></div>
+            <div class="alert-row__meta">{{ s.violation }}{% if s.disp %} · {{ s.disp }}{% endif %}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px">최근 식품 행정처분 데이터 없음</div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {# R&D 전용 — FDA 특허 분쟁 트래커 (v3 R3-9) #}
+    {% if fda_tracker %}
+    <div class="app-card" style="margin-bottom:20px">
+      <div class="app-card__head">
+        <div class="app-card__title">특허 분쟁 트래커</div>
+        <span class="app-card__caption">국내소송 + FDA 오렌지북 + FDA Paragraph IV · 총 {{ fda_tracker.total }}건</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:8px">국내 소송 ({{ fda_tracker.lawsuit|length }})</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            {% for it in fda_tracker.lawsuit %}
+            <div style="padding:8px 10px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:8px;font-size:12px">
+              <strong style="color:var(--ink-1)">{{ (it.INGR_NAME or it.PRT_NAME or '?')|truncate(24) }}</strong>
+              <div style="color:var(--ink-3);margin-top:2px">{{ (it.JUDGMENT_KIND or it.SIGN_OF_CASE or it.KOR_PAT_NO or '')|truncate(30) }}</div>
+            </div>
+            {% else %}
+            <div style="font-size:11px;color:var(--ink-4);padding:6px">데이터 없음</div>
+            {% endfor %}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:8px">FDA 오렌지북 ({{ fda_tracker.orangebook|length }})</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            {% for it in fda_tracker.orangebook %}
+            <div style="padding:8px 10px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:8px;font-size:12px">
+              <strong style="color:var(--ink-1)">{{ (it.INGR_NAME or it.PRT_NAME or '?')|truncate(24) }}</strong>
+              <div style="color:var(--ink-3);margin-top:2px">{{ (it.KOR_STATUS or '')|truncate(20) }}{% if it.KOR_EXP_DATE %} · 만료 {{ it.KOR_EXP_DATE }}{% endif %}</div>
+            </div>
+            {% else %}
+            <div style="font-size:11px;color:var(--ink-4);padding:6px">데이터 없음</div>
+            {% endfor %}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:8px">FDA Paragraph IV ({{ fda_tracker.p4|length }})</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            {% for it in fda_tracker.p4 %}
+            <div style="padding:8px 10px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:8px;font-size:12px">
+              <strong style="color:var(--ink-1)">{{ (it.DRUG_NAME or '?')|truncate(24) }}</strong>
+              <div style="color:var(--ink-3);margin-top:2px">{{ (it.DOSAGE_FORM or '')|truncate(20) }}{% if it.RLD %} · RLD {{ it.RLD }}{% endif %}</div>
+            </div>
+            {% else %}
+            <div style="font-size:11px;color:var(--ink-4);padding:6px">데이터 없음</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
     <!-- 2-column main -->
     <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:20px">
 

@@ -43,10 +43,14 @@
 
 
 {# 위험도 신호등 — 검색 결과 / 제품 상세 헤더 / 워치리스트 카드 공통 #}
+{# calc_risk_signal 의 color(danger/warn/success/muted)를 실재하는 디자인 토큰으로 매핑 #}
 {% macro risk_signal_badge(signal) %}
 {% if signal %}
-<div class="risk-signal" style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:var(--{{ signal.color }}-soft);color:var(--{{ signal.color }});font-weight:600;font-size:13px">
-  <span style="width:8px;height:8px;border-radius:50%;background:var(--{{ signal.color }})"></span>
+{% set _c = signal.color %}
+{% set _bg = 'var(--ok-soft)' if _c in ('success','ok') else ('var(--warn-soft)' if _c == 'warn' else ('var(--danger-soft)' if _c == 'danger' else ('var(--info-soft)' if _c == 'info' else 'var(--bg-muted)'))) %}
+{% set _fg = 'var(--ok)' if _c in ('success','ok') else ('var(--warn)' if _c == 'warn' else ('var(--danger)' if _c == 'danger' else ('var(--brand)' if _c == 'info' else 'var(--ink-3)'))) %}
+<div class="risk-signal" style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:{{ _bg }};color:{{ _fg }};font-weight:600;font-size:13px">
+  <span style="width:8px;height:8px;border-radius:50%;background:{{ _fg }}"></span>
   {{ signal.label }}
   {% if signal.reasons %}
   <span style="color:var(--ink-3);font-weight:400;font-size:12px">— {{ signal.reasons|join(' · ') }}</span>

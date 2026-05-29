@@ -57,34 +57,68 @@
       </div>
     </div>
 
-    <!-- Subtabs by type (10종) -->
+    {# 현재 필터 querystring 헬퍼 #}
+    {% set fsev = filters.severity if filters else '' %}
+    {% set ftype = filters.type if filters else '' %}
+    {% set fperiod = filters.period if filters else '' %}
+
+    <!-- 필터 바 (v3 R2-3) — 심각도 + 기간 -->
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+      <div style="display:flex;gap:6px;align-items:center">
+        <span style="font-size:12px;color:var(--ink-4)">심각도</span>
+        <a href="/app/monitor{% if ftype or fperiod %}?{% if ftype %}type={{ ftype }}{% endif %}{% if ftype and fperiod %}&{% endif %}{% if fperiod %}period={{ fperiod }}{% endif %}{% endif %}" class="btn btn--sm {% if not fsev %}btn--primary{% else %}btn--secondary{% endif %}">전체</a>
+        <a href="/app/monitor?severity=CRITICAL{% if ftype %}&type={{ ftype }}{% endif %}{% if fperiod %}&period={{ fperiod }}{% endif %}" class="btn btn--sm {% if fsev == 'CRITICAL' %}btn--primary{% else %}btn--secondary{% endif %}">🔴 긴급</a>
+        <a href="/app/monitor?severity=HIGH{% if ftype %}&type={{ ftype }}{% endif %}{% if fperiod %}&period={{ fperiod }}{% endif %}" class="btn btn--sm {% if fsev == 'HIGH' %}btn--primary{% else %}btn--secondary{% endif %}">🟡 주의</a>
+        <a href="/app/monitor?severity=LOW{% if ftype %}&type={{ ftype }}{% endif %}{% if fperiod %}&period={{ fperiod }}{% endif %}" class="btn btn--sm {% if fsev == 'LOW' %}btn--primary{% else %}btn--secondary{% endif %}">🟢 정보</a>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span style="font-size:12px;color:var(--ink-4)">기간</span>
+        <a href="/app/monitor{% if fsev %}?severity={{ fsev }}{% if ftype %}&type={{ ftype }}{% endif %}{% elif ftype %}?type={{ ftype }}{% endif %}" class="btn btn--sm {% if not fperiod %}btn--primary{% else %}btn--secondary{% endif %}">전체</a>
+        <a href="/app/monitor?period=today{% if fsev %}&severity={{ fsev }}{% endif %}{% if ftype %}&type={{ ftype }}{% endif %}" class="btn btn--sm {% if fperiod == 'today' %}btn--primary{% else %}btn--secondary{% endif %}">오늘</a>
+        <a href="/app/monitor?period=week{% if fsev %}&severity={{ fsev }}{% endif %}{% if ftype %}&type={{ ftype }}{% endif %}" class="btn btn--sm {% if fperiod == 'week' %}btn--primary{% else %}btn--secondary{% endif %}">이번 주</a>
+        <a href="/app/monitor?period=month{% if fsev %}&severity={{ fsev }}{% endif %}{% if ftype %}&type={{ ftype }}{% endif %}" class="btn btn--sm {% if fperiod == 'month' %}btn--primary{% else %}btn--secondary{% endif %}">이번 달</a>
+      </div>
+      {% if fsev or ftype or fperiod %}
+      <a href="/app/monitor" style="font-size:12px;color:var(--brand);text-decoration:none">필터 초기화 ✕</a>
+      {% endif %}
+    </div>
+
+    <!-- Subtabs by type (유형 필터 링크) -->
     <div class="subtabs">
-      <button class="subtab is-active">전체 <span class="subtab__count">{{ total_count or 0 }}</span></button>
-      <button class="subtab">회수·판매중지 <span class="subtab__count">{{ type_counts.recall or 0 }}</span></button>
-      <button class="subtab">행정처분 <span class="subtab__count">{{ type_counts.disciplinary or 0 }}</span></button>
-      <button class="subtab">안전성서한 <span class="subtab__count">{{ type_counts.safety_letter or 0 }}</span></button>
-      <button class="subtab">공급중단 <span class="subtab__count">{{ type_counts.supply_stop or 0 }}</span></button>
-      <button class="subtab">검사부적합 <span class="subtab__count">{{ type_counts.inspection_fail or 0 }}</span></button>
-      <button class="subtab">신규허가 <span class="subtab__count">{{ type_counts.permit_new or 0 }}</span></button>
-      <button class="subtab">임상 신규 <span class="subtab__count">{{ type_counts.clinical_new or 0 }}</span></button>
-      <button class="subtab">특허 신규 <span class="subtab__count">{{ type_counts.patent_new or 0 }}</span></button>
-      <button class="subtab">재심사 예정 <span class="subtab__count">{{ type_counts.review_due or 0 }}</span></button>
-      <button class="subtab">재평가 완료 <span class="subtab__count">{{ type_counts.reeval_done or 0 }}</span></button>
+      <a href="/app/monitor{% if fsev %}?severity={{ fsev }}{% if fperiod %}&period={{ fperiod }}{% endif %}{% elif fperiod %}?period={{ fperiod }}{% endif %}" class="subtab {% if not ftype %}is-active{% endif %}">전체 <span class="subtab__count">{{ all_count or 0 }}</span></a>
+      {% set _qs = '' %}
+      {% if fsev %}{% set _qs = _qs + '&severity=' + fsev %}{% endif %}
+      {% if fperiod %}{% set _qs = _qs + '&period=' + fperiod %}{% endif %}
+      <a href="/app/monitor?type=recall{{ _qs }}" class="subtab {% if ftype == 'recall' %}is-active{% endif %}">회수·판매중지 <span class="subtab__count">{{ type_counts.recall or 0 }}</span></a>
+      <a href="/app/monitor?type=disciplinary{{ _qs }}" class="subtab {% if ftype == 'disciplinary' %}is-active{% endif %}">행정처분 <span class="subtab__count">{{ type_counts.disciplinary or 0 }}</span></a>
+      <a href="/app/monitor?type=safety_letter{{ _qs }}" class="subtab {% if ftype == 'safety_letter' %}is-active{% endif %}">안전성서한 <span class="subtab__count">{{ type_counts.safety_letter or 0 }}</span></a>
+      <a href="/app/monitor?type=supply_stop{{ _qs }}" class="subtab {% if ftype == 'supply_stop' %}is-active{% endif %}">공급중단 <span class="subtab__count">{{ type_counts.supply_stop or 0 }}</span></a>
+      <a href="/app/monitor?type=inspection_fail{{ _qs }}" class="subtab {% if ftype == 'inspection_fail' %}is-active{% endif %}">검사부적합 <span class="subtab__count">{{ type_counts.inspection_fail or 0 }}</span></a>
+      <a href="/app/monitor?type=permit_new{{ _qs }}" class="subtab {% if ftype == 'permit_new' %}is-active{% endif %}">신규허가 <span class="subtab__count">{{ type_counts.permit_new or 0 }}</span></a>
+      <a href="/app/monitor?type=clinical_new{{ _qs }}" class="subtab {% if ftype == 'clinical_new' %}is-active{% endif %}">임상 신규 <span class="subtab__count">{{ type_counts.clinical_new or 0 }}</span></a>
+      <a href="/app/monitor?type=patent_new{{ _qs }}" class="subtab {% if ftype == 'patent_new' %}is-active{% endif %}">특허 신규 <span class="subtab__count">{{ type_counts.patent_new or 0 }}</span></a>
+      <a href="/app/monitor?type=review_due{{ _qs }}" class="subtab {% if ftype == 'review_due' %}is-active{% endif %}">재심사 예정 <span class="subtab__count">{{ type_counts.review_due or 0 }}</span></a>
+      <a href="/app/monitor?type=reeval_done{{ _qs }}" class="subtab {% if ftype == 'reeval_done' %}is-active{% endif %}">재평가 완료 <span class="subtab__count">{{ type_counts.reeval_done or 0 }}</span></a>
     </div>
 
     <!-- 이벤트 카드 목록 (event_card 매크로) -->
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
       {% if events %}
         {% for ev in events %}
+          {% if ev._group_count and ev._group_count > 1 %}
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:-4px">
+            <span class="badge badge--info">📑 동일 품목 {{ ev._group_count }}건 묶음</span>
+          </div>
+          {% endif %}
           {{ event_card(ev) }}
         {% endfor %}
         <div style="text-align:center;padding:20px 0;color:var(--ink-3);font-size:13px">
-          상위 {{ events|length }}건 표시 · 전체 {{ total_count }}건
+          {{ events|length }}개 카드 표시 · 필터 결과 {{ total_count }}건 / 전체 {{ all_count }}건
         </div>
       {% else %}
         <div style="padding:60px;text-align:center;color:var(--ink-3)">
-          <h3 style="color:var(--ink-1)">최근 이벤트가 없습니다</h3>
-          <p style="font-size:14px">실시간 호출 결과 0건입니다. 잠시 후 다시 시도해 주세요.</p>
+          <h3 style="color:var(--ink-1)">조건에 맞는 이벤트가 없습니다</h3>
+          <p style="font-size:14px">{% if fsev or ftype or fperiod %}필터를 변경하거나 <a href="/app/monitor" style="color:var(--brand)">초기화</a>하세요.{% else %}실시간 호출 결과 0건입니다. 잠시 후 다시 시도해 주세요.{% endif %}</p>
         </div>
       {% endif %}
     </div>

@@ -67,17 +67,23 @@ def inject_nav():
     # 워치리스트 등록·매칭 카운트를 사이드바 배지에 동적으로 반영.
     # 매칭 API 결과는 watchlist_match 모듈 안에서 5분 TTL 캐시됨 → 페이지마다 추가 호출 거의 없음.
     wl_count = 0
-    alert_count = 0
+    wl_critical = 0      # CRITICAL 이벤트 보유 워치리스트 항목 수 (v3 R2-7)
+    monitor_critical = 0  # 오늘 신규 CRITICAL(공공 회수) 건수 (v3 R2-7)
     try:
         wl_count = watchlist_store.count()
         if wl_count > 0:
             entries = watchlist_store.list_entries()
             match_map = watchlist_match.match_for_entries(entries)
-            alert_count = watchlist_match.total_alert_count(match_map)
+            wl_critical = watchlist_match.critical_alert_count(match_map)
     except Exception as e:
         logger.warning(f"inject_nav 워치리스트 카운트 계산 실패: {e}")
 
-    # 의약품QA — 미확인 CRITICAL 이벤트 수 배지
+    try:
+        monitor_critical = watchlist_match.today_critical_count()
+    except Exception as e:
+        logger.debug(f"inject_nav monitor critical 계산 실패: {e}")
+
+    # 의약품QA — 미확인 CRITICAL 이벤트 수 배지 (v2 백본, SQLite 기준)
     qa_critical = 0
     try:
         from .blueprints.qa.views import today_critical_count
@@ -88,12 +94,15 @@ def inject_nav():
     items = []
     for it in NAV_ITEMS:
         if it["key"] == "watchlist":
-            if alert_count > 0:
-                # 매칭된 회수/안전성 이벤트가 있으면 danger 배지로 알림
-                it = {**it, "badge": {"kind": "danger", "text": str(alert_count)}}
+            if wl_critical > 0:
+                # CRITICAL 이벤트 보유 항목이 있으면 danger 배지로 알림
+                it = {**it, "badge": {"kind": "danger", "text": str(wl_critical)}}
             elif wl_count > 0:
                 # 등록만 되어 있으면 brand 배지로 건수 표시
                 it = {**it, "badge": {"kind": "brand", "text": str(wl_count)}}
+        elif it["key"] == "monitor" and monitor_critical > 0:
+            # 오늘 신규 CRITICAL 회수가 있으면 danger 배지
+            it = {**it, "badge": {"kind": "danger", "text": str(monitor_critical)}}
         elif it["key"] == "qa" and qa_critical > 0:
             # 미확인 CRITICAL 이벤트가 있으면 danger 배지
             it = {**it, "badge": {"kind": "danger", "text": str(qa_critical)}}

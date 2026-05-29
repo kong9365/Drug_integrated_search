@@ -324,9 +324,19 @@ def search():
         ext_called = len(par) if q else 0   # 확장 API job 결과 dict (실패는 _parallel_filter 에서 제외됨)
         api_count_dyn = core_called + ext_called
 
+        # 종합 위험 신호등 (v3 R2-1) — 검색어 관련 회수·행정처분 기반
+        from .risk import calc_risk_signal
+        risk_signal = calc_risk_signal(
+            approval_data=approval_items,
+            disciplinary_items=sanctions_filtered,
+            recall_items=recalls_filtered,
+            review_due_days=None,
+        )
+
         ctx["search_results"] = {
             "kind": kind,
             "counts": counts,
+            "risk_signal": risk_signal,
             "api_count": api_count_dyn,  # 실 호출 성공 API 수
             "products": products,
             "top_products": top_products,
@@ -348,6 +358,37 @@ def search():
 # Product 360 (의약품 / 식품 / 향후 의약외품·건강기능식품)
 # ────────────────────────────────────────────────────────────────────────────
 
+def _get_review_due_days(detail, p_review=None):
+    """재심사 만료까지 남은 일수 (D-Day). NO 140 상세 REEXAM_DATE 또는 NO 554 매칭에서 추출. 없으면 None."""
+    import datetime
+    candidates = []
+    if detail:
+        for k in ("REEXAM_DATE", "REEXAM_TARGET_DATE", "RE_EXAM_DATE"):
+            v = detail.get(k)
+            if v:
+                candidates.append(str(v))
+    for r in (p_review or []):
+        for k in ("REEXAM_DATE", "REJDGE_DT", "REEXM_EXPIR_DE", "RE_EXAM_EXPIR_DATE"):
+            v = r.get(k)
+            if v:
+                candidates.append(str(v))
+    today = datetime.date.today()
+    best = None
+    for raw in candidates:
+        end = raw.split("~")[-1]                 # 범위면 종료일
+        rd = "".join(ch for ch in end if ch.isdigit())[:8]
+        if len(rd) != 8:
+            continue
+        try:
+            exp = datetime.date(int(rd[:4]), int(rd[4:6]), int(rd[6:8]))
+        except ValueError:
+            continue
+        dday = (exp - today).days
+        if dday >= 0 and (best is None or dday < best):
+            best = dday
+    return best
+
+
 @app_bp.route("/product/<code>")
 def product_drug(code):
     """
@@ -363,6 +404,10 @@ def product_drug(code):
     safety_letters = []
     bundle = None
     dur_items = []
+    dur_pregnancy = []   # NO 531 임부금기 (v3 R2-8)
+    dur_elderly = []     # NO 531 노인주의 (v3 R2-8)
+    gmp_info = None      # NO 132 GMP 적합판정 (v3 R2-9)
+    similar_items = []   # 동일 성분 유사 품목 (v3 R3-3)
     supply_stops = []
     ingredient_kr = None  # 한글 주성분명
     detail = None  # NO 140 상세 응답 (효능효과·용법용량·재심사일·ATC 등)
@@ -484,11 +529,22 @@ def product_drug(code):
             except Exception:
                 pass
 
-            # 7. NO 531 DUR 품목 (병용금기) — itemName 카멜케이스 검증
+            # 7. NO 531 DUR 품목 (병용금기/임부/노인) — itemName 카멜케이스 검증 (v3 R2-8)
             try:
                 from ..api_extras import fetch_dur_item
-                du = fetch_dur_item(category="combine", item_name=item_name.split('(')[0], num_of_rows=3)
+                _dn = item_name.split('(')[0]
+                du = fetch_dur_item(category="combine", item_name=_dn, num_of_rows=3)
                 dur_items = du.get("items", [])
+            except Exception:
+                pass
+            try:
+                dp = fetch_dur_item(category="pregnancy", item_name=_dn, num_of_rows=3)
+                dur_pregnancy = dp.get("items", [])
+            except Exception:
+                pass
+            try:
+                de = fetch_dur_item(category="elderly", item_name=_dn, num_of_rows=3)
+                dur_elderly = de.get("items", [])
             except Exception:
                 pass
 
@@ -569,6 +625,32 @@ def product_drug(code):
                     fetch_drug_orphan, ["PRDT_NAME", "PRODT_NAME"], name_short, n=30
                 )[:3]
             except Exception: pass
+
+            # NO 132 GMP 적합판정 — 제조사(또는 자사) 기준 (v3 R2-9)
+            try:
+                gmp_resp = fetch_drug_gmp(entp_name=entp_name, num_of_rows=3)
+                gmp_items = gmp_resp.get("items", [])
+                if not gmp_items and "광동" in (entp_name or ""):
+                    gmp_items = fetch_drug_gmp(entp_name="광동제약", num_of_rows=3).get("items", [])
+                if gmp_items:
+                    gmp_info = gmp_items[0]
+            except Exception:
+                pass
+
+            # 동일 성분 유사 품목 (v3 R3-3) — 주성분명으로 NO 140 재검색, 자기 자신 제외
+            try:
+                ingr_q = ingredient_kr or (product.get("ITEM_INGR_NAME") or "")
+                if ingr_q:
+                    sim = fetch_approval(item_name=ingr_q.split()[0], num_of_rows=12)
+                    my_seq = (product or {}).get("ITEM_SEQ")
+                    for it in sim.get("items", []):
+                        if it.get("ITEM_SEQ") and it.get("ITEM_SEQ") == my_seq:
+                            continue
+                        similar_items.append(it)
+                        if len(similar_items) >= 8:
+                            break
+            except Exception:
+                pass
     except Exception as e:
         logger.warning(f"Product 360 데이터 수집 실패 (code={code}): {e}")
 
@@ -587,9 +669,40 @@ def product_drug(code):
     except Exception as e:
         logger.debug(f"자사 마스터 대조 실패: {e}")
 
+    # 종합 위험 신호등 + 재심사 D-Day (v3 R2-2)
+    risk_signal = None
+    review_due_days = None
+    try:
+        review_due_days = _get_review_due_days(detail, p_review)
+        disc_hits = []
+        try:
+            entp = (product or {}).get("ENTP_NAME") or ""
+            if entp and len(entp) >= 2:
+                dr = fetch_disciplinary(num_of_rows=200)
+                ne = entp.strip().lower()
+                disc_hits = [it for it in dr.get("items", [])
+                             if ne in str(it.get("ENTP_NAME", "")).lower()][:10]
+        except Exception:
+            pass
+        from .risk import calc_risk_signal
+        risk_signal = calc_risk_signal(
+            approval_data=[product] if product else [],
+            disciplinary_items=disc_hits,
+            recall_items=related_recalls,
+            review_due_days=review_due_days,
+        )
+    except Exception as e:
+        logger.debug(f"제품 위험 신호등 계산 실패: {e}")
+
     return render_template(
         "app/product_drug.html",
         active_page="search",
+        risk_signal=risk_signal,
+        review_due_days=review_due_days,
+        dur_pregnancy=dur_pregnancy,
+        dur_elderly=dur_elderly,
+        gmp_info=gmp_info,
+        similar_items=similar_items,
         product_code=code,
         product_live=product,
         drug_easy=drug_easy,
@@ -895,7 +1008,7 @@ def monitor():
         -1 * int((e.get("date") or "0").replace("-", "") or 0),
     ))
 
-    # severity 카운트 (KD-IRIS v3: CRITICAL/HIGH/LOW 3단계)
+    # severity 카운트 (KD-IRIS v3: CRITICAL/HIGH/LOW 3단계) — 전체 기준 (탭/KPI 표시용)
     severity_counts = {
         "critical": sum(1 for e in events if e.get("severity_level") == "CRITICAL"),
         "high":     sum(1 for e in events if e.get("severity_level") == "HIGH"),
@@ -905,13 +1018,56 @@ def monitor():
     for e in events:
         type_counts[e["type"]] = type_counts.get(e["type"], 0) + 1
 
+    # ── 필터 (v3 R2-3) — ?severity=CRITICAL&type=recall&period=week ──
+    f_sev = (request.args.get("severity") or "").upper()
+    f_type = (request.args.get("type") or "").strip()
+    f_period = (request.args.get("period") or "").strip()
+    filtered = events
+    if f_sev in ("CRITICAL", "HIGH", "LOW"):
+        filtered = [e for e in filtered if e.get("severity_level") == f_sev]
+    if f_type:
+        filtered = [e for e in filtered if e.get("type") == f_type]
+    if f_period in ("today", "week", "month"):
+        import datetime
+        today = datetime.date.today()
+        def _in_period(d):
+            rd = "".join(ch for ch in (d or "") if ch.isdigit())[:8]
+            if len(rd) != 8:
+                return False
+            try:
+                dt = datetime.date(int(rd[:4]), int(rd[4:6]), int(rd[6:8]))
+            except ValueError:
+                return False
+            delta = (today - dt).days
+            if f_period == "today":
+                return delta == 0
+            if f_period == "week":
+                return 0 <= delta <= 7
+            return 0 <= delta <= 31
+        filtered = [e for e in filtered if _in_period(e.get("date"))]
+
+    # ── 그룹화 (v3 R2-3) — 동일 title 2건↑ → 1개 카드 + 묶음 카운트 ──
+    grouped = {}
+    display_events = []
+    for e in filtered:
+        key = e.get("title", "")
+        if key and key in grouped:
+            grouped[key]["_group_count"] += 1
+        else:
+            g = dict(e)
+            g["_group_count"] = 1
+            grouped[key] = g
+            display_events.append(g)
+
     return render_template(
         "app/monitor.html",
         active_page="monitor",
-        events=events[:30],
-        total_count=len(events),
+        events=display_events[:30],
+        total_count=len(filtered),
+        all_count=len(events),
         severity_counts=severity_counts,
         type_counts=type_counts,
+        filters={"severity": f_sev, "type": f_type, "period": f_period},
     )
 
 
@@ -927,10 +1083,95 @@ def copilot():
     return render_template("app/copilot.html", active_page="copilot", own=own)
 
 
+def _home_top_events(limit=5):
+    """오늘의 주요 이벤트 TOP N (회수·행정처분·안전성서한, 심각도순). watchlist_match 캐시 재사용."""
+    from . import watchlist_match as wm
+    from .severity import SEVERITY_ORDER
+    out = []
+    try:
+        recalls   = wm._cached("recall",   fetch_recall,             num_of_rows=200)[:25]
+        sanctions = wm._cached("sanction", fetch_disciplinary,       num_of_rows=200)[:25]
+        safety    = wm._cached("safety",   fetch_drug_safety_letter, num_of_rows=200)[:25]
+        out = (
+            [wm._normalize_event("recall",   r) for r in recalls]
+            + [wm._normalize_event("sanction", s) for s in sanctions]
+            + [wm._normalize_event("safety",   s) for s in safety]
+        )
+        out.sort(key=lambda e: (
+            SEVERITY_ORDER.get(e.get("severity_level"), 3),
+            -1 * int((e.get("date") or "0").replace("-", "") or 0),
+        ))
+    except Exception as e:
+        logger.debug(f"home top events 실패: {e}")
+    return out[:limit]
+
+
+def _home_gmp_expiry():
+    """광동 GMP 만료일 (NO 132 BSSH_NM='광동제약') → {entity, date, addr, scope}."""
+    try:
+        from ..api_extras import fetch_drug_gmp
+        g = fetch_drug_gmp(entp_name="광동제약", num_of_rows=5)
+        for it in g.get("items", []):
+            vld = it.get("VLD_PRD_YMD") or ""
+            if vld:
+                return {
+                    "entity": it.get("BSSH_NM") or "광동제약(주)",
+                    "date":   vld[:10],
+                    "addr":   it.get("FCTR_ADDR") or "",
+                    "scope":  it.get("KGMP_BGMP_NAME") or "",
+                }
+    except Exception as e:
+        logger.debug(f"home GMP 만료 조회 실패: {e}")
+    return None
+
+
 @app_bp.route("/home")
 def home():
-    """오늘의 브리핑 — Phase R-2 (R2-6) 에서 풀 구현 예정. 현재는 placeholder."""
-    return render_template("app/home.html", active_page="home")
+    """오늘의 브리핑 — KD-IRIS v3 §P1 (R2-6). 영역 A(긴급)·B(워치리스트)·C(이벤트 TOP5)·D(마감)·E(검색)."""
+    import datetime
+    from . import watchlist_store, watchlist_match
+
+    # 영역 A — 오늘 신규 CRITICAL 회수 건수
+    today_critical = 0
+    try:
+        today_critical = watchlist_match.today_critical_count()
+    except Exception as e:
+        logger.debug(f"home today_critical 실패: {e}")
+
+    # 영역 B — 워치리스트 요약 (🔴/🟡/🟢)
+    wl_summary = {"critical": 0, "high": 0, "ok": 0, "total": 0}
+    try:
+        entries = watchlist_store.list_entries()
+        if entries:
+            mm = watchlist_match.match_for_entries(entries)
+            wl_summary = watchlist_match.summarize_by_severity(mm)
+    except Exception as e:
+        logger.debug(f"home 워치리스트 요약 실패: {e}")
+
+    # 영역 C — 오늘 주요 이벤트 TOP 5
+    top_events = _home_top_events(limit=5)
+
+    # 영역 D — 30/90일 이내 마감 (재심사 D-Day + 광동 GMP 만료)
+    reexam = _reexam_dday()
+    gmp = _home_gmp_expiry()
+    gmp_dday = None
+    if gmp and gmp.get("date"):
+        try:
+            rd = "".join(ch for ch in gmp["date"] if ch.isdigit())[:8]
+            if len(rd) == 8:
+                exp = datetime.date(int(rd[:4]), int(rd[4:6]), int(rd[6:8]))
+                gmp_dday = (exp - datetime.date.today()).days
+        except Exception:
+            pass
+
+    return render_template(
+        "app/home.html", active_page="home",
+        today_critical=today_critical,
+        wl_summary=wl_summary,
+        top_events=top_events,
+        reexam=reexam,
+        gmp=gmp, gmp_dday=gmp_dday,
+    )
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -946,12 +1187,22 @@ def watchlist():
     # 항목별 식약처 이벤트 매칭 (캐시 5분 TTL — 같은 페이지 새로고침 시 API 재호출 안 함)
     matches = watchlist_match.match_for_entries(entries)
     alert_total = watchlist_match.total_alert_count(matches)
+    summary = watchlist_match.summarize_by_severity(matches)
+
+    # 위험도 정렬 (v3 R2-4): CRITICAL → HIGH → LOW → OK
+    _sev_order = {"CRITICAL": 0, "HIGH": 1, "LOW": 2, "OK": 3}
+    def _entry_rank(e):
+        m = matches.get(e["id"], {})
+        return _sev_order.get(watchlist_match._entry_severity(m), 3)
+    entries = sorted(entries, key=_entry_rank)
+
     return render_template(
         "app/watchlist.html",
         active_page="watchlist",
         entries=entries,
         matches=matches,
         alert_total=alert_total,
+        summary=summary,
         flash_msg=request.args.get("msg") or "",
     )
 
@@ -1253,6 +1504,16 @@ def workspace(dept_id):
     if dept_id == "ra":
         reexam_calendar = _reexam_dday()
 
+    # 식품QA — 식품 행정처분 3종 (v3 R3-8)
+    food_sanctions = None
+    if dept_id == "food_qa":
+        food_sanctions = _food_sanctions()
+
+    # R&D — FDA 특허 분쟁 트래커 (v3 R3-9)
+    fda_tracker = None
+    if dept_id == "rnd":
+        fda_tracker = _fda_tracker()
+
     return render_template(
         "app/workspace.html",
         active_workspace=dept_id,
@@ -1261,6 +1522,8 @@ def workspace(dept_id):
         events=flat_events[:15],
         events_by_kind=events_by_kind,
         reexam_calendar=reexam_calendar,
+        food_sanctions=food_sanctions,
+        fda_tracker=fda_tracker,
     )
 
 
@@ -1303,6 +1566,51 @@ def _reexam_dday():
     except Exception as e:
         logger.debug(f"재심사 D-Day 계산 실패: {e}")
         return None
+
+
+def _food_sanctions(limit=8):
+    """식품 행정처분 3종 (NO 3 수입 / NO 5 판매 / NO 6 제조) — 통합 + DSPS_DCSNDT 정렬 (v3 R3-8)."""
+    from ..api_extras import fetch_food_disc
+    cats = [("import", "수입식품업"), ("sale", "식품판매업"), ("mnft", "식품제조가공업")]
+    by_cat = {}
+    merged = []
+    for code, label in cats:
+        try:
+            items = (fetch_food_disc(category=code, num_of_rows=limit).get("items") or [])[:limit]
+        except Exception:
+            items = []
+        by_cat[code] = {"label": label, "count": len(items)}
+        for it in items:
+            merged.append({
+                "label": label,
+                "entity": it.get("PRCSCITYPOINT_BSSHNM") or it.get("BSSH_NM") or "(업체 미상)",
+                "violation": (it.get("VILTCN") or it.get("DSPS_TYPECD_NM") or "")[:90],
+                "disp": it.get("DSPS_TYPECD_NM") or "",
+                "date": (it.get("DSPS_DCSNDT") or "")[:10],
+            })
+    merged.sort(key=lambda x: x["date"], reverse=True)
+    return {"by_cat": by_cat, "merged": merged[:12],
+            "total": sum(v["count"] for v in by_cat.values())}
+
+
+def _fda_tracker(limit=6):
+    """특허 분쟁 트래커 (NO 557 국내소송 / NO 562 FDA 오렌지북 / NO 552 FDA P4) (v3 R3-9)."""
+    from ..api_extras import fetch_drug_lawsuit, fetch_drug_fda_orangebook, fetch_drug_fda_p4
+    out = {"lawsuit": [], "orangebook": [], "p4": []}
+    try:
+        out["lawsuit"] = (fetch_drug_lawsuit(num_of_rows=limit).get("items") or [])[:limit]
+    except Exception:
+        pass
+    try:
+        out["orangebook"] = (fetch_drug_fda_orangebook(num_of_rows=limit).get("items") or [])[:limit]
+    except Exception:
+        pass
+    try:
+        out["p4"] = (fetch_drug_fda_p4(num_of_rows=limit).get("items") or [])[:limit]
+    except Exception:
+        pass
+    out["total"] = len(out["lawsuit"]) + len(out["orangebook"]) + len(out["p4"])
+    return out
 
 
 # ────────────────────────────────────────────────────────────────────────────

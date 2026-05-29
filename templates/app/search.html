@@ -1,4 +1,5 @@
 {% extends "_layout.html" %}
+{% from "_macros.html" import risk_signal_badge %}
 
 {% block title %}통합 검색 — 광동 KD-IRIS{% endblock %}
 
@@ -49,10 +50,29 @@
           {% endif %}
         </div>
       </div>
+
+      <!-- 종합 위험 신호등 (v3 R2-1) -->
+      {% if search_results.risk_signal %}
+      <div style="margin-bottom:20px;padding:14px 18px;background:var(--bg-elevated);border:1px solid var(--line-1);border-radius:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <span style="font-size:13px;color:var(--ink-3);font-weight:600">종합 위험도</span>
+        {{ risk_signal_badge(search_results.risk_signal) }}
+        <span style="margin-left:auto;font-size:12px;color:var(--ink-3)">회수 {{ search_results.counts.recall }} · 행정처분 {{ search_results.counts.sanction }} · 안전성 {{ search_results.counts.safety }}</span>
+      </div>
+      {% endif %}
       {% else %}
-      <!-- 검색어 없을 때 안내 -->
-      <div style="margin-bottom: 20px; padding: 16px 20px; background: var(--bg-subtle); border: 1px dashed var(--line-1); border-radius: 14px; text-align: center; color: var(--ink-3); font-size: 14px">
-        검색어를 입력하면 11개 식약처 공공 API의 결과가 통합 표시됩니다.
+      <!-- 검색어 없을 때 안내 + 빠른 검색 칩 + 최근 검색 이력 -->
+      <div style="margin-bottom: 20px; padding: 18px 20px; background: var(--bg-subtle); border: 1px dashed var(--line-1); border-radius: 14px; color: var(--ink-3); font-size: 14px">
+        <div style="text-align:center;margin-bottom:14px">검색어를 입력하면 식약처 공공 API 결과가 통합 표시됩니다.</div>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+          <span style="font-size:12px;align-self:center;color:var(--ink-4)">빠른 검색</span>
+          <a href="/?q=광동제약" class="btn btn--secondary btn--sm">광동제약</a>
+          <a href="/?q=아세트아미노펜" class="btn btn--secondary btn--sm">아세트아미노펜</a>
+          <a href="/app/monitor" class="btn btn--secondary btn--sm">최근 회수품목</a>
+        </div>
+        <div id="searchHistory" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--line-2)">
+          <div style="font-size:12px;color:var(--ink-4);margin-bottom:8px;text-align:center">최근 검색</div>
+          <div id="searchHistoryList" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap"></div>
+        </div>
       </div>
       {% endif %}
 
@@ -364,4 +384,36 @@
       {% endif %}
     </div>
   </div>
+{% endblock %}
+
+{% block extra_body %}
+<script>
+(function () {
+  var KEY = 'kdiris.search.history';
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } }
+  function save(list) { try { localStorage.setItem(KEY, JSON.stringify(list.slice(0, 5))); } catch (e) {} }
+
+  // 현재 검색어를 이력에 기록 (최근 5건, 중복 제거)
+  var q = {{ query|tojson }};
+  if (q) {
+    var list = load().filter(function (x) { return x !== q; });
+    list.unshift(q);
+    save(list);
+  }
+
+  // 검색 전 화면이면 최근 검색 이력 렌더
+  var box = document.getElementById('searchHistory');
+  var ul = document.getElementById('searchHistoryList');
+  if (box && ul) {
+    var hist = load();
+    if (hist.length) {
+      ul.innerHTML = hist.map(function (h) {
+        return '<a href="/?q=' + encodeURIComponent(h) + '" class="btn btn--ghost btn--sm">' +
+               h.replace(/</g, '&lt;') + '</a>';
+      }).join('');
+      box.style.display = 'block';
+    }
+  }
+})();
+</script>
 {% endblock %}

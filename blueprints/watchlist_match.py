@@ -266,6 +266,68 @@ def total_alert_count(match_map: Dict[str, Dict]) -> int:
     return sum(m["counts"]["total"] for m in match_map.values())
 
 
+# ────────────────────────────────────────────────────────────────────────────
+# 집계 헬퍼 (KD-IRIS v3 §P4 / R2-5) — 항목별 최고 심각도 기준 분류
+# ────────────────────────────────────────────────────────────────────────────
+
+def _entry_severity(m: Dict) -> str:
+    """
+    한 워치리스트 항목의 최고 심각도 1개.
+      CRITICAL: 회수·공급중단
+      HIGH:     안전성서한·행정처분·재심사·재평가
+      LOW:      특허·임상 (기회/인지 — '이상 없음'으로 집계)
+      OK:       매칭 이벤트 없음
+    """
+    c = m.get("counts", {}) or {}
+    if c.get("recall", 0) > 0 or c.get("supply", 0) > 0:
+        return "CRITICAL"
+    if (c.get("safety", 0) > 0 or c.get("sanction", 0) > 0
+            or c.get("review", 0) > 0 or c.get("reeval", 0) > 0):
+        return "HIGH"
+    if c.get("patent", 0) > 0 or c.get("clinical", 0) > 0:
+        return "LOW"
+    return "OK"
+
+
+def summarize_by_severity(match_map: Dict[str, Dict]) -> Dict[str, int]:
+    """
+    워치리스트 항목들을 최고 심각도별로 집계.
+    반환: {"critical": 🔴 위험 항목수, "high": 🟡 주의 항목수,
+           "ok": 🟢 이상없음(LOW·OK) 항목수, "total": 전체 항목수}
+    """
+    crit = high = ok = 0
+    for m in match_map.values():
+        sev = _entry_severity(m)
+        if sev == "CRITICAL":
+            crit += 1
+        elif sev == "HIGH":
+            high += 1
+        else:  # LOW(특허·임상) + OK(이벤트 없음) = '이상 없음/정보'
+            ok += 1
+    return {"critical": crit, "high": high, "ok": ok, "total": len(match_map)}
+
+
+def critical_alert_count(match_map: Dict[str, Dict]) -> int:
+    """CRITICAL(회수·공급중단) 이벤트를 보유한 워치리스트 항목 수."""
+    return sum(1 for m in match_map.values() if _entry_severity(m) == "CRITICAL")
+
+
+def today_critical_count() -> int:
+    """
+    오늘 신규 CRITICAL(회수명령) 건수 — 공공 데이터(NO 539) 기준.
+    _cached 의 5분 TTL 을 그대로 재사용하므로 페이지마다 재호출하지 않음.
+    """
+    from datetime import date as _date
+    today = _date.today().isoformat()
+    recalls = _cached("recall", fetch_recall, num_of_rows=200)
+    cnt = 0
+    for r in recalls:
+        d = (r.get("RECALL_COMMAND_DATE") or "")[:10]
+        if d == today:
+            cnt += 1
+    return cnt
+
+
 def invalidate_cache() -> None:
     """캐시 비우기 — 디버깅/테스트용."""
     with _CACHE_LOCK:
