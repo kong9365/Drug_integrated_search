@@ -88,6 +88,24 @@
         </div>
 
         <div class="copilot-conv__messages">
+          <!-- 오늘 시스템 현황 브리핑 (v2 §6 — 자사 맥락 자동 주입) -->
+          <div style="margin:0 0 16px;padding:14px 16px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:12px">
+            <div style="font-size:12px;font-weight:700;color:var(--ink-2);margin-bottom:8px">📊 오늘 시스템 현황 (자사 맥락)</div>
+            <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px">
+              <span>자사 품목 <strong>{{ own.total }}</strong></span>
+              <span>Enrichment <strong>{{ own.matched }}</strong></span>
+              <span style="color:{% if own.critical %}var(--danger){% else %}var(--ink-2){% endif %}">긴급 이벤트 <strong>{{ own.critical }}</strong></span>
+              <span style="color:{% if own.unconfirmed %}var(--warn){% else %}var(--ink-2){% endif %}">미확인 <strong>{{ own.unconfirmed }}</strong></span>
+              <span>재심사 D-90 <strong>{{ own.review_due_90 }}</strong></span>
+            </div>
+            <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+              <span style="font-size:11px;color:var(--ink-3)">빠른 질문:</span>
+              <span class="badge">이번 분기 재심사 자사품목?</span>
+              <span class="badge">우리 성분 최근 회수 동향?</span>
+              <span class="badge">평택 GMP 갱신 일정?</span>
+            </div>
+            <div style="margin-top:6px;font-size:11px;color:var(--ink-3)">※ 위 현황이 MISO drug_consult_agent 시스템 프롬프트에 자동 주입됩니다.</div>
+          </div>
           <!-- User msg 1 -->
           <div class="copilot-msg copilot-msg--user">
             <div class="copilot-msg__bubble">광동제약 베니톨정과 동일 성분 제품의 <strong>최근 1년 회수 이력</strong>을 알려주고, 자사 품목 영향도 같이 정리해줘.</div>

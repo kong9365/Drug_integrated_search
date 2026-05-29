@@ -571,6 +571,19 @@ def product_drug(code):
     except Exception as e:
         logger.warning(f"Product 360 데이터 수집 실패 (code={code}): {e}")
 
+    # 자사 마스터 대조 (v2 §2 S1) — 자사 품목이면 배지 + 관련 QA 이벤트
+    own_product = None
+    own_events = []
+    try:
+        from .qa import lookup as qa_lookup
+        seq = (product or {}).get("ITEM_SEQ") if product else None
+        own_product = qa_lookup.match_own_product(
+            item_seq=seq, edi_code=code, item_name=(product or {}).get("ITEM_NAME") if product else None)
+        if own_product:
+            own_events = qa_lookup.events_for_item(own_product["item_code"])
+    except Exception as e:
+        logger.debug(f"자사 마스터 대조 실패: {e}")
+
     return render_template(
         "app/product_drug.html",
         active_page="search",
@@ -579,6 +592,8 @@ def product_drug(code):
         drug_easy=drug_easy,
         identification=identification,
         detail=detail,
+        own_product=own_product,
+        own_events=own_events,
         related_recalls=related_recalls,
         same_entity_recalls=same_entity_recalls,
         safety_letters=safety_letters,
@@ -898,8 +913,14 @@ def monitor():
 
 @app_bp.route("/copilot")
 def copilot():
-    """AI 코파일럿 — MISO drug_consult_agent 프록시."""
-    return render_template("app/copilot.html", active_page="copilot")
+    """AI 코파일럿 — MISO drug_consult_agent 프록시 + 자사 현황 맥락 주입 (v2 §6)."""
+    own = {"total": 0, "matched": 0, "critical": 0, "unconfirmed": 0, "review_due_90": 0}
+    try:
+        from .qa import lookup as qa_lookup
+        own = qa_lookup.own_summary()
+    except Exception as e:
+        logger.debug(f"코파일럿 자사 요약 실패: {e}")
+    return render_template("app/copilot.html", active_page="copilot", own=own)
 
 
 @app_bp.route("/home")

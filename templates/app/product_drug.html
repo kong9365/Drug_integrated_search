@@ -82,6 +82,32 @@
     </div>
     {% endif %}
 
+    {# ── 자사 품목 대조 배너 (v2 §2 S1 — 조회 결과를 항상 자사 마스터와 대조) ── #}
+    {% if own_product %}
+    <div style="padding:12px 32px;background:var(--ok-soft, #e8f5e9);border-bottom:1px solid var(--ok);font-size:13px">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="badge badge--ok badge--dot">★ 자사 품목</span>
+        <span style="color:var(--ink-2)">사내 품목코드 <strong>{{ own_product.item_code }}</strong></span>
+        {% if own_product.sub_category %}<span class="badge">{{ own_product.sub_category }}</span>{% endif %}
+        {% if own_product.self_or_consign == '위탁' %}<span class="badge badge--warn">위탁 {{ own_product.consign_maker or '' }}</span>{% endif %}
+        {% if own_product.enrich_status == 'matched' %}<span class="badge badge--ok">Enrichment ✓</span>
+        {% elif own_product.enrich_status == 'review' %}<span class="badge badge--warn">확인 필요</span>{% endif %}
+        {% if own_product.reexam_date %}<span style="color:var(--warn)">재심사 {{ own_product.reexam_date }}</span>{% endif %}
+        <a href="/app/qa/master/{{ own_product.item_code }}" style="margin-left:auto;color:var(--brand);font-size:12px;text-decoration:none">자사 마스터 상세 →</a>
+      </div>
+      {% if own_events %}
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <span style="font-size:12px;color:var(--ink-3)">관련 QA 이벤트:</span>
+        {% for e in own_events[:5] %}
+        <a href="/app/qa/event/{{ e.event_id }}" style="text-decoration:none">
+          <span class="badge {% if e.severity=='CRITICAL' %}badge--danger{% elif e.severity=='HIGH' %}badge--warn{% else %}badge--ok{% endif %}">{{ e.title|truncate(20) }}</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
     <!-- Hero — 실 API 데이터 바인딩 -->
     <section class="p360-hero">
       {# 낱알식별 이미지 — identification 또는 product_live의 BIG_PRDT_IMG_URL 사용 #}
