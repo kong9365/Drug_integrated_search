@@ -50,6 +50,16 @@ Thumbs.db
 .env
 .env.local
 
+# API 키/인증 정보가 포함된 신청·승인 목록·문서 (절대 커밋 금지)
+# ※ 한글 파일명 인코딩(NFC/NFD) 차이 대비 ASCII 접두어 패턴 사용
+OpenAPI*
+*신청 목록*.txt
+gateway_swagger_guide.pdf
+식품의약품안전처_*.txt
+structure.txt
+# 프로젝트 아카이브 (코드·설정 번들 — 키 유출 위험, 커밋 금지)
+*.zip
+
 # 사용자 데이터 (워치리스트 등 영속화 JSON)
 data/*.json
 data/*.tmp
