@@ -95,6 +95,7 @@ def master():
 # 9탭 정의 (품목마스터 상세) — 데이터 탭 + SAP/EDMS 연동대기 placeholder
 _PM_TABS = [
     ("ingredient", "원약분량", "data"),
+    ("approval_detail", "허가상세", "data"),
     ("packaging", "포장단위", "data"),
     ("pkg_material", "포장자재", "pending"),
     ("reg_event", "규제 이벤트", "data"),
@@ -135,6 +136,21 @@ def master_detail(code):
                                   recall_items=recalls, review_due_days=None)
     except Exception as e:
         logger.debug(f"master_detail 신호등 실패: {e}")
+    # 허가상세 (NO 140 상세, getDrugPrdtPrmsnDtlInq06) — 효능효과·용법용량·주의사항·42필드
+    # best-effort 라이브 조회 (item_seq 우선, 폴백 edi_code). 실패 시 None → 템플릿이 안내문 표시.
+    detail = None
+    try:
+        from ...api_client import fetch_approval_detail
+        if item.get("item_seq"):
+            dr = fetch_approval_detail(item_seq=item["item_seq"], num_of_rows=1)
+        elif item.get("edi_code"):
+            dr = fetch_approval_detail(edi_code=item["edi_code"], num_of_rows=1)
+        else:
+            dr = None
+        if dr and dr.get("items"):
+            detail = dr["items"][0]
+    except Exception as e:
+        logger.debug(f"master_detail NO140 상세 조회 실패: {e}")
     # 낱알 이미지 (best-effort, matched 품목만)
     pill = None
     try:
@@ -149,7 +165,7 @@ def master_detail(code):
     return render_template("app/qa/master_detail.html", active_page="qa",
                            item=item, ingredients=ingredients, packaging=packaging,
                            reg_events=reg_events, related=related, signal=signal,
-                           pill_image_url=pill, tabs=_PM_TABS,
+                           detail=detail, pill_image_url=pill, tabs=_PM_TABS,
                            can_apqr=(item.get("enrich_status") == "matched"),
                            flash_msg=request.args.get("msg") or "")
 

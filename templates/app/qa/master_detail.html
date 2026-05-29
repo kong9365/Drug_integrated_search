@@ -132,6 +132,98 @@
     </div>
   </div>
 
+  <!-- 허가상세 (NO 140 상세 — getDrugPrdtPrmsnDtlInq06) -->
+  <div data-p360-panel="approval_detail">
+    {% if detail %}
+    {# 효능·효과 / 용법·용량 / 주의사항 (첨부문서 본문) #}
+    {% if detail.EE_DOC_DATA or detail.UD_DOC_DATA or detail.NB_DOC_DATA %}
+    <div class="app-card" style="margin-bottom:16px">
+      <div class="app-card__head"><div class="app-card__title">효능·효과 / 용법·용량 / 주의사항</div><span class="app-card__caption">의약품 첨부문서</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        {% if detail.EE_DOC_DATA %}
+        <div style="padding:14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px">
+          <div class="t-caption" style="margin-bottom:6px">효능·효과</div>
+          <div style="font-size:13px;color:var(--ink-2);line-height:1.55;max-height:220px;overflow-y:auto">{{ detail.EE_DOC_DATA|truncate(600) }}</div>
+        </div>
+        {% endif %}
+        {% if detail.UD_DOC_DATA %}
+        <div style="padding:14px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:10px">
+          <div class="t-caption" style="margin-bottom:6px">용법·용량</div>
+          <div style="font-size:13px;color:var(--ink-2);line-height:1.55;max-height:220px;overflow-y:auto">{{ detail.UD_DOC_DATA|truncate(600) }}</div>
+        </div>
+        {% endif %}
+        {% if detail.NB_DOC_DATA %}
+        <div style="padding:14px;background:var(--warn-soft);border:1px solid var(--warn);border-radius:10px;grid-column:span 2">
+          <div class="t-caption" style="margin-bottom:6px;color:var(--warn)">사용상의 주의사항</div>
+          <div style="font-size:13px;color:var(--ink-2);line-height:1.55;max-height:260px;overflow-y:auto">{{ detail.NB_DOC_DATA|truncate(900) }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# 허가 상세 42필드 #}
+    <div class="app-card">
+      <div class="app-card__head"><div class="app-card__title">허가 상세 정보</div><span class="app-card__caption">NO 140 상세 (getDrugPrdtPrmsnDtlInq06)</span></div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        {# 성분·함량 #}
+        <tr><td colspan="2" style="padding:6px 8px;background:var(--bg-subtle);color:var(--ink-3);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">성분·함량</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3);width:28%">주성분(상세)</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6">{{ detail.MATERIAL_NAME or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">주성분(영문)</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.MAIN_INGR_ENG or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">총량</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.TOTAL_CONTENT or '—' }}</td></tr>
+
+        {# 제형·포장·저장 #}
+        <tr><td colspan="2" style="padding:6px 8px;background:var(--bg-subtle);color:var(--ink-3);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">제형·포장·저장</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">성상</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.CHART or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">포장단위</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.PACK_UNIT or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">저장방법</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.STORAGE_METHOD or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">유효기간</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-weight:600">{{ detail.VALID_TERM or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">바코드(표준코드)</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-family:'JetBrains Mono',monospace;font-size:12px;word-break:break-all">{{ detail.BAR_CODE or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">ATC 코드</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-family:'JetBrains Mono',monospace">{{ detail.ATC_CODE or '—' }}</td></tr>
+
+        {# 분류·규제 #}
+        <tr><td colspan="2" style="padding:6px 8px;background:var(--bg-subtle);color:var(--ink-3);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">분류·규제</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">전문/일반 (ETC/OTC)</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{% if detail.ETC_OTC_CODE %}<span class="badge">{{ detail.ETC_OTC_CODE }}</span>{% else %}—{% endif %}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">희귀의약품</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{% if detail.RARE_DRUG_YN == 'Y' %}<span class="badge badge--warn">희귀의약품</span>{% elif detail.RARE_DRUG_YN == 'N' %}<span style="color:var(--ink-3)">N (일반)</span>{% else %}—{% endif %}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">마약류 구분</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{% if detail.NARCOTIC_KIND_CODE %}<span class="badge badge--danger">{{ detail.NARCOTIC_KIND_CODE }}</span>{% else %}—{% endif %}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">신약 구분</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.NEWDRUG_CLASS_NAME or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">허가 종류</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.PERMIT_KIND_NAME or '—' }}</td></tr>
+
+        {# 재심사·변경 #}
+        <tr><td colspan="2" style="padding:6px 8px;background:var(--bg-subtle);color:var(--ink-3);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">재심사·변경</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">재심사 대상</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.REEXAM_TARGET or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">재심사 기한일</td><td style="padding:8px;border-bottom:1px solid var(--line-2);color:{% if detail.REEXAM_DATE %}var(--warn);font-weight:600{% else %}var(--ink-3){% endif %}">{{ detail.REEXAM_DATE or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">최근 변경일</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.CHANGE_DATE or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">취소일</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.CANCEL_DATE or '—' }}</td></tr>
+
+        {# 위탁제조·사업자 #}
+        <tr><td colspan="2" style="padding:6px 8px;background:var(--bg-subtle);color:var(--ink-3);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">위탁제조·사업자</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">위탁제조사</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.CNSGN_MANUF or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">업체 번호</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-family:'JetBrains Mono',monospace">{{ detail.ENTP_NO or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">사업자등록번호</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-family:'JetBrains Mono',monospace">{{ detail.BIZRNO or '—' }}</td></tr>
+
+        {# 첨부 문서 PDF #}
+        <tr><td colspan="2" style="padding:6px 8px;background:var(--bg-subtle);color:var(--ink-3);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">첨부 문서 (식약처 nedrug)</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">효능·효과 PDF</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{% if detail.EE_DOC_ID %}<a href="{{ detail.EE_DOC_ID }}" target="_blank" rel="noopener" style="color:var(--brand);font-family:'JetBrains Mono',monospace;font-size:11px">📎 다운로드</a>{% else %}—{% endif %}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">용법·용량 PDF</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{% if detail.UD_DOC_ID %}<a href="{{ detail.UD_DOC_ID }}" target="_blank" rel="noopener" style="color:var(--brand);font-family:'JetBrains Mono',monospace;font-size:11px">📎 다운로드</a>{% else %}—{% endif %}</td></tr>
+        <tr><td style="padding:8px;color:var(--ink-3)">사용상의 주의사항 PDF</td><td style="padding:8px">{% if detail.NB_DOC_ID %}<a href="{{ detail.NB_DOC_ID }}" target="_blank" rel="noopener" style="color:var(--brand);font-family:'JetBrains Mono',monospace;font-size:11px">📎 다운로드</a>{% else %}—{% endif %}</td></tr>
+      </table>
+    </div>
+    {% else %}
+    <div class="app-card">
+      <div class="app-card__head"><div class="app-card__title">허가 상세 정보</div><span class="app-card__caption">NO 140 상세 (getDrugPrdtPrmsnDtlInq06)</span></div>
+      <div style="padding:30px;text-align:center;color:var(--ink-3);background:var(--bg-subtle);border-radius:10px;font-size:13px;line-height:1.6">
+        {% if item.item_seq %}
+        ⚠ NO 140 상세 API 응답 없음 — 일시적 timeout/SSL 가능. 페이지 새로고침 시 회복되는 경우가 많습니다.<br>
+        <a href="https://nedrug.mfds.go.kr/pbp/CCBBB01/getItemDetail?itemSeq={{ item.item_seq }}" target="_blank" rel="noopener" style="color:var(--brand)">🔗 nedrug.mfds.go.kr 직접 조회 (item_seq={{ item.item_seq }})</a>
+        {% else %}
+        허가상세 데이터 없음 — enrich(NO 140 매칭)가 완료되어 품목기준코드(item_seq)가 부여된 후 조회됩니다.
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
   <!-- 포장 -->
   <div data-p360-panel="packaging">
     <div class="app-card">
