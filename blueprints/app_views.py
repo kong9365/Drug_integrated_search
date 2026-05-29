@@ -850,6 +850,38 @@ def monitor():
     except Exception as e:
         logger.warning(f"timeline recall 수집 실패: {e}")
     try:
+        # 의약품외 회수·판매중지 (NO 539 etc)
+        from ..api_client import fetch_recall_etc
+        re_ = fetch_recall_etc(num_of_rows=15)
+        for r in re_.get("items", [])[:8]:
+            events.append({
+                "type": "recall",
+                "type_label": "의약품외 회수·판매중지",
+                "severity_level": "CRITICAL", "severity_color": "danger",
+                "title": (r.get("PRDUCT") or "(제품 미상)")[:60],
+                "summary": (r.get("RTRVL_RESN") or "")[:100],
+                "entity": r.get("ENTRPS") or "",
+                "date": (r.get("RECALL_COMMAND_DATE") or "")[:10],
+            })
+    except Exception as e:
+        logger.warning(f"monitor 의약품외 회수 수집 실패: {e}")
+    try:
+        # 한약(생약)제제 회수·판매중지 (NO 90)
+        from ..api_extras import fetch_herbal_recall
+        hr = fetch_herbal_recall(num_of_rows=15)
+        for r in hr.get("items", [])[:8]:
+            events.append({
+                "type": "recall",
+                "type_label": "한약 회수·판매중지",
+                "severity_level": "CRITICAL", "severity_color": "danger",
+                "title": (r.get("ITEM_NAME") or "(품목 미상)")[:60],
+                "summary": (r.get("DISPS_CONT") or "")[:100],
+                "entity": r.get("ENTP_NAME") or "",
+                "date": (r.get("DISPS_DT") or r.get("RECALL_COMMAND_DATE") or "")[:10],
+            })
+    except Exception as e:
+        logger.warning(f"monitor 한약 회수 수집 실패: {e}")
+    try:
         # 행정처분 (NO 564)
         dr = fetch_disciplinary(num_of_rows=20)
         for d in dr.get("items", [])[:10]:
@@ -1046,12 +1078,14 @@ def monitor():
             return 0 <= delta <= 31
         filtered = [e for e in filtered if _in_period(e.get("date"))]
 
-    # ── 그룹화 (v3 R2-3) — 동일 title 2건↑ → 1개 카드 + 묶음 카운트 ──
+    # ── 그룹화 (v3 R2-3) — 동일 유형+품목 2건↑ → 1개 카드 + 묶음 카운트 ──
+    # ※ 키에 type_label 포함: 한약 회수(NO90)·의약품외(539)가 일반 회수와 품목명이 같아도
+    #    서로 다른 출처로 구분 표시되도록 (단순 title 키는 한약 라벨이 일반 회수에 흡수됨)
     grouped = {}
     display_events = []
     for e in filtered:
-        key = e.get("title", "")
-        if key and key in grouped:
+        key = (e.get("type_label", ""), e.get("title", ""))
+        if key in grouped:
             grouped[key]["_group_count"] += 1
         else:
             g = dict(e)
@@ -1450,6 +1484,41 @@ def _fetch_workspace_events(kinds):
     return out
 
 
+def _rnd_extras():
+    """R&D 참조: 희귀필수의약품(NO 81, 5종 카운트+치료용 샘플) + 임상시험 실시기관(NO 568)."""
+    from ..api_extras import fetch_rare_essential, fetch_drug_clinical_org
+    labels = [("treat", "치료용"), ("self", "자가치료 마약류"), ("unreg", "긴급도입 미등재"),
+              ("reg", "긴급도입 등재"), ("narc", "긴급도입 마약류")]
+    rare = {"counts": {}, "rows": [], "labels": labels, "total": 0}
+    for code, _ in labels:
+        try:
+            r = fetch_rare_essential(category=code, num_of_rows=5)
+            n = r.get("totalCount", 0)
+            rare["counts"][code] = n
+            rare["total"] += n
+            if code == "treat":
+                rare["rows"] = (r.get("items") or [])[:5]
+        except Exception:
+            rare["counts"][code] = 0
+    orgs = []
+    try:
+        orgs = (fetch_drug_clinical_org(num_of_rows=8).get("items") or [])[:8]
+    except Exception as e:
+        logger.debug(f"임상기관 조회 실패: {e}")
+    return {"rare": rare, "orgs": orgs}
+
+
+def _herbal_origin(drnm=None):
+    """한약(생약)제제 허가 기원 정보 (NO 35). 403/승인 전파지연 시 graceful."""
+    from ..api_extras import fetch_herbal_approval
+    try:
+        r = fetch_herbal_approval(drnm=(drnm or None), num_of_rows=8)
+        return {"rows": (r.get("items") or [])[:8], "total": r.get("totalCount", 0),
+                "ok": bool(r.get("success")), "error": r.get("error", ""), "q": (drnm or "")}
+    except Exception as e:
+        return {"rows": [], "total": 0, "ok": False, "error": str(e), "q": (drnm or "")}
+
+
 @app_bp.route("/workspace")
 def workspace_index():
     """워크스페이스 단일 진입 — 부서 미지정 시 RA 로 redirect."""
@@ -1499,10 +1568,12 @@ def workspace(dept_id):
         flat_events.extend(evs)
     flat_events.sort(key=lambda e: e.get("date", ""), reverse=True)
 
-    # RA 워크스페이스 — 자사 재심사 D-Day 캘린더 (v3 R3-1, master_item.reexam_date 활용)
+    # RA 워크스페이스 — 자사 재심사 D-Day 캘린더 (v3 R3-1) + 한약 허가 기원 (NO 35)
     reexam_calendar = None
+    herbal_origin = None
     if dept_id == "ra":
         reexam_calendar = _reexam_dday()
+        herbal_origin = _herbal_origin(drnm=request.args.get("herbal_q"))
 
     # 식품QA — 식품 행정처분 3종 (v3 R3-8) + 건강기능식품·식품공전 (식품안전나라)
     food_sanctions = None
@@ -1511,10 +1582,12 @@ def workspace(dept_id):
         food_sanctions = _food_sanctions()
         hf = _hf_foodsafety(food_code_q=request.args.get("food_code_q"))
 
-    # R&D — FDA 특허 분쟁 트래커 (v3 R3-9)
+    # R&D — FDA 특허 분쟁 트래커 (v3 R3-9) + 희귀필수(81)·임상기관(568)
     fda_tracker = None
+    rnd_extras = None
     if dept_id == "rnd":
         fda_tracker = _fda_tracker()
+        rnd_extras = _rnd_extras()
 
     return render_template(
         "app/workspace.html",
@@ -1524,9 +1597,11 @@ def workspace(dept_id):
         events=flat_events[:15],
         events_by_kind=events_by_kind,
         reexam_calendar=reexam_calendar,
+        herbal_origin=herbal_origin,
         food_sanctions=food_sanctions,
         hf=hf,
         fda_tracker=fda_tracker,
+        rnd_extras=rnd_extras,
     )
 
 

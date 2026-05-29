@@ -123,25 +123,25 @@ def fetch_drug_orphan(item_name=None, target_disease=None, page_no=1, num_of_row
 # 신청·승인 전까지는 endpoint 미정의 → graceful (success=False, 미신청 안내).
 # ────────────────────────────────────────────────────────────────────────────
 
-def fetch_herbal_approval(item_name=None, entp_name=None, page_no=1, num_of_rows=10):
-    """NO 35 한약(생약)제제 허가 기원 — 미신청 hook.
-    승인 시 config.API_ENDPOINTS['herbal_approval'] 채우면 자동 작동."""
+def fetch_herbal_approval(drnm=None, txngrp_nm=None, page_no=1, num_of_rows=10):
+    """NO 35 한약(생약)제제 허가 기원 정보 (2026-05-29 승인, Base 1471057).
+    파라미터: DRNM(생약명), TXNGRP_NM(동식물명). 응답: 생약명↔동식물명 기원 매핑."""
     if "herbal_approval" not in API_ENDPOINTS:
-        logger.info("[NO 35 한약허가] 미신청 — data.go.kr 활용신청 후 config endpoint 등록 필요")
+        logger.info("[NO 35 한약허가] 미신청 — config endpoint 등록 필요")
         return {"success": False, "error": "NO 35 미신청 (hook)", "items": [], "totalCount": 0}
-    return _fetch_generic("herbal_approval", "한약허가",
-                          {"item_name": item_name, "entp_name": entp_name},
+    return _fetch_generic("herbal_approval", "한약허가기원",
+                          {"DRNM": drnm, "TXNGRP_NM": txngrp_nm},
                           page_no=page_no, num_of_rows=num_of_rows)
 
 
 def fetch_herbal_recall(item_name=None, entp_name=None, page_no=1, num_of_rows=10):
-    """NO 90 한약(생약)제제 회수·판매중지 — 미신청 hook.
-    승인 시 config.API_ENDPOINTS['herbal_recall'] 채우면 모니터링 5번째 API로 자동 편입."""
+    """NO 90 한약(생약)제제 회수·판매중지 정보 (2026-05-29 승인).
+    파라미터: ITEM_NAME(품목명), ENTP_NAME(업체명). 응답: ENTP_NAME·ITEM_NAME·DISPS_CONT(회수사유)."""
     if "herbal_recall" not in API_ENDPOINTS:
-        logger.info("[NO 90 한약회수] 미신청 — data.go.kr 활용신청 후 config endpoint 등록 필요")
+        logger.info("[NO 90 한약회수] 미신청 — config endpoint 등록 필요")
         return {"success": False, "error": "NO 90 미신청 (hook)", "items": [], "totalCount": 0}
     return _fetch_generic("herbal_recall", "한약회수",
-                          {"item_name": item_name, "entp_name": entp_name},
+                          {"ITEM_NAME": item_name, "ENTP_NAME": entp_name},
                           page_no=page_no, num_of_rows=num_of_rows)
 
 

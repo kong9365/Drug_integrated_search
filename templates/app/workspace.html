@@ -84,6 +84,44 @@
     </div>
     {% endif %}
 
+    {# RA 전용 — 한약(생약)제제 허가 기원 정보 (NO 35) #}
+    {% if herbal_origin %}
+    <div class="app-card" style="margin-bottom:20px">
+      <div class="app-card__head">
+        <div class="app-card__title">한약(생약)제제 허가 기원</div>
+        <span class="app-card__caption">생약명 ↔ 동식물명 기원 매핑 · NO 35</span>
+      </div>
+      <form method="get" action="/app/workspace/ra" style="display:flex;gap:8px;margin-bottom:10px">
+        <input name="herbal_q" value="{{ herbal_origin.q }}" placeholder="생약명 (예: 흰전동싸리꽃잎)"
+               style="flex:1;max-width:320px;height:36px;padding:0 12px;border:1px solid var(--line-1);border-radius:8px;background:var(--bg-elevated);color:var(--ink-1);font-size:13px;outline:none">
+        <button type="submit" class="btn btn--secondary btn--sm">검색</button>
+      </form>
+      {% if herbal_origin.ok and herbal_origin.rows %}
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:var(--bg-subtle)">
+          <th style="padding:7px;text-align:left">생약명</th><th style="padding:7px;text-align:left">동식물명</th><th style="padding:7px;text-align:left">기원</th>
+        </tr></thead>
+        <tbody>
+        {% for it in herbal_origin.rows %}
+        <tr>
+          <td style="padding:7px;border-top:1px solid var(--line-2)">{{ (it.DRNM or it.HBMD_NM or '')|truncate(20) }}</td>
+          <td style="padding:7px;border-top:1px solid var(--line-2)">{{ (it.TXNGRP_NM or '')|truncate(20) }}</td>
+          <td style="padding:7px;border-top:1px solid var(--line-2);color:var(--ink-2)">{{ (it.ORIG_NM or it.PRMSN_ORIG or '')|truncate(30) }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <div style="font-size:11px;color:var(--ink-3);margin-top:6px">총 {{ herbal_origin.total }}건</div>
+      {% elif herbal_origin.ok %}
+      <div style="padding:16px;text-align:center;color:var(--ink-3);font-size:12px">{% if herbal_origin.q %}"{{ herbal_origin.q }}" 기원 정보 없음{% else %}생약명으로 검색하세요{% endif %}</div>
+      {% else %}
+      <div style="padding:14px;background:var(--warn-soft);border:1px solid var(--warn);border-radius:8px;font-size:12px;color:var(--ink-2)">
+        ⚠ NO 35 한약 허가 기원 API 응답 대기 — 승인(2026-05-29) 전파 중이거나 일시 접근 제한(403). 엔드포인트·키는 정상 등록됨.
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
     {# 식품QA 전용 — 식품 행정처분 3종 통합 (v3 R3-8) #}
     {% if food_sanctions %}
     <div class="app-card" style="margin-bottom:20px">
@@ -256,6 +294,55 @@
             <div style="padding:8px 10px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:8px;font-size:12px">
               <strong style="color:var(--ink-1)">{{ (it.DRUG_NAME or '?')|truncate(24) }}</strong>
               <div style="color:var(--ink-3);margin-top:2px">{{ (it.DOSAGE_FORM or '')|truncate(20) }}{% if it.RLD %} · RLD {{ it.RLD }}{% endif %}</div>
+            </div>
+            {% else %}
+            <div style="font-size:11px;color:var(--ink-4);padding:6px">데이터 없음</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {# R&D 전용 — 희귀필수의약품(NO 81) + 임상시험 실시기관(NO 568) #}
+    {% if rnd_extras %}
+    <div class="app-card" style="margin-bottom:20px">
+      <div class="app-card__head">
+        <div class="app-card__title">희귀·필수의약품 · 임상시험 기관</div>
+        <span class="app-card__caption">희귀필수 {{ rnd_extras.rare.total }}건 · 임상기관 {{ rnd_extras.orgs|length }}</span>
+      </div>
+      <!-- 희귀필수 5종 카운트 -->
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px">
+        {% for code, label in rnd_extras.rare.labels %}
+        <div style="border:1px solid var(--line-2);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:{% if rnd_extras.rare.counts.get(code) %}var(--brand){% else %}var(--ink-3){% endif %}">{{ rnd_extras.rare.counts.get(code, 0) }}</div>
+          <div style="font-size:11px;color:var(--ink-3)">{{ label }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <!-- 치료용 희귀필수 샘플 -->
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:8px">치료용 희귀필수의약품 ({{ rnd_extras.rare.rows|length }})</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            {% for it in rnd_extras.rare.rows %}
+            <div style="padding:9px 11px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:8px;font-size:12px">
+              <strong style="color:var(--ink-1)">{{ (it.MEDCIN_NAME or it.PRDUCT_NAME or it.ITEM_NAME or '?')|truncate(26) }}</strong>
+              {% if it.INGR %}<div style="color:var(--ink-3);margin-top:2px">{{ it.INGR|truncate(34) }}</div>{% endif %}
+            </div>
+            {% else %}
+            <div style="font-size:11px;color:var(--ink-4);padding:6px">데이터 없음</div>
+            {% endfor %}
+          </div>
+        </div>
+        <!-- 임상시험 실시기관 -->
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:8px">임상시험 실시기관 ({{ rnd_extras.orgs|length }})</div>
+          <div style="display:flex;flex-direction:column;gap:4px;font-size:12px">
+            {% for it in rnd_extras.orgs %}
+            <div style="display:flex;justify-content:space-between;padding:7px 10px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:8px">
+              <span style="color:var(--ink-1)">{{ (it.LAB_NAME or it.INSTT_NAME or it.CLINIC_INSTT_NAME or '?')|truncate(24) }}</span>
+              <span style="color:var(--ink-3);font-family:'JetBrains Mono',monospace">{{ it.APPN_DT or it.DSGT_DT or '' }}</span>
             </div>
             {% else %}
             <div style="font-size:11px;color:var(--ink-4);padding:6px">데이터 없음</div>

@@ -160,13 +160,13 @@ API_ENDPOINTS = {
     # 한국식품안전관리인증원 (B553748 카테고리 — 동일 SERVICE_KEY 작동 여부 smoke test 검증 필요)
     "haccp_smart":        f"https://apis.data.go.kr/B553748/SmartCertFoodListService/getFoodList",      # NO 12 스마트HACCP
 
-    # ===== 한약(생약) — 미신청 hook (승인 시 endpoint 채우면 즉시 작동) ==========
-    # NO 35 한약(생약)제제 허가 기원 — enrichment 한약 라인 폴백 (1차: 미신청)
-    # "herbal_approval":  f"{_DATA_GO_KR_BASE}/<TBD-NO35-Service>/<TBD-op>",
-    # NO 90 한약(생약)제제 회수·판매중지 — 모니터링 5번째 API (1차: 미신청)
-    # "herbal_recall":    f"{_DATA_GO_KR_BASE}/<TBD-NO90-Service>/<TBD-op>",
-    #   → data.go.kr 마이페이지 활용신청 → 자동승인 → End Point 복사 후 주석 해제.
-    #   → fetch_herbal_approval / fetch_herbal_recall (api_extras stub)가 자동 활성.
+    # ===== 한약(생약) — 2026-05-29 승인 (동일 SERVICE_KEY) =======================
+    # NO 35 한약(생약)제제 허가 기원 정보 — ※ Base 1471057 (식품의약품안전평가원)
+    #   파라미터: DRNM(생약명), TXNGRP_NM(동식물명) / 응답: 생약명·동식물명 기원 매핑
+    "herbal_approval":  "https://apis.data.go.kr/1471057/HbmdMdctPrmsnOrigInfoService/getHbmdMdctPrmsnOrigInfoService",
+    # NO 90 한약(생약)제제 회수·판매중지 정보 — Base 1471000
+    #   파라미터: ENTP_NAME(업체명), ITEM_NAME(품목명) / 응답: ENTP_NAME·ITEM_NAME·DISPS_CONT(회수사유)
+    "herbal_recall":    f"{_DATA_GO_KR_BASE}/HerbRtrvlSleStpgeInfo/getHerbRtrvlSleStpgeInfo",
 
     # ===== End Point 명세 확인 대기 (식품안전나라 serviceId 확정 완료, KeyID 발급 대기) =====
     #   NO 339→I0490 · 225→I2810 · 477→I2630 · 444→I1250 · 470→C002
