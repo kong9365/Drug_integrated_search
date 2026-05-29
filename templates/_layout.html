@@ -22,9 +22,12 @@
 <!-- ===================== SIDEBAR ===================== -->
 <aside class="sidebar" data-app-sidebar>
   <div class="sidebar__brand">
-    <a href="/" class="logo logo--sm">
-      <span class="logo__mark"></span>
-      <span>KD-IRIS</span>
+    <a href="/" class="logo logo--sm" title="광동제약 KD-IRIS">
+      <img src="{{ url_for('static', filename='images/kwangdong_logo.png') }}" alt="광동제약"
+           class="logo__img"
+           onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='inline-block';">
+      <span id="logoFallback" class="logo__mark" style="display:none"></span>
+      <span class="logo__text">KD-IRIS</span>
     </a>
     <button class="theme-toggle" data-theme-toggle aria-label="테마 전환" style="width:32px;height:32px;border-radius:8px">
       <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
