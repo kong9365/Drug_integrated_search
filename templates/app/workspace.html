@@ -119,6 +119,102 @@
     </div>
     {% endif %}
 
+    {# 식품QA 전용 — 건강기능식품·식품공전 (식품안전나라) #}
+    {% if hf %}
+    <div class="app-card" style="margin-bottom:20px">
+      <div class="app-card__head">
+        <div class="app-card__title">건강기능식품 · 식품공전 (식품안전나라)</div>
+        <span class="app-card__caption">개별인정형 · 영양DB 분류 · 품목제조신고 · 식품공전 기준규격</span>
+      </div>
+
+      <!-- 카운트 3종 -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+        <div style="border:1px solid var(--line-2);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:24px;font-weight:700;color:var(--brand)">{{ hf.individual.total }}</div>
+          <div style="font-size:12px;color:var(--ink-3)">개별인정형 원료</div>
+        </div>
+        <div style="border:1px solid var(--line-2);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:24px;font-weight:700;color:var(--brand)">{{ hf.nutrition.total }}</div>
+          <div style="font-size:12px;color:var(--ink-3)">영양DB 분류</div>
+        </div>
+        <div style="border:1px solid var(--line-2);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:24px;font-weight:700;color:var(--brand)">{{ hf.report.total }}</div>
+          <div style="font-size:12px;color:var(--ink-3)">품목제조 신고</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <!-- 개별인정형 샘플 -->
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:8px">개별인정형 기능성 원료 (최근 {{ hf.individual.rows|length }})</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            {% for it in hf.individual.rows %}
+            <div style="padding:10px 12px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:8px;font-size:12px">
+              <strong style="color:var(--ink-1)">{{ (it.RAWMTRL_NM or '?')|truncate(30) }}</strong>
+              <div style="color:var(--ink-3);margin-top:2px">{{ (it.PRIMARY_FNCLTY or '')|truncate(48) }}</div>
+              {% if it.DAY_INTK_LOWLIMIT or it.DAY_INTK_HIGHLIMIT %}
+              <div style="color:var(--ink-4);margin-top:2px">1일 섭취량 {{ it.DAY_INTK_LOWLIMIT or '?' }}~{{ it.DAY_INTK_HIGHLIMIT or '?' }} {{ it.WT_UNIT or '' }}</div>
+              {% endif %}
+            </div>
+            {% else %}
+            <div style="font-size:11px;color:var(--ink-4);padding:6px">데이터 없음</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- 영양DB 분류 샘플 -->
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:8px">영양DB 분류 체계 (최근 {{ hf.nutrition.rows|length }})</div>
+          <div style="display:flex;flex-direction:column;gap:4px;font-size:12px">
+            {% for it in hf.nutrition.rows %}
+            <div style="display:flex;justify-content:space-between;padding:7px 10px;background:var(--bg-subtle);border:1px solid var(--line-2);border-radius:8px">
+              <span style="color:var(--ink-1)">{{ (it.HELT_ITM_GRP_NM or '?')|truncate(22) }}</span>
+              <span style="color:var(--ink-3)">{{ it.LCLAS_NM or '' }}{% if it.MLSFC_NM %} · {{ it.MLSFC_NM }}{% endif %}</span>
+            </div>
+            {% else %}
+            <div style="font-size:11px;color:var(--ink-4);padding:6px">데이터 없음</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- 식품공전 검색 (대용량 → 품목명 검색형) -->
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line-2)">
+        <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:8px">식품공전 기준규격 검색</div>
+        <form method="get" action="/app/workspace/food_qa" style="display:flex;gap:8px;margin-bottom:10px">
+          <input name="food_code_q" value="{{ hf.food_code.q }}" placeholder="품목명 (예: 홍삼, 김치)"
+                 style="flex:1;max-width:320px;height:36px;padding:0 12px;border:1px solid var(--line-1);border-radius:8px;background:var(--bg-elevated);color:var(--ink-1);font-size:13px;outline:none">
+          <button type="submit" class="btn btn--secondary btn--sm">검색</button>
+        </form>
+        {% if hf.food_code.q %}
+          {% if hf.food_code.rows %}
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr style="background:var(--bg-subtle)">
+              <th style="padding:7px;text-align:left">품목</th><th style="padding:7px;text-align:left">시험항목</th>
+              <th style="padding:7px;text-align:left">기준규격</th><th style="padding:7px;text-align:left">유효기간</th>
+            </tr></thead>
+            <tbody>
+            {% for it in hf.food_code.rows %}
+            <tr>
+              <td style="padding:7px;border-top:1px solid var(--line-2)">{{ (it.PRDLST_NM or '')|truncate(16) }}</td>
+              <td style="padding:7px;border-top:1px solid var(--line-2)">{{ (it.T_KOR_NM or '')|truncate(16) }}</td>
+              <td style="padding:7px;border-top:1px solid var(--line-2);color:var(--ink-2)">{{ (it.SPEC_VAL_SUMUP or it.SPEC_VAL or '')|truncate(28) }}</td>
+              <td style="padding:7px;border-top:1px solid var(--line-2);font-family:'JetBrains Mono',monospace;color:var(--ink-3)">{{ it.VALD_BEGN_DT or '' }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          <div style="font-size:11px;color:var(--ink-3);margin-top:6px">"{{ hf.food_code.q }}" 기준규격 {{ hf.food_code.total }}건 중 상위 {{ hf.food_code.rows|length }}건</div>
+          {% else %}
+          <div style="padding:16px;text-align:center;color:var(--ink-3);font-size:12px">"{{ hf.food_code.q }}" 식품공전 기준규격 결과 없음</div>
+          {% endif %}
+        {% else %}
+        <div style="font-size:11px;color:var(--ink-4)">※ 식품공전은 대용량이라 품목명 검색으로 조회합니다.</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
     {# R&D 전용 — FDA 특허 분쟁 트래커 (v3 R3-9) #}
     {% if fda_tracker %}
     <div class="app-card" style="margin-bottom:20px">

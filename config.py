@@ -226,6 +226,27 @@ FOODSAFETY_SERVICES = {
     # 추가 파라미터: CHNG_DT, PRDLST_REPORT_NO, PRDLST_NM, BSSH_NM, LCNS_NO, RAWMTRL_NM, PRMS_DT, PRDLST_DCNM
     "food_report_raw": "C002",
 
+    # 건강기능식품 · 식품공전 (2026-05-27 승인 — FOODSAFETY_KEY_ID 사용)
+    # I-0050 건강기능식품 개별인정형 정보
+    #   응답: HF_FNCLTY_MTRAL_RCOGN_NO(원료인정번호), RAWMTRL_NM(원재료명),
+    #         PRIMARY_FNCLTY(주된 기능성), DAY_INTK_HIGHLIMIT/LOWLIMIT(1일 섭취량 상/하한),
+    #         IFTKN_ATNT_MATR_CN(섭취시 주의사항), WT_UNIT(중량단위)
+    "hf_individual": "I-0050",
+
+    # I0760 건강기능식품 영양DB (분류 체계)
+    #   추가 파라미터: HELT_ITM_GRP_NM(명칭)
+    #   응답: HELT_ITM_GRP_NM(건강항목그룹명), LCLAS_NM(대분류), MLSFC_NM(중분류), SCLAS_NM(소분류)
+    "hf_nutrition": "I0760",
+
+    # I0030 건강기능식품 품목제조 신고사항 현황
+    "hf_report": "I0030",
+
+    # I0930 식품공전 (기준규격)
+    #   추가 파라미터: PRDLST_NM(품목명), LAST_UPDT_DTM(최종수정일 YYYYMMDD)
+    #   응답: PRDLST_NM(품목명), T_KOR_NM(시험항목), SPEC_VAL(기준규격값),
+    #         SPEC_VAL_SUMUP(규격값요약), VALD_BEGN_DT/VALD_END_DT(유효기간)
+    "food_code": "I0930",
+
     # 향후 추가 예정 (식품안전나라 신청 후):
     # "food_qr": "<푸드QR 서비스ID>",
     # "food_haccp": "<HACCP 서비스ID>",

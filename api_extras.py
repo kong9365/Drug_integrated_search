@@ -519,6 +519,49 @@ def fetch_food_report_raw(product_name=None, entp_name=None, rawmtrl_name=None,
 
 
 # ────────────────────────────────────────────────────────────────────────────
+# 건강기능식품 · 식품공전 (식품안전나라, FOODSAFETY_KEY_ID 사용)
+# ────────────────────────────────────────────────────────────────────────────
+
+def fetch_hf_individual(material_name=None, start_idx=1, end_idx=10):
+    """
+    건강기능식품 개별인정형 정보 (I-0050).
+    응답: HF_FNCLTY_MTRAL_RCOGN_NO(원료인정번호), RAWMTRL_NM(원재료명),
+          PRIMARY_FNCLTY(주된 기능성), DAY_INTK_HIGHLIMIT/LOWLIMIT(1일 섭취량 상/하한),
+          IFTKN_ATNT_MATR_CN(섭취시 주의사항), WT_UNIT(중량단위)
+    ※ 서버 검색 파라미터 미보장 → 결과에서 material_name 클라이언트 필터.
+    """
+    resp = fetch_foodsafety("hf_individual", None, start_idx=start_idx, end_idx=end_idx)
+    if material_name and resp.get("items"):
+        n = material_name.strip().lower()
+        resp["items"] = [it for it in resp["items"]
+                         if n in str(it.get("RAWMTRL_NM", "")).lower()]
+    return resp
+
+
+def fetch_hf_nutrition(name=None, start_idx=1, end_idx=10):
+    """건강기능식품 영양DB 분류체계 (I0760). 추가 파라미터: HELT_ITM_GRP_NM(명칭)."""
+    return fetch_foodsafety("hf_nutrition",
+                            {"HELT_ITM_GRP_NM": name},
+                            start_idx=start_idx, end_idx=end_idx)
+
+
+def fetch_hf_report(start_idx=1, end_idx=10):
+    """건강기능식품 품목제조 신고사항 현황 (I0030)."""
+    return fetch_foodsafety("hf_report", None, start_idx=start_idx, end_idx=end_idx)
+
+
+def fetch_food_code(product_name=None, last_updt=None, start_idx=1, end_idx=10):
+    """
+    식품공전 기준규격 (I0930). 추가 파라미터: PRDLST_NM(품목명), LAST_UPDT_DTM(YYYYMMDD).
+    응답: PRDLST_NM(품목명), T_KOR_NM(시험항목), SPEC_VAL(기준규격값),
+          SPEC_VAL_SUMUP(규격값요약), VALD_BEGN_DT/VALD_END_DT(유효기간)
+    """
+    return fetch_foodsafety("food_code",
+                            {"PRDLST_NM": product_name, "LAST_UPDT_DTM": last_updt},
+                            start_idx=start_idx, end_idx=end_idx)
+
+
+# ────────────────────────────────────────────────────────────────────────────
 # 카운트 전용 헬퍼 (랜딩 데모용 — 빠른 응답)
 # ────────────────────────────────────────────────────────────────────────────
 

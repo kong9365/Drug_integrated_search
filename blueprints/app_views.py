@@ -1504,10 +1504,12 @@ def workspace(dept_id):
     if dept_id == "ra":
         reexam_calendar = _reexam_dday()
 
-    # 식품QA — 식품 행정처분 3종 (v3 R3-8)
+    # 식품QA — 식품 행정처분 3종 (v3 R3-8) + 건강기능식품·식품공전 (식품안전나라)
     food_sanctions = None
+    hf = None
     if dept_id == "food_qa":
         food_sanctions = _food_sanctions()
+        hf = _hf_foodsafety(food_code_q=request.args.get("food_code_q"))
 
     # R&D — FDA 특허 분쟁 트래커 (v3 R3-9)
     fda_tracker = None
@@ -1523,6 +1525,7 @@ def workspace(dept_id):
         events_by_kind=events_by_kind,
         reexam_calendar=reexam_calendar,
         food_sanctions=food_sanctions,
+        hf=hf,
         fda_tracker=fda_tracker,
     )
 
@@ -1610,6 +1613,42 @@ def _fda_tracker(limit=6):
     except Exception:
         pass
     out["total"] = len(out["lawsuit"]) + len(out["orangebook"]) + len(out["p4"])
+    return out
+
+
+def _hf_foodsafety(food_code_q=None):
+    """건강기능식품·식품공전 참조 데이터 (식품안전나라, FOODSAFETY_KEY_ID). 식품공전은 검색형(대용량)."""
+    from ..api_extras import (fetch_hf_individual, fetch_hf_nutrition,
+                              fetch_hf_report, fetch_food_code)
+    # ※ Jinja에서 dict.items() 메서드와 충돌하므로 출력 키는 'rows' 사용
+    out = {
+        "individual": {"rows": [], "total": 0},
+        "nutrition":  {"rows": [], "total": 0},
+        "report":     {"rows": [], "total": 0},
+        "food_code":  {"rows": [], "total": 0, "q": (food_code_q or "").strip()},
+    }
+    try:
+        r = fetch_hf_individual(end_idx=5)
+        out["individual"] = {"rows": (r.get("items") or [])[:5], "total": r.get("totalCount", 0)}
+    except Exception as e:
+        logger.debug(f"개별인정형 조회 실패: {e}")
+    try:
+        r = fetch_hf_nutrition(end_idx=8)
+        out["nutrition"] = {"rows": (r.get("items") or [])[:8], "total": r.get("totalCount", 0)}
+    except Exception as e:
+        logger.debug(f"건기식 영양DB 조회 실패: {e}")
+    try:
+        r = fetch_hf_report(end_idx=5)
+        out["report"] = {"rows": (r.get("items") or [])[:5], "total": r.get("totalCount", 0)}
+    except Exception as e:
+        logger.debug(f"건기식 품목제조 조회 실패: {e}")
+    if out["food_code"]["q"]:
+        try:
+            r = fetch_food_code(product_name=out["food_code"]["q"], end_idx=10)
+            out["food_code"] = {"rows": (r.get("items") or [])[:10],
+                                "total": r.get("totalCount", 0), "q": out["food_code"]["q"]}
+        except Exception as e:
+            logger.debug(f"식품공전 검색 실패: {e}")
     return out
 
 
