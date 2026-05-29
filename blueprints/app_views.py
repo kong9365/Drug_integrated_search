@@ -969,6 +969,44 @@ def watchlist_add():
     return redirect(f"{redirect_to}{sep}msg=추가됨")
 
 
+@app_bp.route("/watchlist/upload", methods=["POST"])
+def watchlist_upload():
+    """워치리스트 Excel 일괄 업로드 (v3 R3-5) — 품목명/ITEM_NAME 컬럼 1열 읽기."""
+    from . import watchlist_store
+    f = request.files.get("file")
+    if not f or not f.filename:
+        return redirect("/app/watchlist?msg=파일을_선택하세요")
+    try:
+        from openpyxl import load_workbook
+        wb = load_workbook(io.BytesIO(f.read()), read_only=True, data_only=True)
+        ws = wb.active
+        rows = list(ws.iter_rows(values_only=True))
+        if not rows:
+            return redirect("/app/watchlist?msg=빈_파일")
+        # 헤더에서 품목명 컬럼 찾기 (ITEM_NAME / 품목명 / 제품명), 없으면 1열
+        header = [str(c or "").strip() for c in rows[0]]
+        name_idx = 0
+        for i, h in enumerate(header):
+            if h in ("ITEM_NAME", "품목명", "제품명", "품목"):
+                name_idx = i
+                break
+        has_header = any(h in ("ITEM_NAME", "품목명", "제품명", "품목") for h in header)
+        data_rows = rows[1:] if has_header else rows
+        added = 0
+        for r in data_rows:
+            if name_idx >= len(r):
+                continue
+            name = str(r[name_idx] or "").strip()
+            if name:
+                watchlist_store.add_entry(query=name, label=name, kind="product",
+                                          note="Excel 일괄 업로드")
+                added += 1
+        return redirect(f"/app/watchlist?msg={added}건_추가됨")
+    except Exception as e:
+        logger.warning(f"워치리스트 업로드 실패: {e}")
+        return redirect("/app/watchlist?msg=업로드_실패")
+
+
 @app_bp.route("/watchlist/<entry_id>/delete", methods=["POST"])
 def watchlist_delete(entry_id):
     """워치리스트 항목 삭제."""
