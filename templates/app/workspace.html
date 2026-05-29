@@ -52,6 +52,38 @@
       {% endfor %}
     </div>
 
+    {# RA 전용 — 자사 재심사 D-Day 캘린더 (v3 R3-1) #}
+    {% if reexam_calendar and reexam_calendar.total %}
+    <div class="app-card" style="margin-bottom:20px">
+      <div class="app-card__head">
+        <div class="app-card__title">자사 재심사 D-Day 캘린더</div>
+        <span class="app-card__caption">자사 마스터 재심사 예정일 · 총 {{ reexam_calendar.total }}건</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+        {% for bucket, label, color in [('d30','D-30 임박','danger'),('d90','D-90 이내','warn'),('d365','D-365 이내','info')] %}
+        <div style="border:1px solid var(--line-2);border-radius:10px;padding:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <strong style="color:var(--{{ color }})">{{ label }}</strong>
+            <span class="badge {% if color=='danger' %}badge--danger{% elif color=='warn' %}badge--warn{% else %}badge--ok{% endif %}">{{ reexam_calendar[bucket]|length }}</span>
+          </div>
+          {% if reexam_calendar[bucket] %}
+          <div style="display:flex;flex-direction:column;gap:4px;font-size:12px">
+            {% for it in reexam_calendar[bucket][:6] %}
+            <a href="/app/qa/master/{{ it.item_code }}" style="display:flex;justify-content:space-between;text-decoration:none;color:var(--ink-1)">
+              <span>{{ it.item_name|truncate(16) }}</span>
+              <span style="font-family:'JetBrains Mono',monospace;color:var(--{{ color }})">D-{{ it.dday }}</span>
+            </a>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div style="font-size:11px;color:var(--ink-3);text-align:center;padding:8px">해당 없음</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
     <!-- 2-column main -->
     <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:20px">
 

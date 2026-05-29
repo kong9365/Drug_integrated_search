@@ -1245,6 +1245,11 @@ def workspace(dept_id):
         flat_events.extend(evs)
     flat_events.sort(key=lambda e: e.get("date", ""), reverse=True)
 
+    # RA 워크스페이스 — 자사 재심사 D-Day 캘린더 (v3 R3-1, master_item.reexam_date 활용)
+    reexam_calendar = None
+    if dept_id == "ra":
+        reexam_calendar = _reexam_dday()
+
     return render_template(
         "app/workspace.html",
         active_workspace=dept_id,
@@ -1252,7 +1257,49 @@ def workspace(dept_id):
         kpi_values=kpi_values,
         events=flat_events[:15],
         events_by_kind=events_by_kind,
+        reexam_calendar=reexam_calendar,
     )
+
+
+def _reexam_dday():
+    """자사 마스터 재심사 예정일 → D-Day 버킷 (D-30/D-90/D-365)."""
+    import datetime
+    try:
+        from .qa import db as qadb
+        today = datetime.date.today()
+        # reexam_date 는 "시작~종료" 범위 형식 다수 → 종료일(마감) 기준. 소량이라 전체 fetch 후 파싱.
+        rows = qadb.query(
+            """SELECT item_code, item_name, reexam_date FROM master_item
+               WHERE active=1 AND reexam_date IS NOT NULL AND reexam_date != ''""")
+        buckets = {"d30": [], "d90": [], "d365": []}
+        for r in rows:
+            raw = r["reexam_date"] or ""
+            end = raw.split("~")[-1]                 # 범위면 종료일, 단일이면 그대로
+            rd = "".join(ch for ch in end if ch.isdigit())[:8]
+            if len(rd) != 8:
+                continue
+            try:
+                exp = datetime.date(int(rd[:4]), int(rd[4:6]), int(rd[6:8]))
+            except ValueError:
+                continue
+            dday = (exp - today).days
+            if dday < 0:
+                continue  # 이미 만료(재심사 완료)
+            item = {"item_code": r["item_code"], "item_name": r["item_name"],
+                    "reexam_date": end.strip(), "dday": dday}
+            if dday <= 30:
+                buckets["d30"].append(item)
+            elif dday <= 90:
+                buckets["d90"].append(item)
+            elif dday <= 365:
+                buckets["d365"].append(item)
+        for b in buckets.values():
+            b.sort(key=lambda x: x["dday"])
+        return {"d30": buckets["d30"], "d90": buckets["d90"], "d365": buckets["d365"][:10],
+                "total": sum(len(b) for b in buckets.values())}
+    except Exception as e:
+        logger.debug(f"재심사 D-Day 계산 실패: {e}")
+        return None
 
 
 # ────────────────────────────────────────────────────────────────────────────
