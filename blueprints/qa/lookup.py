@@ -66,6 +66,28 @@ def events_for_item(item_code: str, limit: int = 10) -> List[Dict]:
         return []
 
 
+def same_ingredient_products(item_code: str, limit: int = 8) -> List[Dict]:
+    """해당 자사 품목과 동일 성분을 쓰는 다른 자사 품목 (master_ingredient 기반)."""
+    if not item_code:
+        return []
+    try:
+        ings = qadb.query("SELECT DISTINCT ingr_name FROM master_ingredient WHERE item_code=?", (item_code,))
+        names = [i["ingr_name"] for i in ings if i["ingr_name"]]
+        if not names:
+            return []
+        placeholders = ",".join("?" * len(names))
+        rows = qadb.query(
+            f"""SELECT DISTINCT m.item_code, m.item_name, m.permit_no, m.enrich_status, mi.ingr_name
+                FROM master_ingredient mi JOIN master_item m ON m.item_code = mi.item_code
+                WHERE mi.ingr_name IN ({placeholders}) AND mi.item_code != ? AND m.active=1
+                LIMIT ?""",
+            tuple(names) + (item_code, limit))
+        return rows
+    except Exception as e:
+        logger.debug(f"same_ingredient_products 실패: {e}")
+        return []
+
+
 def own_summary() -> Dict:
     """코파일럿/홈 브리핑용 자사 현황 요약."""
     try:

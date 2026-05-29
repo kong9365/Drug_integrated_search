@@ -572,9 +572,10 @@ def product_drug(code):
     except Exception as e:
         logger.warning(f"Product 360 데이터 수집 실패 (code={code}): {e}")
 
-    # 자사 마스터 대조 (v2 §2 S1) — 자사 품목이면 배지 + 관련 QA 이벤트
+    # 자사 마스터 대조 (v2 §2 S1) — 자사 품목이면 배지 + 관련 QA 이벤트 + 동성분 자사 품목
     own_product = None
     own_events = []
+    own_same_ingr = []
     try:
         from .qa import lookup as qa_lookup
         seq = (product or {}).get("ITEM_SEQ") if product else None
@@ -582,6 +583,7 @@ def product_drug(code):
             item_seq=seq, edi_code=code, item_name=(product or {}).get("ITEM_NAME") if product else None)
         if own_product:
             own_events = qa_lookup.events_for_item(own_product["item_code"])
+            own_same_ingr = qa_lookup.same_ingredient_products(own_product["item_code"])
     except Exception as e:
         logger.debug(f"자사 마스터 대조 실패: {e}")
 
@@ -595,6 +597,7 @@ def product_drug(code):
         detail=detail,
         own_product=own_product,
         own_events=own_events,
+        own_same_ingr=own_same_ingr,
         related_recalls=related_recalls,
         same_entity_recalls=same_entity_recalls,
         safety_letters=safety_letters,
