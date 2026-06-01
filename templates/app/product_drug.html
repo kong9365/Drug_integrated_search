@@ -533,6 +533,15 @@
             <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">사용상의 주의사항 PDF</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{% if detail.NB_DOC_ID %}<a href="{{ detail.NB_DOC_ID }}" target="_blank" rel="noopener" style="color:var(--brand);font-family:'JetBrains Mono',monospace;font-size:11px">📎 다운로드</a>{% else %}—{% endif %}</td></tr>
             <tr><td style="padding:8px;color:var(--ink-3)">기타 첨부</td><td style="padding:8px;color:var(--ink-2);font-size:12px">{% if detail.INSERT_FILE %}{{ detail.INSERT_FILE|truncate(150) }}{% else %}—{% endif %}</td></tr>
           </table>
+          {# 원본 전체 필드 덤프 — NO 140 상세 API가 반환한 모든 필드 무손실 노출 (누락 검증용) #}
+          <details style="margin-top:12px">
+            <summary style="cursor:pointer;font-size:12px;color:var(--ink-3);padding:6px 0">🔎 API 원본 전체 필드 ({{ detail|length }}개) — 위 항목 외 누락 없음 검증</summary>
+            <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:6px">
+              {% for k, v in detail.items()|sort %}
+              <tr><td style="padding:4px 8px;border-bottom:1px solid var(--line-2);color:var(--ink-3);font-family:'JetBrains Mono',monospace;width:32%;vertical-align:top">{{ k }}</td><td style="padding:4px 8px;border-bottom:1px solid var(--line-2);word-break:break-all">{{ v if v else '—' }}</td></tr>
+              {% endfor %}
+            </table>
+          </details>
           {% else %}
           {# detail 호출 실패 — 폴백: 목록(product_live) + e약은요(drug_easy)에서 추출 가능한 필드만 표시 #}
           <table style="width:100%;border-collapse:collapse;font-size:13px">

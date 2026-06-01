@@ -170,7 +170,9 @@
         <tr><td colspan="2" style="padding:6px 8px;background:var(--bg-subtle);color:var(--ink-3);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">성분·함량</td></tr>
         <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3);width:28%">주성분(상세)</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6">{{ detail.MATERIAL_NAME or '—' }}</td></tr>
         <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">주성분(영문)</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.MAIN_INGR_ENG or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">유효성분</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.MAIN_ITEM_INGR or '—' }}</td></tr>
         <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">총량</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.TOTAL_CONTENT or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">첨가제명</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-size:12px;line-height:1.6">{{ detail.INGR_NAME or '—' }}</td></tr>
 
         {# 제형·포장·저장 #}
         <tr><td colspan="2" style="padding:6px 8px;background:var(--bg-subtle);color:var(--ink-3);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">제형·포장·저장</td></tr>
@@ -188,6 +190,8 @@
         <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">마약류 구분</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{% if detail.NARCOTIC_KIND_CODE %}<span class="badge badge--danger">{{ detail.NARCOTIC_KIND_CODE }}</span>{% else %}—{% endif %}</td></tr>
         <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">신약 구분</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.NEWDRUG_CLASS_NAME or '—' }}</td></tr>
         <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">허가 종류</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.PERMIT_KIND_NAME or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">완제/원료 구분</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.MAKE_MATERIAL_FLAG or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">업종 유형</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.INDUTY_TYPE or '—' }}</td></tr>
 
         {# 재심사·변경 #}
         <tr><td colspan="2" style="padding:6px 8px;background:var(--bg-subtle);color:var(--ink-3);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">재심사·변경</td></tr>
@@ -195,6 +199,8 @@
         <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">재심사 기한일</td><td style="padding:8px;border-bottom:1px solid var(--line-2);color:{% if detail.REEXAM_DATE %}var(--warn);font-weight:600{% else %}var(--ink-3){% endif %}">{{ detail.REEXAM_DATE or '—' }}</td></tr>
         <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">최근 변경일</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.CHANGE_DATE or '—' }}</td></tr>
         <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">취소일</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.CANCEL_DATE or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">취소/신고 상태</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ detail.CANCEL_NAME or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3);vertical-align:top">변경 이력</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-size:12px;line-height:1.6">{{ detail.GBN_NAME or '—' }}</td></tr>
 
         {# 위탁제조·사업자 #}
         <tr><td colspan="2" style="padding:6px 8px;background:var(--bg-subtle);color:var(--ink-3);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">위탁제조·사업자</td></tr>
@@ -206,8 +212,23 @@
         <tr><td colspan="2" style="padding:6px 8px;background:var(--bg-subtle);color:var(--ink-3);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">첨부 문서 (식약처 nedrug)</td></tr>
         <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">효능·효과 PDF</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{% if detail.EE_DOC_ID %}<a href="{{ detail.EE_DOC_ID }}" target="_blank" rel="noopener" style="color:var(--brand);font-family:'JetBrains Mono',monospace;font-size:11px">📎 다운로드</a>{% else %}—{% endif %}</td></tr>
         <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">용법·용량 PDF</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{% if detail.UD_DOC_ID %}<a href="{{ detail.UD_DOC_ID }}" target="_blank" rel="noopener" style="color:var(--brand);font-family:'JetBrains Mono',monospace;font-size:11px">📎 다운로드</a>{% else %}—{% endif %}</td></tr>
-        <tr><td style="padding:8px;color:var(--ink-3)">사용상의 주의사항 PDF</td><td style="padding:8px">{% if detail.NB_DOC_ID %}<a href="{{ detail.NB_DOC_ID }}" target="_blank" rel="noopener" style="color:var(--brand);font-family:'JetBrains Mono',monospace;font-size:11px">📎 다운로드</a>{% else %}—{% endif %}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">사용상의 주의사항 PDF</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{% if detail.NB_DOC_ID %}<a href="{{ detail.NB_DOC_ID }}" target="_blank" rel="noopener" style="color:var(--brand);font-family:'JetBrains Mono',monospace;font-size:11px">📎 다운로드</a>{% else %}—{% endif %}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">첨부문서(II) PDF</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{% if item.item_seq %}<a href="https://nedrug.mfds.go.kr/pbp/cmn/pdfDownload/{{ item.item_seq }}/II" target="_blank" rel="noopener" style="color:var(--brand);font-family:'JetBrains Mono',monospace;font-size:11px">📎 다운로드</a>{% else %}—{% endif %}</td></tr>
+        <tr><td style="padding:8px;color:var(--ink-3)">기타 첨부파일</td><td style="padding:8px;font-size:12px">{{ detail.INSERT_FILE|truncate(150) if detail.INSERT_FILE else '—' }}</td></tr>
       </table>
+
+      {# 원본 전체 필드 덤프 — API가 반환한 모든 필드를 빠짐없이 노출 (누락 검증용) #}
+      <details style="margin-top:14px">
+        <summary style="cursor:pointer;font-size:12px;color:var(--ink-3);padding:6px 0">🔎 API 원본 전체 필드 ({{ detail|length }}개) — 위 항목 외 누락 없음 검증</summary>
+        <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:6px">
+          {% for k, v in detail.items()|sort %}
+          <tr>
+            <td style="padding:4px 8px;border-bottom:1px solid var(--line-2);color:var(--ink-3);font-family:'JetBrains Mono',monospace;width:32%;vertical-align:top">{{ k }}</td>
+            <td style="padding:4px 8px;border-bottom:1px solid var(--line-2);word-break:break-all">{{ v if v else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </details>
     </div>
     {% else %}
     <div class="app-card">
@@ -222,33 +243,6 @@
       </div>
     </div>
     {% endif %}
-  </div>
-
-  <!-- 포장 -->
-  <div data-p360-panel="packaging">
-    <div class="app-card">
-      <div class="app-card__head"><div class="app-card__title">포장단위 — {{ packaging|length }}건</div></div>
-      {% if packaging %}
-      <table style="width:100%;border-collapse:collapse;font-size:13px">
-        <thead><tr style="background:var(--bg-subtle)">
-          <th style="padding:8px;text-align:left">포장형태</th><th style="padding:8px;text-align:left">규격(내수)</th>
-          <th style="padding:8px;text-align:left">규격(수출)</th><th style="padding:8px;text-align:left">생산여부</th>
-        </tr></thead>
-        <tbody>
-        {% for pk in packaging %}
-        <tr>
-          <td style="padding:8px;border-top:1px solid var(--line-2)">{{ pk.pkg_type or '—' }}</td>
-          <td style="padding:8px;border-top:1px solid var(--line-2)">{{ pk.spec_dom or '—' }}</td>
-          <td style="padding:8px;border-top:1px solid var(--line-2)">{{ pk.spec_exp or '—' }}</td>
-          <td style="padding:8px;border-top:1px solid var(--line-2)">{{ pk.production_yn or '—' }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <div style="padding:24px;text-align:center;color:var(--ink-3);font-size:13px">포장 상세 데이터 없음 — 사내 포장규격: <strong>{{ item.pack_spec or '—' }}</strong> (SAP 연동 시 포장자재 상세 보강)</div>
-      {% endif %}
-    </div>
   </div>
 
   <!-- 규제 이벤트 -->

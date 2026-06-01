@@ -96,7 +96,6 @@ def master():
 _PM_TABS = [
     ("ingredient", "원약분량", "data"),
     ("approval_detail", "허가상세", "data"),
-    ("packaging", "포장단위", "data"),
     ("pkg_material", "포장자재", "pending"),
     ("reg_event", "규제 이벤트", "data"),
     ("related", "관련 품목", "data"),
