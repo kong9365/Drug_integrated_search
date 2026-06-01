@@ -283,7 +283,7 @@ SCHEMA_PATH = BASE_DIR / "db" / "schema.sql"
 # 자사 품목 마스터 엑셀 경로 — 자사 기밀, repo 밖 C:\Temp 보관 (환경변수로 재정의 가능)
 MASTER_XLSX_PATH = os.getenv(
     "MASTER_XLSX_PATH",
-    r"C:\Temp\품목 마스터 관리_2026-05-28.xlsx",
+    r"C:\Temp\품목 마스터 관리_2026-06-01.xlsx",
 )
 
 # 자사 허가권자명 (enrichment 클라이언트 매칭에 사용 — NO 140 ENTP_NAME 부분일치)
