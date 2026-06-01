@@ -245,6 +245,84 @@
     {% endif %}
   </div>
 
+  <!-- 낱알식별 (getMdcinGrnIdntfcInfoList03) -->
+  <div data-p360-panel="identification">
+    {% if ident %}
+    {# 요약 카드: 이미지 + 식별 속성 #}
+    <div class="app-card" style="margin-bottom:16px">
+      <div class="app-card__head"><div class="app-card__title">낱알식별 정보</div><span class="app-card__caption">낱알식별 (getMdcinGrnIdntfcInfoList03)</span></div>
+      <div style="display:flex;gap:22px;flex-wrap:wrap">
+        <div style="flex-shrink:0;text-align:center">
+          {% if ident.ITEM_IMAGE %}
+          <img src="{{ ident.ITEM_IMAGE }}" alt="낱알 이미지" style="width:240px;height:auto;border:1px solid var(--line-1);border-radius:12px;background:#fff">
+          {% else %}
+          <div style="width:240px;height:130px;border:1px solid var(--line-2);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--ink-4)">이미지 없음</div>
+          {% endif %}
+          <div style="font-size:11px;color:var(--ink-3);margin-top:6px">이미지 생성일 {{ ident.IMG_REGIST_TS or '—' }}</div>
+        </div>
+        <div style="flex:1;min-width:300px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px 20px;font-size:13px;align-content:start">
+          <div><span style="color:var(--ink-3)">제형</span><br><strong>{{ ident.DRUG_SHAPE or '—' }}{% if ident.FORM_CODE_NAME %} · {{ ident.FORM_CODE_NAME }}{% endif %}</strong></div>
+          <div><span style="color:var(--ink-3)">색상(앞/뒤)</span><br><strong>{{ ident.COLOR_CLASS1 or '—' }}{% if ident.COLOR_CLASS2 %} / {{ ident.COLOR_CLASS2 }}{% endif %}</strong></div>
+          <div><span style="color:var(--ink-3)">앞면 각인</span><br><strong>{{ ident.PRINT_FRONT or '—' }}</strong></div>
+          <div><span style="color:var(--ink-3)">뒷면 각인</span><br><strong>{{ ident.PRINT_BACK or '—' }}</strong></div>
+          <div><span style="color:var(--ink-3)">분할선(앞/뒤)</span><br><strong>{{ ident.LINE_FRONT or '없음' }} / {{ ident.LINE_BACK or '없음' }}</strong></div>
+          <div><span style="color:var(--ink-3)">크기(장×단×두께)</span><br><strong>{{ ident.LENG_LONG or '—' }} × {{ ident.LENG_SHORT or '—' }} × {{ ident.THICK or '—' }} mm</strong></div>
+          <div><span style="color:var(--ink-3)">분류</span><br><strong>{{ ident.CLASS_NO or '—' }} {{ ident.CLASS_NAME or '' }}</strong></div>
+          <div><span style="color:var(--ink-3)">전문/일반</span><br><strong>{{ ident.ETC_OTC_NAME or '—' }}</strong></div>
+        </div>
+      </div>
+    </div>
+
+    {# 전체 항목 표 #}
+    <div class="app-card">
+      <div class="app-card__head"><div class="app-card__title">낱알식별 전체 항목</div></div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <tr><td colspan="2" style="padding:6px 8px;background:var(--bg-subtle);color:var(--ink-3);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">외형·식별</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3);width:28%">성상</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ ident.CHART or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">제형 / 제형명</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ ident.DRUG_SHAPE or '—' }} / {{ ident.FORM_CODE_NAME or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">색상(앞/뒤)</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ ident.COLOR_CLASS1 or '—' }} / {{ ident.COLOR_CLASS2 or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">각인(앞/뒤)</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-weight:600">{{ ident.PRINT_FRONT or '—' }} / {{ ident.PRINT_BACK or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">분할선(앞/뒤)</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ ident.LINE_FRONT or '없음' }} / {{ ident.LINE_BACK or '없음' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">마크(앞/뒤)</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ ident.MARK_CODE_FRONT or '—' }} / {{ ident.MARK_CODE_BACK or '—' }}</td></tr>
+        <tr><td colspan="2" style="padding:6px 8px;background:var(--bg-subtle);color:var(--ink-3);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">크기 (mm)</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">장축 / 단축 / 두께</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ ident.LENG_LONG or '—' }} / {{ ident.LENG_SHORT or '—' }} / {{ ident.THICK or '—' }}</td></tr>
+        <tr><td colspan="2" style="padding:6px 8px;background:var(--bg-subtle);color:var(--ink-3);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">분류·코드</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">분류번호 / 분류명</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ ident.CLASS_NO or '—' }} / {{ ident.CLASS_NAME or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">전문/일반</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ ident.ETC_OTC_NAME or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">표준코드</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-family:'JetBrains Mono',monospace;font-size:12px;word-break:break-all">{{ ident.STD_CD or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">보험코드(EDI)</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-family:'JetBrains Mono',monospace">{{ ident.EDI_CODE or '—' }}</td></tr>
+        <tr><td colspan="2" style="padding:6px 8px;background:var(--bg-subtle);color:var(--ink-3);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">허가·업체</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">품목명 / 영문명</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ ident.ITEM_NAME or '—' }} / {{ ident.ITEM_ENG_NAME or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">품목기준코드</td><td style="padding:8px;border-bottom:1px solid var(--line-2);font-family:'JetBrains Mono',monospace">{{ ident.ITEM_SEQ or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">품목허가일 / 변경일</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ ident.ITEM_PERMIT_DATE or '—' }} / {{ ident.CHANGE_DATE or '—' }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid var(--line-2);color:var(--ink-3)">제조사 / 업소일련번호</td><td style="padding:8px;border-bottom:1px solid var(--line-2)">{{ ident.ENTP_NAME or '—' }} / {{ ident.ENTP_SEQ or '—' }}</td></tr>
+        <tr><td style="padding:8px;color:var(--ink-3)">사업자등록번호</td><td style="padding:8px;font-family:'JetBrains Mono',monospace">{{ ident.BIZRNO or '—' }}</td></tr>
+      </table>
+
+      {# 원본 전체 필드 덤프 — 낱알식별 API 반환 모든 필드 무손실 노출 #}
+      <details style="margin-top:14px">
+        <summary style="cursor:pointer;font-size:12px;color:var(--ink-3);padding:6px 0">🔎 API 원본 전체 필드 ({{ ident|length }}개) — 누락 없음 검증</summary>
+        <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:6px">
+          {% for k, v in ident.items()|sort %}
+          <tr>
+            <td style="padding:4px 8px;border-bottom:1px solid var(--line-2);color:var(--ink-3);font-family:'JetBrains Mono',monospace;width:32%;vertical-align:top">{{ k }}</td>
+            <td style="padding:4px 8px;border-bottom:1px solid var(--line-2);word-break:break-all">{{ v if v else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </details>
+    </div>
+    {% else %}
+    <div class="app-card">
+      <div class="app-card__head"><div class="app-card__title">낱알식별 정보</div><span class="app-card__caption">낱알식별 (getMdcinGrnIdntfcInfoList03)</span></div>
+      <div style="padding:30px;text-align:center;color:var(--ink-3);background:var(--bg-subtle);border-radius:10px;font-size:13px;line-height:1.6">
+        낱알식별 데이터 없음 — 정제·캡슐 등 외형이 있는 완제품만 등록됩니다(주사·시럽 등은 미등록).{% if item.item_seq %}<br>
+        <a href="https://nedrug.mfds.go.kr/pbp/CCBBB01/getItemDetail?itemSeq={{ item.item_seq }}" target="_blank" rel="noopener" style="color:var(--brand)">🔗 nedrug.mfds.go.kr 직접 조회</a>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
   <!-- 규제 이벤트 -->
   <div data-p360-panel="reg_event">
     <div class="app-card">

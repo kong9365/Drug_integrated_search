@@ -96,6 +96,7 @@ def master():
 _PM_TABS = [
     ("ingredient", "원약분량", "data"),
     ("approval_detail", "허가상세", "data"),
+    ("identification", "낱알식별", "data"),
     ("pkg_material", "포장자재", "pending"),
     ("reg_event", "규제 이벤트", "data"),
     ("related", "관련 품목", "data"),
@@ -150,21 +151,28 @@ def master_detail(code):
             detail = dr["items"][0]
     except Exception as e:
         logger.debug(f"master_detail NO140 상세 조회 실패: {e}")
-    # 낱알 이미지 (best-effort, matched 품목만)
+    # 낱알식별 (best-effort) — 전체 레코드 + 대표 이미지
+    #   이름 검색 후 item_seq 일치 → 광동(COMPANY_NAME) → 첫 행 순으로 대표 선택
+    ident = None
     pill = None
     try:
         from ...api_client import fetch_identification
-        nm = (item.get("item_name") or "").split("(")[0]
-        if nm and item.get("enrich_status") == "matched":
-            idr = fetch_identification(item_name=nm, num_of_rows=1)
-            if idr.get("items"):
-                pill = idr["items"][0].get("ITEM_IMAGE")
-    except Exception:
-        pass
+        from ...config import COMPANY_NAME
+        nm = (item.get("item_name") or "").split("(")[0].split("_")[0]
+        if nm:
+            idr = fetch_identification(item_name=nm, num_of_rows=5, download_images=False)
+            rows = idr.get("items") or []
+            if rows:
+                ident = (next((r for r in rows if item.get("item_seq") and r.get("ITEM_SEQ") == item.get("item_seq")), None)
+                         or next((r for r in rows if COMPANY_NAME in (r.get("ENTP_NAME") or "")), None)
+                         or rows[0])
+                pill = ident.get("ITEM_IMAGE")
+    except Exception as e:
+        logger.debug(f"master_detail 낱알식별 실패: {e}")
     return render_template("app/qa/master_detail.html", active_page="qa",
                            item=item, ingredients=ingredients, packaging=packaging,
                            reg_events=reg_events, related=related, signal=signal,
-                           detail=detail, pill_image_url=pill, tabs=_PM_TABS,
+                           detail=detail, ident=ident, pill_image_url=pill, tabs=_PM_TABS,
                            can_apqr=(item.get("enrich_status") == "matched"),
                            flash_msg=request.args.get("msg") or "")
 
