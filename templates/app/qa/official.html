@@ -1,0 +1,157 @@
+{% extends "_layout.html" %}
+
+{% block title %}광동 허가 현황 (식약처) — 광동 KD-IRIS{% endblock %}
+
+{% block breadcrumb %}
+  <span class="crumb-active">의약품QA / 광동 허가 현황 (식약처 기준)</span>
+{% endblock %}
+
+{% block content %}
+<div class="app-content" style="padding:24px 32px 40px">
+
+  {% if flash_msg %}<div style="margin-bottom:12px"><span class="badge badge--brand badge--dot">{{ flash_msg|replace('_',' ') }}</span></div>{% endif %}
+
+  <!-- 설명 배너 -->
+  <div class="app-card" style="padding:14px 16px;margin-bottom:16px;border-left:4px solid var(--brand);font-size:13px;color:var(--ink-2);line-height:1.55">
+    <strong>공공 기준 백본</strong> — 식약처 의약품 허가목록(NO 140)을 <code>허가권자="광동제약"</code>으로 통째 조회한
+    <strong>"허가 사실"의 단일 출처</strong>입니다. 사내 품목마스터(880)는 여기에 사내코드·포장·배치를 덧입히는 오버레이예요.
+    <strong>수동 업데이트</strong>를 누르면 식약처에서 다시 받아와 신규허가·재심사 변경·취하를 반영하고, 사내 품목과 자동 재연결합니다.
+  </div>
+
+  <!-- KPI -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px">
+    <div class="app-card" style="padding:16px">
+      <div class="t-caption">광동 허가 (식약처)</div>
+      <div style="font-size:26px;font-weight:700">{{ stats.total }}</div>
+      <div style="font-size:11px;color:var(--ink-3)">광동제약(주) 명의 의약품</div>
+    </div>
+    <div class="app-card" style="padding:16px">
+      <div class="t-caption">사내 연결</div>
+      <div style="font-size:26px;font-weight:700;color:var(--ok)">{{ stats.linked }}</div>
+      <div style="font-size:11px;color:var(--ink-3)">사내 품목마스터와 매칭됨</div>
+    </div>
+    <div class="app-card" style="padding:16px;border-color:{% if stats.new_unlinked %}var(--warn){% else %}var(--line-2){% endif %}">
+      <div class="t-caption">신규 (사내 미등록)</div>
+      <div style="font-size:26px;font-weight:700;color:{% if stats.new_unlinked %}var(--warn){% else %}var(--ink-2){% endif %}">{{ stats.new_unlinked }}</div>
+      <div style="font-size:11px;color:var(--ink-3)">허가는 있으나 사내 마스터에 없음</div>
+    </div>
+    <div class="app-card" style="padding:16px">
+      <div class="t-caption">취하·취소</div>
+      <div style="font-size:26px;font-weight:700;color:var(--ink-2)">{{ stats.canceled }}</div>
+      <div style="font-size:11px;color:var(--ink-3)">허가 취하/취소 이력</div>
+    </div>
+    <div class="app-card" style="padding:16px">
+      <div class="t-caption">마지막 동기화</div>
+      <div style="font-size:15px;font-weight:700;margin-top:6px">
+        {% if stats.synced_at %}{{ stats.synced_at[:10] }}<br><span style="font-size:12px;color:var(--ink-3)">{{ stats.synced_at[11:16] }}</span>{% else %}<span style="color:var(--ink-3);font-size:13px">미실행</span>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 동기화 버튼 + 진행률 -->
+  <div class="app-card" style="padding:16px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <form method="post" action="{{ url_for('qa.official_sync') }}" style="margin:0">
+      <button type="submit" class="btn btn--primary btn--sm" id="syncBtn">🔄 수동 업데이트 (식약처 재조회)</button>
+    </form>
+    <a href="{{ url_for('qa.master') }}" class="btn btn--ghost btn--sm">← 사내 품목마스터</a>
+    <div id="syncProgress" style="flex:1;font-size:13px;color:var(--ink-3)">
+      {% if progress.running %}
+        <span style="color:var(--brand)">⏳ {{ progress.phase or '진행' }}… 허가 {{ progress.official }}건 / 상세 {{ progress.done }}</span>
+      {% elif progress.error %}
+        <span style="color:var(--danger)">⚠ 최근 동기화 오류: {{ progress.error }}</span>
+      {% elif progress.finished_at %}
+        <span style="color:var(--ok)">✓ 최근 동기화 완료 — 허가 {{ progress.official }} / 사내연결 {{ progress.linked }} (자동링크 {{ progress.relinked }})</span>
+      {% else %}
+        <span>식약처 NO 140 (getDrugPrdtPrmsnInq07) 전체 페이지 + 상세 보강 (약 1~2분)</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 검색·필터 -->
+  <form method="get" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <input type="text" name="q" value="{{ q }}" placeholder="허가품목명·허가번호·기준코드 검색"
+           style="flex:1;min-width:220px;padding:8px 12px;border:1px solid var(--line-2);border-radius:8px">
+    <select name="link" style="padding:8px 12px;border:1px solid var(--line-2);border-radius:8px">
+      <option value="">전체</option>
+      <option value="linked"   {% if link=='linked' %}selected{% endif %}>사내 연결됨</option>
+      <option value="new"      {% if link=='new' %}selected{% endif %}>신규(미등록)</option>
+      <option value="canceled" {% if link=='canceled' %}selected{% endif %}>취하·취소</option>
+    </select>
+    <button type="submit" class="btn btn--ghost btn--sm">검색</button>
+  </form>
+
+  <!-- 테이블 -->
+  <div class="app-card" style="padding:0;overflow:hidden">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="background:var(--bg-subtle);text-align:left">
+        <th style="padding:10px 12px">허가 품목명</th>
+        <th style="padding:10px 12px">허가번호</th>
+        <th style="padding:10px 12px">허가일</th>
+        <th style="padding:10px 12px">재심사</th>
+        <th style="padding:10px 12px">구분</th>
+        <th style="padding:10px 12px">ATC</th>
+        <th style="padding:10px 12px">사내 연결</th>
+        <th style="padding:10px 12px">상태</th>
+      </tr></thead>
+      <tbody>
+      {% for r in rows %}
+      <tr style="border-top:1px solid var(--line-2)">
+        <td style="padding:8px 12px;font-weight:600">{{ r.item_name }}
+          <div style="font-size:10px;color:var(--ink-4);font-family:'JetBrains Mono',monospace">seq {{ r.item_seq }}</div>
+        </td>
+        <td style="padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:12px">{{ r.permit_no or '—' }}</td>
+        <td style="padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:12px">{{ r.permit_date or '—' }}</td>
+        <td style="padding:8px 12px;color:{% if r.reexam_date %}var(--warn){% else %}var(--ink-3){% endif %}">{{ r.reexam_date or '—' }}</td>
+        <td style="padding:8px 12px;font-size:12px">{{ r.etc_otc or '—' }}</td>
+        <td style="padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:11px">{{ r.atc_code or '—' }}</td>
+        <td style="padding:8px 12px">
+          {% if r.linked_list %}
+            {% for code in r.linked_list %}<a href="{{ url_for('qa.master_detail', code=code) }}" class="badge badge--ok" style="text-decoration:none;margin:1px">{{ code }}</a>{% endfor %}
+          {% else %}<span style="color:var(--ink-3);font-size:12px">—</span>{% endif %}
+        </td>
+        <td style="padding:8px 12px">
+          {% if r.cancel_date %}<span class="badge badge--danger">취하</span>
+          {% elif r.linked_list %}<span class="badge badge--ok">연결</span>
+          {% else %}<span class="badge badge--warn">신규</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if not rows %}
+    <div style="padding:48px;text-align:center;color:var(--ink-3)">
+      {% if stats.total == 0 %}
+        아직 동기화하지 않았습니다. 위 <strong>🔄 수동 업데이트</strong> 버튼을 눌러 식약처에서 광동 허가를 받아오세요.
+      {% else %}검색 결과 없음{% endif %}
+    </div>
+    {% endif %}
+  </div>
+  <div style="margin-top:8px;font-size:11px;color:var(--ink-3)">{{ rows|length }}건 표시 (최대 2000)</div>
+</div>
+
+<script>
+// 동기화 진행률 폴링
+(function() {
+  var prog = document.getElementById('syncProgress');
+  var btn = document.getElementById('syncBtn');
+  function poll() {
+    fetch('{{ url_for("qa.official_sync_status") }}')
+      .then(function(r){ return r.json(); })
+      .then(function(p){
+        if (p.running) {
+          if (btn) btn.disabled = true;
+          prog.innerHTML = '<span style="color:var(--brand)">⏳ ' + (p.phase || '진행') + '… 허가 ' + p.official +
+            '건 / 상세 ' + p.done + ' (자동링크 ' + p.relinked + ')</span>';
+          setTimeout(poll, 2000);
+        } else if (p.finished_at && btn && btn.disabled) {
+          window.location.reload();
+        }
+      })
+      .catch(function(){ /* 무시 */ });
+  }
+  var params = new URLSearchParams(window.location.search);
+  {% if progress.running %}poll();{% endif %}
+  if (params.get('msg') === 'sync_started') { setTimeout(poll, 1500); }
+})();
+</script>
+{% endblock %}

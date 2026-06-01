@@ -230,6 +230,63 @@ def master_confirm():
 
 
 # ════════════════════════════════════════════════════════════════════════
+# Phase HYB — 광동 허가 백본 (공공 기준 역방향)
+#   식약처 NO140(entp_name=광동제약) 전체를 official_approval 로 동기화 + 사내 재링크
+# ════════════════════════════════════════════════════════════════════════
+@qa_bp.route("/official")
+def official():
+    """광동 허가 현황 (식약처 기준) — 338건 + 사내 연결 상태."""
+    from . import official as off
+    q = (request.args.get("q") or "").strip()
+    link = (request.args.get("link") or "").strip()  # ''|linked|new|canceled
+
+    where, params = [], []
+    if q:
+        where.append("(o.item_name LIKE ? OR o.permit_no LIKE ? OR o.item_seq LIKE ?)")
+        params += [f"%{q}%", f"%{q}%", f"%{q}%"]
+    if link == "canceled":
+        where.append("(o.cancel_date IS NOT NULL AND o.cancel_date != '')")
+    where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+
+    rows = qadb.query(f"""
+        SELECT o.*, (
+            SELECT GROUP_CONCAT(m.item_code, ',') FROM master_item m
+            WHERE m.item_seq = o.item_seq AND m.active=1
+        ) AS linked_codes
+        FROM official_approval o
+        {where_sql}
+        ORDER BY o.item_name LIMIT 2000""", tuple(params))
+    # link 필터(연결/신규)는 파생 컬럼이라 파이썬에서 적용
+    if link == "linked":
+        rows = [r for r in rows if r.get("linked_codes")]
+    elif link == "new":
+        rows = [r for r in rows if not r.get("linked_codes")]
+    for r in rows:
+        r["linked_list"] = (r.get("linked_codes") or "").split(",") if r.get("linked_codes") else []
+
+    return render_template("app/qa/official.html", active_page="official",
+                           rows=rows, stats=off.official_stats(),
+                           progress=off.get_progress(),
+                           q=q, link=link,
+                           flash_msg=request.args.get("msg") or "")
+
+
+@qa_bp.route("/official/sync", methods=["POST"])
+def official_sync():
+    """광동 허가 동기화(백그라운드) — 수동 업데이트 버튼."""
+    from . import official as off
+    started = off.run_sync_async()
+    return redirect(url_for("qa.official") + ("?msg=sync_started" if started else "?msg=already_running"))
+
+
+@qa_bp.route("/official/sync/status")
+def official_sync_status():
+    """동기화 진행률 폴링 (JSON)."""
+    from . import official as off
+    return jsonify(off.get_progress())
+
+
+# ════════════════════════════════════════════════════════════════════════
 # Phase M-3 — APQR(연간제품품질평가) 초안 자동작성
 # ════════════════════════════════════════════════════════════════════════
 def _apqr_years():

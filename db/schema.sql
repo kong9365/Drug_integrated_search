@@ -146,6 +146,34 @@ CREATE TABLE IF NOT EXISTS master_packaging (
 );
 CREATE INDEX IF NOT EXISTS idx_mpkg_item ON master_packaging(item_code);
 
+-- ════════════════════════════════════════════════════════════════════════
+-- 광동 허가 백본 (Phase HYB — 공공 기준 역방향)
+--   식약처 NO140을 entp_name='광동제약' 으로 통째 조회한 "허가 사실" 미러.
+--   master_item(사내 880)이 내부정보 오버레이, official_approval(공공 N)이 허가 SSOT.
+--   "수동 업데이트" 클릭 시 재조회 → upsert + 사내 재링크.
+-- ════════════════════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS official_approval (
+    item_seq        TEXT PRIMARY KEY,   -- 식약처 품목기준코드 (ITEM_SEQ)
+    item_name       TEXT NOT NULL,
+    entp_name       TEXT,               -- 허가권자 (광동제약(주) 등)
+    permit_no       TEXT,               -- 허가번호 (PRDUCT_PRMISN_NO)
+    permit_date     TEXT,               -- 허가일 (ITEM_PERMIT_DATE)
+    cancel_date     TEXT,               -- 취하/취소일
+    cancel_name     TEXT,               -- 취소 사유/상태 (정상/취하 등)
+    reexam_date     TEXT,               -- 재심사 기한
+    atc_code        TEXT,
+    edi_code        TEXT,
+    bar_code        TEXT,
+    chart           TEXT,               -- 성상
+    storage_method  TEXT,
+    material_name   TEXT,               -- 주성분 상세 원문
+    etc_otc         TEXT,               -- 전문/일반 구분
+    norm_name       TEXT,               -- 정규화 품목명 (사내 재링크용 로컬 매칭 키)
+    synced_at       TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_oa_norm ON official_approval(norm_name);
+CREATE INDEX IF NOT EXISTS idx_oa_entp ON official_approval(entp_name);
+
 -- SAP/EDMS 연동 대기 테이블 (Phase M-4 스텁 — item_code 키, 빈 상태)
 CREATE TABLE IF NOT EXISTS product_batch (        -- SAP 연동 예정
     id INTEGER PRIMARY KEY AUTOINCREMENT,
